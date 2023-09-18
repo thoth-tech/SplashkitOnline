@@ -2,10 +2,22 @@
 
 ---
 title: 'Requirements for building Splashkit Online'
-author: 'Anshuman Bishnoi'
 date: '2023-08-08'
 output: html_document
 ---
+
+## Steps needed to complete after downloading the above files
+
+Either get the [zip file](https://codemirror.net/5/codemirror.zip) with
+the latest version, or make sure you have [Node](https://nodejs.org/)
+installed and run:
+
+    npm install codemirror@5
+
+**NOTE**: This is the source repository for the library, and not the
+distribution channel. Cloning it is not the recommended way to install
+the library, and will in fact not work unless you also run the build
+step.
 
 ## Requirements for building Splashkit Online (Web code editor)
 
