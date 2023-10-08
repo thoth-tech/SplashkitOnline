@@ -24,6 +24,7 @@ app.get('/', (req, res) => {
 
 });
 
+// Sherap's work
 app.get('/auth/google',
     passport.authenticate('google', { scope: ['email', 'profile']})
 )
@@ -42,3 +43,4 @@ app.get('/protected', isLoggedIn, (req,res) =>{
     res.send('You are logged in successfully');
 })
 app.listen(5000, () => console.log('listening on 5000'));
+// Sherap's work
