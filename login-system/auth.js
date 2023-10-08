@@ -1,3 +1,4 @@
+// Sherap's work
 const passport = require('passport')
 const GoogleStrategy = require('passport-google-oauth2').Strategy;
 
@@ -16,6 +17,7 @@ passport.use(new GoogleStrategy({
     
   }
 ));
+// Sherap's work
 
 passport.serializeUser(function(user,done)
 {
