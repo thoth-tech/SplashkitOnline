@@ -1,50 +1,22 @@
-var editor = CodeMirror.fromTextArea(document.getElementById("editor"), {
-    mode: "text/x-c++src",
+"use strict";
+
+let editorInit = CodeMirror.fromTextArea(document.getElementById("editorInit"), {
+    mode: "text/javascript",
     theme: "dracula",
     lineNumbers: true,
     autoCloseBrackets: true,
 })
+editorInit.display.wrapper.classList.add("flex-grow-1");
 
-var width = window.innerWidth
-var input = document.getElementById("input")
-var output = document.getElementById("output")
-var run = document.getElementById("run")
-editor.setSize(0.7 * width, "500")
+let width = window.innerWidth
+let runInitButton = document.getElementById("runInit")
 
-var option = document.getElementById("inlineFormSelectPref")
+// Code Running
+function runInitialization(){
+    eval(editorInit.getValue());
+}
 
-option.addEventListener("change", function () {
-    if (option.value == "Java") {
-        editor.setOption("mode", "text/x-java")
-    }
-    else if (option.value == "Cpp") {
-        editor.setOption("mode", "text/x-c++src")
-    }
-    else {
-        editor.setOption("mode", "text/x-python")
-    }
-})
-
-// Sherap's work starts here
-var code;
-
-run.addEventListener("click", async function () {
-    code = {
-        code: editor.getValue(),
-        input: input.value,
-        lang: option.value
-    }
-    console.log(code)
-    var oData = await fetch("http://localhost:8000/compile", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(code)
-    })
-    var d = await oData.json()
-    output.value = d.output
-    console.log(d.output);
-})
-// Sherap's work ends here
-
+// Setup code editor buttons
+runInitButton.addEventListener("click", async function () {
+    runInitialization();
+});
