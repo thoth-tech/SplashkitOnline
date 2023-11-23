@@ -1,4 +1,5 @@
 <!-- Sherap's work starts here -->
+<!-- Heavily modified by Sean, not much remaining of the original -->
 <!DOCTYPE html>
 <html lang="en">
 
@@ -31,6 +32,9 @@
         <div class="flex-row d-flex m-3 flex-grow-1">
             <div class="d-flex flex-column" style="max-width:40em;">
                 <div class="d-flex justify-content-between mb-2 bg-dark rounded p-2">
+                    <div class="flex-column col-12 w-25">
+                        <h3 style="color:white;"> Initialization </h3>
+                    </div>
                     <div>
                         <button type="button" id="runInit" class="btn btn-success"><i class="bi bi-play-fill"></i></button>
                     </div>
@@ -40,7 +44,17 @@
 open_window("test!",1280,720);
 clear_screen(rgba_color_from_double(1.0,1.0,1.0,0));
 refresh_screen();
-
+</textarea>
+                </div>
+                <div class="d-flex justify-content-between mb-2 bg-dark rounded p-2 ">
+                    <div class="flex-column col-12 w-25"><h3 style="color:white;"> Main Loop </h3></div>
+                    <div>
+                        <button type="button" id="runMainLoop" class="btn btn-success"><i class="bi bi-play-fill"></i></button>
+                        <button type="button" id="pauseMainLoop" class="btn btn-success"><i class="bi bi-pause-fill"></i></button>
+                    </div>
+                </div>
+                <div class="d-flex mb-2 bg-dark rounded p-2 flex-grow-1 flex-column">
+                <textarea type="text" id="editorMainLoop" class="form-control flex-grow-1" aria-label="editorMainLoop" style="height:100%;">
 clear_screen(rgba_color_from_double(1,1,1,1));
 fill_ellipse(rgba_color_from_double(0,1,0,1), 0, 400, 800, 400);
 fill_rectangle(rgba_color_from_double(0.4,0.4,0.4,1), 300, 300, 200, 200);
@@ -72,4 +86,5 @@ write_line("Test!");
 <script src="script.js"></script>
 <script src="splashkit/SplashKitBackendWASM.js"></script>
 </html>
+<!-- Sean's work ends here -->
 <!-- Sherap's work ends here -->
