@@ -4,7 +4,12 @@ let statusElement = document.getElementById('status');
 let progressElement = document.getElementById('progress');
 let spinnerElement = document.getElementById('spinner');
 
+let moduleEvents = new EventTarget();
+
 var Module = {
+    onRuntimeInitialized: (function() {
+        moduleEvents.dispatchEvent(new Event("onRuntimeInitialized"));
+    }),
     print: (function() {
         let element = document.getElementById('output');
         if (element) element.value = ''; // clear browser cache
