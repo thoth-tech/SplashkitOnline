@@ -64,33 +64,12 @@ refresh_screen();
 write_line("Test!");
 </textarea>
                 </div>
-                <div class="column m-3 justify-content-center" style="color:white;height:16em;vertical-align:top;overflow-y:auto;position:relative;">
-                    This is where files go
-                    <div style="background-color:#282a36; color:#f8f8f2;">
-                    <div class="directory node"><div class="node-label bi-folder2-open">Resource</div><div class="directory-contents open-directory">
-                            <div class="directory node"><div class="node-label bi-folder2-open">Sound</div><div class="directory-contents open-directory">
-                                <div class="node file bi-file-music node-label">chipmunk.ogg</div>
-                                <div class="node file bi-file-music node-label">clap.ogg</div>
-                            </div></div>
-                            <div class="directory node"><div class="node-label bi-folder2-open">Graphics</div><div class="directory-contents open-directory">
-                                <div class="node file bi-file-image node-label">chara.png</div>
-                                <div class="node file bi-file-image node-label">happy.jpg</div>
-                            </div></div>
-                            <div class="directory node"><div class="node-label bi-folder2">Json</div><div class="directory-contents closed-directory">
-                                <div class="node file bi-file node-label">chara.json</div>
-                                <div class="node file bi-file node-label">level2.json</div>
-                                <div class="node file bi-file node-label">level2.json</div>
-                                <div class="node file bi-file node-label">level2.json</div>
-                                <div class="node file bi-file node-label">level2.json</div>
-                                <div class="node file bi-file node-label">level2.json</div>
-                                <div class="node file bi-file node-label">level2.json</div>
-                                <div class="node file bi-file node-label">level2.json</div>
-                                <div class="node file bi-file node-label">level2.json</div>
-                            </div></div>
-                            <div class="directory node"><div class="node-label bi-folder2">Misc</div><div class="directory-contents closed-directory">
-                            </div></div>
+                <div class="d-flex flex-column column m-3 justify-content-center" style="color:white;height:16em;vertical-align:position:relative;">
+                    <h3 style="color:white;"> Files </h3>
+                    <div style="background-color:#282a36; color:#f8f8f2;top;overflow-y:auto;height:100%;position:relative;flex:1;">
+                        <div class="directory node" id="fileView" data-path="" data-label=""><div class="node-label bi-folder2-open">/</div>
+                            <div class="directory-contents open-directory"></div>
                         </div>
-                    </div>
                     </div>
                 </div>
             </div>
