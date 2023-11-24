@@ -1,0 +1,38 @@
+.node{
+    color:#f8f8f2;
+    cursor: pointer;
+}
+.node-label{
+    width:100%;
+    display:inline-block;
+}
+
+
+.directory-contents{
+    padding:00px 0px 0px 30px;
+    transition: max-height 0.3s ease;
+}
+.closed-directory
+{
+    overflow:hidden;
+}
+.open-directory
+{
+    overflow:hidden;
+}
+
+
+.in-drag{
+    opacity:50%;
+    cursor:grabbing !important;
+    position:fixed;
+}
+
+.insertion-point-display{
+    position:absolute;
+    height:2px;
+    background-color:#26A;
+    opacity:100%;
+    right:0px;
+    left:0px;
+}
