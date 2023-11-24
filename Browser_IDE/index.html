@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="codemirror-5.65.15/lib/codemirror.css">
     <link rel="stylesheet" href="codemirror-5.65.15/theme/dracula.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.9.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="stylesheet.css">
 
     <script src="codemirror-5.65.15/lib/codemirror.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"
@@ -38,6 +39,35 @@
                 <div>
                     <button type="button" id="run" class="btn btn-success"><i class="bi bi-play-fill"></i></button>
                 </div>
+                <div class="column m-3 justify-content-center" style="color:white;height:16em;vertical-align:top;overflow-y:auto;position:relative;">
+                    This is where files go
+                    <div style="background-color:#282a36; color:#f8f8f2;">
+                    <div class="directory node"><div class="node-label bi-folder2-open">Resource</div><div class="directory-contents open-directory">
+                            <div class="directory node"><div class="node-label bi-folder2-open">Sound</div><div class="directory-contents open-directory">
+                                <div class="node file bi-file-music node-label">chipmunk.ogg</div>
+                                <div class="node file bi-file-music node-label">clap.ogg</div>
+                            </div></div>
+                            <div class="directory node"><div class="node-label bi-folder2-open">Graphics</div><div class="directory-contents open-directory">
+                                <div class="node file bi-file-image node-label">chara.png</div>
+                                <div class="node file bi-file-image node-label">happy.jpg</div>
+                            </div></div>
+                            <div class="directory node"><div class="node-label bi-folder2">Json</div><div class="directory-contents closed-directory">
+                                <div class="node file bi-file node-label">chara.json</div>
+                                <div class="node file bi-file node-label">level2.json</div>
+                                <div class="node file bi-file node-label">level2.json</div>
+                                <div class="node file bi-file node-label">level2.json</div>
+                                <div class="node file bi-file node-label">level2.json</div>
+                                <div class="node file bi-file node-label">level2.json</div>
+                                <div class="node file bi-file node-label">level2.json</div>
+                                <div class="node file bi-file node-label">level2.json</div>
+                                <div class="node file bi-file node-label">level2.json</div>
+                            </div></div>
+                            <div class="directory node"><div class="node-label bi-folder2">Misc</div><div class="directory-contents closed-directory">
+                            </div></div>
+                        </div>
+                    </div>
+                    </div>
+                </div>
             </div>
             <textarea type="text" id="editor" class="form-control" aria-label="First name"></textarea>
         </div>
@@ -61,6 +91,7 @@
 
 <script src="loadsplashkit.js"></script>
 <script src="script.js"></script>
+<script src="fileview.js"></script>
 <script src="splashkit/SplashKitBackendWASM.js"></script>
 </html>
 <!-- Sherap's work ends here -->
