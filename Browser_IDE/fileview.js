@@ -106,12 +106,65 @@ function scanFilesystem(path){
     return nodes;
 }
 function isViewablePath(path){
+    if (path == null || path == undefined)return false;
     if (path.startsWith("/tmp"))return false;
     if (path.startsWith("/home"))return false;
     if (path.startsWith("/dev"))return false;
     if (path.startsWith("/proc"))return false;
     return true;
 }
+
+
+// File System Upload/Download Functions
+let reader = null;
+function uploadFile(){
+    reader= new FileReader();
+    let files = document.getElementById('fileuploader').files;
+    let file = files[0]; // maybe should handle multiple at once?
+    reader.addEventListener('loadend', function(e){
+        let result = reader.result;
+        const uint8_view = new Uint8Array(result);
+
+        let path = document.getElementById('fileuploader').dataset.uploadDirectory;
+        FS.writeFile(path+"/"+file.name, uint8_view);
+    });
+    reader.readAsArrayBuffer(file);
+}
+
+// Thanks Lucas Vinicius Hartmann! - https://stackoverflow.com/a/54468787
+// for viewFile and downloadFile - somewhat modified
+function viewFile(filename, mime) {
+    mime = mime || "application/octet-stream";
+
+    let content = Module.FS.readFile(filename);
+
+    let url = URL.createObjectURL(new Blob([content], {type: mime}));
+
+    window.open(url+"#"+filename);
+    setTimeout(() => {
+        URL.revokeObjectURL(url);
+    }, 2000);
+}
+function downloadFile(filename, mime) {
+    mime = mime || "application/octet-stream";
+
+    let content = Module.FS.readFile(filename);
+
+    let a = document.createElement('a');
+    a.download = filename;
+    a.href = URL.createObjectURL(new Blob([content], {type: mime}));
+    a.style.display = 'none';
+
+    document.body.appendChild(a);
+    a.click();
+
+    window.open(a.href+"#"+filename);
+    setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(a.href);
+    }, 2000);
+}
+
 
 
 // File System UI Node Creation Functions
@@ -144,13 +197,21 @@ function makeDirectoryNode(label){
     let dir_node_label = document.createElement("div");
     dir_node_label.classList.add("node-label", "bi-folder2-open");
 
+    let dir_node_label_text_div = document.createElement("div");
+    dir_node_label_text_div.classList.add("node-label-text");
+
+    let dir_node_upload_file_button = document.createElement("button");
+    dir_node_upload_file_button.classList.add("bi-plus-circle", "node-button");
+
     let dir_node_label_text = document.createTextNode(label);
 
     let dir_node_contents = document.createElement("div");
     dir_node_contents.classList.add("directory-contents", "open-directory");
 
 
-    dir_node_label.appendChild(dir_node_label_text);
+    dir_node_label_text_div.appendChild(dir_node_label_text);
+    dir_node_label.appendChild(dir_node_label_text_div);
+    dir_node_label.appendChild(dir_node_upload_file_button);
     dir_node.appendChild(dir_node_label);
     dir_node.appendChild(dir_node_contents);
 
@@ -183,6 +244,12 @@ function makeDirectoryNode(label){
         }
         e.stopPropagation();
     });
+    // Handle uploading files when clicked.
+    dir_node_upload_file_button.addEventListener("click", async function (e) {
+        document.getElementById("fileuploader").dataset.uploadDirectory = getFullPath(dir_node);
+        document.getElementById("fileuploader").click();
+        e.stopPropagation();
+    });
 
     initFileNodeCallbacks(dir_node);
     return dir_node;
@@ -201,12 +268,20 @@ function makeFileNode(label){
         fileType = "unknown";
     file_node_label.classList.add(iconLookup[fileType]);
 
+    let file_node_label_text_div = document.createElement("div");
+    file_node_label_text_div.classList.add("node-label-text");
+
     let file_node_label_text = document.createTextNode(label);
 
-    file_node_label.appendChild(file_node_label_text);
+    file_node_label_text_div.appendChild(file_node_label_text);
+    file_node_label.appendChild(file_node_label_text_div);
 
     file_node_label.addEventListener("click", async function (e) {
         e.stopPropagation();
+    });
+    file_node_label.addEventListener("dblclick", async function (e) {
+        e.stopPropagation();
+        viewFile(getFullPath(file_node_label),"text/plain");
     });
 
     initFileNodeCallbacks(file_node_label);

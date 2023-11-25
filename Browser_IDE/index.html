@@ -66,6 +66,7 @@ write_line("Test!");
                 </div>
                 <div class="d-flex flex-column column m-3 justify-content-center" style="color:white;height:16em;vertical-align:position:relative;">
                     <h3 style="color:white;"> Files </h3>
+                    <input type="file" id="fileuploader" onchange="uploadFile()" style="display:none;">
                     <div style="background-color:#282a36; color:#f8f8f2;top;overflow-y:auto;height:100%;position:relative;flex:1;">
                         <div class="directory node" id="fileView" data-path="" data-label=""><div class="node-label bi-folder2-open">/</div>
                             <div class="directory-contents open-directory"></div>

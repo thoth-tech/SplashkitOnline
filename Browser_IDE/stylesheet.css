@@ -8,7 +8,13 @@
 }
 .node-label{
     width:100%;
+    display:flex;
+    flex-direction: row !important;
     padding: 0px 20px 0px 0px;
+}
+.node-label-text{
+    flex: 1;
+    padding: 0px 0px 0px 3px;
 }
 .node-button{
     background: none;
@@ -29,6 +35,11 @@
 }
 .closed-directory{}
 .open-directory{}
+
+
+[class^="bi-"]::before, [class*=" bi-"]::before {
+    line-height: inherit !important;
+}
 
 
 .in-drag{
