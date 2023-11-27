@@ -7,6 +7,8 @@ With it you can immediately get started programming in Javascript using the [Spl
 
 ![prototype-image](SplashKitOnlineIDEPrototypeImage.png)
 
+## [Try Online!](https://whypenguins.github.io/SplashkitOnline/)
+
 ## Table Of Contents
 
 - [Installation](#installation)
@@ -17,8 +19,6 @@ With it you can immediately get started programming in Javascript using the [Spl
 - [Project Goals and Structure](#project-goals-and-structure)
     - [Technology Used](#technology-used)
 - [License](#license)
-
-## [Try Online!](https://whypenguins.github.io/SplashkitOnline/)
 ## Installation
 
 Installation involves two steps.
