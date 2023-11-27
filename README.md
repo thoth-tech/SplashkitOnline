@@ -29,7 +29,7 @@ Installation involves two steps.
 ### Setting up the IDE
 The IDE is just a simple node project with few dependencies, and can be setup with the following lines:
 ```bash
-git clone https://github.com/thoth-tech/SplashkitOnline.git
+git clone https://github.com/WhyPenguins/SplashkitOnline.git
 cd SplashkitOnline/Browser_IDE/
 npm install codemirror@5
 npm run server
