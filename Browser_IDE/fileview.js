@@ -423,9 +423,11 @@ moduleEvents.addEventListener("onRuntimeInitialized", function() {
 
         let new_dir_node = getNodeFromPath(pathDirName(e.path));
 
+        if (getChildNodeWithFilename(new_dir_node, pathFileName(e.path)) != null)
+            return;
+
         let dir_node = makeDirectoryNode(pathFileName(e.path), e.path);
         getDirectoryContents(new_dir_node).appendChild(dir_node);
-
     });
     FSEvents.addEventListener('onDeletePath', function(e) {
         if (!isViewablePath(e.path))return;
@@ -434,7 +436,10 @@ moduleEvents.addEventListener("onRuntimeInitialized", function() {
         new_dir_node.remove();
     });
     FSEvents.addEventListener('onOpenFile', function(e) {
-		let path = e.path;
+        if ((e.flags & 64)==0)
+            return;
+
+        let path = e.path;
         if (!path.startsWith("/"))
             path = "/"+e.path;
         if (!isViewablePath(path))return;
