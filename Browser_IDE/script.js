@@ -45,15 +45,48 @@ function stopMainLoop(){
     runMainLoopGo = false;
 }
 
+let initCodePath = "/code/codeblock_init.js"
+let mainLoopCodePath = "/code/codeblock_mainloop.js"
+function makeCodeFolder(){
+    try{
+        FS.mkdir("/code");
+    }
+    catch {}
+}
+function saveInitialization(){
+    makeCodeFolder();
+    FS.writeFile(initCodePath, editorInit.getValue());
+}
+function saveMainLoop()
+{
+    makeCodeFolder();
+    FS.writeFile(mainLoopCodePath, editorMainLoop.getValue());
+}
+
+function loadInitialization(){
+    editorInit.setValue(FS.readFile(initCodePath, {encoding: 'utf8'}));
+}
+function loadMainLoop()
+{
+    editorMainLoop.setValue(FS.readFile(mainLoopCodePath, {encoding: 'utf8'}));
+}
+FSEvents.addEventListener('onWriteToFile', function(e) {
+    if (e.path == initCodePath)
+        loadInitialization();
+    else if (e.path == mainLoopCodePath)
+        loadMainLoop();
+});
 
 // Setup code editor buttons
 pauseMainLoopButton.disabled = true;
 
 runInitButton.addEventListener("click", async function () {
+    saveInitialization();
     runInitialization();
 });
 
 runMainLoopButton.addEventListener("click", async function () {
+    saveMainLoop();
     runMainLoop();
     pauseMainLoopButton.disabled = false;
 });
