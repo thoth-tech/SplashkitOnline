@@ -117,7 +117,7 @@ function isViewablePath(path){
 
 // File System Upload/Download Functions
 let reader = null;
-function uploadFile(){
+function uploadFileFromInput(){
     reader= new FileReader();
     let files = document.getElementById('fileuploader').files;
     let file = files[0]; // maybe should handle multiple at once?
@@ -132,23 +132,9 @@ function uploadFile(){
 }
 
 // Thanks Lucas Vinicius Hartmann! - https://stackoverflow.com/a/54468787
-// for viewFile and downloadFile - somewhat modified
-function viewFile(filename, mime) {
+// for FSviewFile and downloadFile - somewhat modified
+function downloadFileGeneric(content, filename, mime) {
     mime = mime || "application/octet-stream";
-
-    let content = Module.FS.readFile(filename);
-
-    let url = URL.createObjectURL(new Blob([content], {type: mime}));
-
-    window.open(url+"#"+filename);
-    setTimeout(() => {
-        URL.revokeObjectURL(url);
-    }, 2000);
-}
-function downloadFile(filename, mime) {
-    mime = mime || "application/octet-stream";
-
-    let content = Module.FS.readFile(filename);
 
     let a = document.createElement('a');
     a.download = filename;
@@ -163,6 +149,23 @@ function downloadFile(filename, mime) {
         document.body.removeChild(a);
         URL.revokeObjectURL(a.href);
     }, 2000);
+}
+function FSviewFile(filename, mime) {
+    mime = mime || "application/octet-stream";
+
+    let content = Module.FS.readFile(filename);
+
+    let url = URL.createObjectURL(new Blob([content], {type: mime}));
+
+    window.open(url+"#"+filename);
+    setTimeout(() => {
+        URL.revokeObjectURL(url);
+    }, 2000);
+}
+function FSdownloadFile(filename, mime) {
+    let content = Module.FS.readFile(filename);
+
+    downloadFileGeneric(content, filename, mime);
 }
 
 
@@ -281,7 +284,7 @@ function makeFileNode(label){
     });
     file_node_label.addEventListener("dblclick", async function (e) {
         e.stopPropagation();
-        viewFile(getFullPath(file_node_label),"text/plain");
+        FSviewFile(getFullPath(file_node_label),"text/plain");
     });
 
     initFileNodeCallbacks(file_node_label);
