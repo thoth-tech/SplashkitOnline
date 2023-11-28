@@ -467,3 +467,71 @@ moduleEvents.addEventListener("onRuntimeInitialized", function() {
     if (!FSFileExists("/Resources/sounds"))
         FS.mkdir("/Resources/sounds");
 });
+
+// Project Zipping/Unzipping Functions
+async function projectFromZip(file){
+    await JSZip.loadAsync(file)
+    .then(async function(zip) {
+        zip.forEach(async function (rel_path, zipEntry) {
+            let abs_path = "/"+rel_path;
+            if (zipEntry.dir){
+                abs_path = abs_path.substring(0, abs_path.length-1);
+                if (!FSFileExists(abs_path)){
+                    FS.mkdir(abs_path);
+                }
+            }
+            else{
+                let uint8_view = await zip.file(rel_path).async("uint8array");
+                FS.writeFile(abs_path, uint8_view);
+            }
+        });
+    });
+}
+
+function projectToZip(){
+    var zip = new JSZip();
+
+    function addFolderToZip(path, zip){
+        let dirs_files = FS.readdir(path).slice(2);
+
+        for(let thing of dirs_files){
+            let abs_path = path+""+thing;
+
+            if (thing == "fd" || !isViewablePath(abs_path))
+                continue;
+
+            let info = FS.stat(abs_path);
+            if (FS.isDir(info.mode)){
+                addFolderToZip(abs_path+"/", zip.folder(thing));
+            }
+            else{
+                zip.file(thing, Module.FS.readFile(abs_path), {base64: false});
+            }
+        }
+    }
+
+    addFolderToZip("/",zip);
+    return zip.generateAsync({type:"blob"})
+}
+
+async function downloadProject(){
+    downloadFileGeneric(await projectToZip(), "project.zip");
+}
+
+
+
+// Project Zipping/Unzipping Click Handling
+async function uploadProjectFromInput(){
+    let reader = new FileReader();
+    let files = document.getElementById('projectuploader').files;
+    let file = files[0];
+
+    projectFromZip(file);
+}
+document.getElementById("SaveProject").addEventListener("click", async function () {
+    downloadProject();
+});
+document.getElementById("LoadProject").addEventListener("click", function (e) {
+    document.getElementById("projectuploader").click();
+    e.stopPropagation();
+});
