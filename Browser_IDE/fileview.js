@@ -415,27 +415,28 @@ moduleEvents.addEventListener("onRuntimeInitialized", function() {
     populatefileView(scanFilesystem("/"), document.getElementById("fileView").children[1]);
 
     // Attach to file system callbacks
-    FS.trackingDelegate['onMovePath'] = function(oldpath, newPath) {
-        moveNodeToPathUI(getNodeFromPath(oldpath), newPath, -1);
-    };
-    FS.trackingDelegate['onMakeDirectory'] = function(path, mode) {
-        if (!isViewablePath(path))return;
+    FSEvents.addEventListener('onMovePath', function(e) {
+        moveNodeToPathUI(getNodeFromPath(e.oldpath), e.newPath, -1);
+    });
+    FSEvents.addEventListener('onMakeDirectory', function(e) {
+        if (!isViewablePath(e.path))return;
 
-        let new_dir_node = getNodeFromPath(pathDirName(path));
+        let new_dir_node = getNodeFromPath(pathDirName(e.path));
 
-        let dir_node = makeDirectoryNode(pathFileName(path), path);
+        let dir_node = makeDirectoryNode(pathFileName(e.path), e.path);
         getDirectoryContents(new_dir_node).appendChild(dir_node);
 
-    };
-    FS.trackingDelegate['onDeletePath'] = function(path) {
-        if (!isViewablePath(path))return;
+    });
+    FSEvents.addEventListener('onDeletePath', function(e) {
+        if (!isViewablePath(e.path))return;
 
-        let new_dir_node = getNodeFromPath(pathDirName(path));
+        let new_dir_node = getNodeFromPath(pathDirName(e.path));
         new_dir_node.remove();
-    };
-    FS.trackingDelegate['onOpenFile'] = function(path, flags) {
+    });
+    FSEvents.addEventListener('onOpenFile', function(e) {
+		let path = e.path;
         if (!path.startsWith("/"))
-            path = "/"+path;
+            path = "/"+e.path;
         if (!isViewablePath(path))return;
 
         let new_dir_node = getNodeFromPath(path);
@@ -445,7 +446,7 @@ moduleEvents.addEventListener("onRuntimeInitialized", function() {
         new_dir_node = getNodeFromPath(pathDirName(path));
         let dir_node = makeFileNode(pathFileName(path), path);
         getDirectoryContents(new_dir_node).appendChild(dir_node);
-    };
+    });
 
     // Create default folders
     if (!FSFileExists("/Resources"))
