@@ -5,16 +5,16 @@ let FSEvents = new EventTarget();
 // File System Delegate Initialization
 moduleEvents.addEventListener("onRuntimeInitialized", function() {
     // Attach to file system callbacks
-    FS.trackingDelegate['willMovePath'] = function(oldpath, newpath) {
+    FS.trackingDelegate['willMovePath'] = function(oldPath, newPath) {
         let ev = new Event("willMovePath");
-        ev.oldpath = oldpath;
-        ev.newpath = newpath;
+        ev.oldPath = oldPath;
+        ev.newPath = newPath;
         FSEvents.dispatchEvent(ev);
     };
-    FS.trackingDelegate['onMovePath'] = function(oldpath, newpath) {
+    FS.trackingDelegate['onMovePath'] = function(oldPath, newPath) {
         let ev = new Event("onMovePath");
-        ev.oldpath = oldpath;
-        ev.newpath = newpath;
+        ev.oldPath = oldPath;
+        ev.newPath = newPath;
         FSEvents.dispatchEvent(ev);
     };
     FS.trackingDelegate['willDeletePath'] = function(path) {
@@ -63,21 +63,20 @@ moduleEvents.addEventListener("onRuntimeInitialized", function() {
         ev.mode = mode;
         FSEvents.dispatchEvent(ev);
     };
-    FS.trackingDelegate['onMakeSymlink'] = function(oldpath, newpath) {
+    FS.trackingDelegate['onMakeSymlink'] = function(oldPath, newPath) {
         let ev = new Event("onMakeSymlink");
-        ev.oldpath = oldpath;
-        ev.newpath = newpath;
+        ev.oldPath = oldPath;
+        ev.newPath = newPath;
         FSEvents.dispatchEvent(ev);
     };
 });
 
-function TestFSEvents()
-{
+function TestFSEvents(){
     FSEvents.addEventListener('willMovePath', function(e) {
-        console.log('About to move "' + e.oldpath + '" to "' + e.newpath + '"');
+        console.log('About to move "' + e.oldPath + '" to "' + e.newPath + '"');
     });
     FSEvents.addEventListener('onMovePath', function(e) {
-        console.log('Moved "' + e.oldpath + '" to "' + e.newpath + '"');
+        console.log('Moved "' + e.oldPath + '" to "' + e.newPath + '"');
     });
     FSEvents.addEventListener('willDeletePath', function(e) {
         console.log('About to delete "' + e.path + '"');
@@ -104,7 +103,7 @@ function TestFSEvents()
         console.log('Created directory ' + e.path + ' with mode ' + e.mode);
     });
     FSEvents.addEventListener('onMakeSymlink', function(e) {
-        console.log('Created symlink from ' + e.oldpath + ' to ' + e.newpath);
+        console.log('Created symlink from ' + e.oldPath + ' to ' + e.newPath);
     });
 
     FS.mkdir("/testDir");
