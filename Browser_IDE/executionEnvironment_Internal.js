@@ -3,6 +3,17 @@
 let isInitialized = false;
 
 moduleEvents.addEventListener("onRuntimeInitialized", function() {
+    // Patch open_window so that it cannot be called multiple times.
+    // So far all other functions handle being re-called acceptably,
+    // whereas when open_window is called enough, rendering stops working.
+    // TODO: Update window size if subsequent calls give a different size
+    let original_open_window = open_window;
+    open_window = function(name, w, h){
+        original_open_window(name, w, h);
+        open_window = function(name, w, h){
+            console.log("Window already open, ignoring calling to open_window");
+        }
+    }
     isInitialized = true;
 });
 
