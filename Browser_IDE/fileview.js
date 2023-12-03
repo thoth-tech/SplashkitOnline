@@ -5,7 +5,7 @@ let myTreeView = new TreeView(document.getElementById("fileView"), {"persistent"
 // Attach callbacks for treeview GUI
 myTreeView.addEventListener("nodeMoveRequest", function(e){
     if (e.FS.includes("transient"))
-        FS.rename(e.oldPath, e.newPath);
+        executionEnviroment.rename(e.oldPath, e.newPath);
     if (e.FS.includes("persistent"))
         storedProject.rename(e.oldPath, e.newPath);
 });
@@ -22,19 +22,19 @@ myTreeView.addEventListener("folderUploadRequest", function(e){
 
 
 // Attach to file system callbacks within the Execution Environment
-FSEvents.addEventListener('onMovePath', function(e) {
+executionEnviroment.addEventListener('onMovePath', function(e) {
     myTreeView.moveNode(e.oldPath, e.newPath, -1, "transient");
 });
 
-FSEvents.addEventListener('onMakeDirectory', function(e) {
+executionEnviroment.addEventListener('onMakeDirectory', function(e) {
     myTreeView.addDirectory(e.path, "transient");
 });
 
-FSEvents.addEventListener('onDeletePath', function(e) {
+executionEnviroment.addEventListener('onDeletePath', function(e) {
     myTreeView.deleteNode(e.path, "transient");
 });
 
-FSEvents.addEventListener('onOpenFile', function(e) {
+executionEnviroment.addEventListener('onOpenFile', function(e) {
     myTreeView.addFile(e.path, "transient");
 });
 
