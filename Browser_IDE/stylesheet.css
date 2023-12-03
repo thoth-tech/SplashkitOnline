@@ -67,3 +67,8 @@
     right:0px;
     left:0px;
 }
+.error-line{
+    text-decoration-color: #d94747 !important;
+    text-decoration: underline wavy;
+    background-color: #6c514f;
+}

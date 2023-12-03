@@ -94,10 +94,12 @@ function enableCodeExecution(){
 }
 
 function runInitialization(){
+    clearErrorLines(editorInit);
     executionEnviroment.runCodeBlock("Init", editorInit.getValue());
 }
 
 function runMainLoop(){
+    clearErrorLines(editorMainLoop);
     executionEnviroment.runCodeBlock("Main", editorMainLoop.getValue());
 }
 
@@ -295,4 +297,22 @@ document.getElementById("UploadProject").addEventListener("click", function (e) 
 document.getElementById("NewProject").addEventListener("click", async function (e) {
     newProject();
     e.stopPropagation();
+});
+
+// ----- Error Reporting -----
+function clearErrorLines(editor){
+    for (var i = 0; i < editor.lineCount(); i++) {
+        editor.removeLineClass(i, "wrap", "error-line");
+    }
+}
+
+executionEnviroment.addEventListener("error", function(e){
+    let editor = (e.block=="Init"?editorInit:editorMainLoop);
+    if (e.line != null){
+        editor.addLineClass(e.line-1, "wrap", "error-line");
+        editor.scrollIntoView({line:e.line-1, char:0}, 200);
+        editor.setCursor({line:e.line-1, char:0});
+    }
+    editor.focus();
+    pauseMainLoopButton.disabled = true;
 });

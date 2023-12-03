@@ -17,6 +17,16 @@ ResetExecutionScope();
 
 function run_within_scope(block, source){
     let res = scope.next(source);
+    if (res.value.state == "error"){
+        stopMainLoop();
+        document.getElementById("output").value += "("+block+") "+res.value.message+"\n";
+        parent.postMessage({
+            type: "error",
+            block: block,
+            message: res.value.message,
+            line: res.value.line
+        },"*");
+    }
 }
 
 let runMainLoopGo = false;
