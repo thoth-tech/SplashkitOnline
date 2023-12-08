@@ -15,12 +15,18 @@ let editorMainLoop = CodeMirror.fromTextArea(document.getElementById("editorMain
     lineNumbers: true,
     autoCloseBrackets: true,
 });
+
+let editors = [editorInit, editorMainLoop]
+
 editorMainLoop.display.wrapper.classList.add("flex-grow-1");
 
-let width = window.innerWidth;
 let runInitButton = document.getElementById("runInit");
 let runMainLoopButton = document.getElementById("runMainLoop");
-let pauseMainLoopButton = document.getElementById("pauseMainLoop");
+
+let runProgramButton = document.getElementById("runProgram");
+let restartProgramButton = document.getElementById("restartProgram");
+let stopProgramButton = document.getElementById("stopProgram");
+let continueProgramButton = document.getElementById("continueProgram");
 
 // ------ Setup Project and Execution Environment ------
 let executionEnviroment = new ExecutionEnvironment(document.getElementById("ExecutionEnvironment"));
@@ -29,6 +35,7 @@ storedProject.attachToProject("Untitled");
 
 let haveMirrored = false;
 let canMirror = false;
+
 async function newProject(){
     disableCodeExecution();
     storedProject.detach();
@@ -39,7 +46,9 @@ async function newProject(){
     await storedProject.attachToProject("Untitled");
 }
 
-// File System and File System View Initialization
+
+
+// File System, File System View Initialization
 executionEnviroment.addEventListener("initialized", function() {
     canMirror = true;
     MirrorToExecutionEnvironment();
@@ -50,7 +59,6 @@ storedProject.addEventListener("initialized", async function() {
     loadInitialization();
     loadMainLoop();
 });
-
 
 async function MirrorToExecutionEnvironment(){
     if (!haveMirrored && canMirror){
@@ -80,33 +88,48 @@ async function MirrorToExecutionEnvironment(){
 
 
 // ------ Code Execution + Saving ------
+// TODO: Generalize to multiple code files better.
+// There is currently a lot of repetition (for instance, runInitialization/runMainLoop, saveInitialization/saveMainLoop, etc)
+
+let allowExecution = false
+let haveUploadedCodeOnce = false;
+
+// Functions to disable/enable code-execution
 disableCodeExecution();
 function disableCodeExecution(){
-    stopMainLoop();
-    runInitButton.disabled = true;
-    pauseMainLoopButton.disabled = true;
-    runMainLoopButton.disabled = true;
+    if (executionEnviroment.executionStatus != ExecutionStatus.Unstarted)
+        stopProgram();
+
+    allowExecution = false;
+    updateButtons();
 }
 function enableCodeExecution(){
-    runInitButton.disabled = false;
-    pauseMainLoopButton.disabled = true;
-    runMainLoopButton.disabled = false;
+    allowExecution = true;
+    updateButtons();
 }
 
+
+// Functions to run the code blocks
 function runInitialization(){
-    clearErrorLines(editorInit);
+    clearErrorLines();
+
     executionEnviroment.runCodeBlock("Init", editorInit.getValue());
 }
 
 function runMainLoop(){
-    clearErrorLines(editorMainLoop);
+    clearErrorLines();
+
     executionEnviroment.runCodeBlock("Main", editorMainLoop.getValue());
 }
 
-function stopMainLoop(){
-    executionEnviroment.stop();
+function runAllCodeBlocks(){
+    executionEnviroment.runCodeBlocks([
+        {name: "Init", code: editorInit.getValue()},
+        {name: "Main", code: editorMainLoop.getValue()}
+    ]);
 }
 
+// Functions to save/load the code blocks
 async function saveInitialization(){
     await storedProject.mkdir(codePath);
     await storedProject.writeFile(initCodePath, editorInit.getValue());
@@ -126,6 +149,7 @@ async function loadMainLoop(){
     if (newVal != editorMainLoop.getValue())
         editorMainLoop.setValue(newVal);
 }
+
 storedProject.addEventListener('onWriteToFile', function(e) {
     if (e.path == initCodePath)
         loadInitialization();
@@ -133,9 +157,68 @@ storedProject.addEventListener('onWriteToFile', function(e) {
         loadMainLoop();
 });
 
-// ------ Setup code editor buttons ------
-pauseMainLoopButton.disabled = true;
 
+// Functions to run/pause/continue/stop/restart the program itself
+function runProgram(){
+    clearErrorLines();
+
+    runAllCodeBlocks();
+
+    executionEnviroment.runProgram();
+}
+
+async function continueProgram(){
+    clearErrorLines();
+
+    await executionEnviroment.continueProgram();
+}
+
+async function pauseProgram(){
+    await executionEnviroment.pauseProgram();
+}
+
+async function stopProgram(){
+    await executionEnviroment.stopProgram();
+}
+
+async function restartProgram(){
+    clearErrorLines();
+
+    if (executionEnviroment.executionStatus != ExecutionStatus.Unstarted)
+        await executionEnviroment.stopProgram(); // Make sure we wait for it to stop via await.
+    executionEnviroment.cleanEnvironment();
+
+    runAllCodeBlocks();
+
+    executionEnviroment.runProgram();
+}
+
+// ------ Setup code editor buttons ------
+
+// Updates buttons based on the state of the ExecutionEnvironment
+function updateButtons(){
+    runInitButton.disabled = !allowExecution;
+    runMainLoopButton.disabled = !allowExecution;
+
+    let runProgramButtonOn = executionEnviroment.executionStatus == ExecutionStatus.Unstarted && !executionEnviroment.hasRunOnce;
+    let continueProgramButtonOn = executionEnviroment.executionStatus == ExecutionStatus.Paused
+    let restartProgramButtonOn = executionEnviroment.hasRunOnce;
+    let stopProgramButtonOn = executionEnviroment.executionStatus == ExecutionStatus.Running;
+
+    runProgramButton.disabled = !(allowExecution && runProgramButtonOn);
+    continueProgramButton.disabled = !(allowExecution && continueProgramButtonOn);
+    restartProgramButton.disabled = !(allowExecution && restartProgramButtonOn);
+    stopProgramButton.disabled = !(allowExecution && stopProgramButtonOn);
+
+    runProgramButton.style.display = !runProgramButtonOn?"none":"";
+    continueProgramButton.style.display = !continueProgramButtonOn?"none":"";
+    restartProgramButton.style.display = !restartProgramButtonOn?"none":"";
+    stopProgramButton.style.display = !stopProgramButtonOn?"none":"";
+}
+updateButtons();
+
+
+// Add events for the code blocks
 runInitButton.addEventListener("click", async function () {
     saveInitialization();
     runInitialization();
@@ -144,15 +227,34 @@ runInitButton.addEventListener("click", async function () {
 runMainLoopButton.addEventListener("click", async function () {
     saveMainLoop();
     runMainLoop();
-    pauseMainLoopButton.disabled = false;
 });
 
-pauseMainLoopButton.addEventListener("click", async function () {
-    stopMainLoop();
-    runMainLoopButton.disabled = false;
-    pauseMainLoopButton.disabled = true;
+
+// Add events for the main program buttons
+runProgramButton.addEventListener("click", async function () {
+    saveMainLoop();
+    saveInitialization();
+    runProgram();
 });
 
+stopProgramButton.addEventListener("click", async function () {
+    pauseProgram();
+});
+
+restartProgramButton.addEventListener("click", async function () {
+    saveMainLoop();
+    saveInitialization();
+    restartProgram();
+});
+
+continueProgramButton.addEventListener("click", async function () {
+    saveMainLoop();
+    saveInitialization();
+    continueProgram();
+});
+
+
+// Utility function for saving/loading the code blocks
 async function fileAsString(buffer){
     return new Promise((resolve,error) => {
         //_arrayBufferToString from https://stackoverflow.com/a/14078925
@@ -299,13 +401,33 @@ document.getElementById("NewProject").addEventListener("click", async function (
     e.stopPropagation();
 });
 
-// ----- Error Reporting -----
-function clearErrorLines(editor){
-    for (var i = 0; i < editor.lineCount(); i++) {
-        editor.removeLineClass(i, "wrap", "error-line");
+// ----- Program Runtime & Error Reporting -----
+function clearErrorLines(){
+    for (let editor of editors){
+        for (var i = 0; i < editor.lineCount(); i++) {
+            editor.removeLineClass(i, "wrap", "error-line");
+        }
     }
 }
 
+// Update buttons when the state of the ExecutionEnvironment changes
+executionEnviroment.addEventListener("programStarted", function(e){
+    updateButtons();
+});
+executionEnviroment.addEventListener("programContinued", function(e){
+    updateButtons();
+});
+executionEnviroment.addEventListener("programStopped", function(e){
+    updateButtons();
+});
+executionEnviroment.addEventListener("programPaused", function(e){
+    updateButtons();
+});
+executionEnviroment.addEventListener("programStopped", function(e){
+    updateButtons();
+});
+
+// Also highlight errors when they come
 executionEnviroment.addEventListener("error", function(e){
     let editor = (e.block=="Init"?editorInit:editorMainLoop);
     if (e.line != null){
@@ -314,5 +436,4 @@ executionEnviroment.addEventListener("error", function(e){
         editor.setCursor({line:e.line-1, char:0});
     }
     editor.focus();
-    pauseMainLoopButton.disabled = true;
 });

@@ -1,30 +1,76 @@
 "use strict";
 
 let defaultInitCode =
-`open_window("test!",1280,720);
-clear_screen(rgba_color_from_double(1.0,1.0,1.0,0));
-refresh_screen();
-write_line("Initialized!");
+`// Example code!
+// - Draws a circle where the user clicks!
+
+// Declare the circle's size
+let circleSize = 100;
+
+function gameInnerLoop(){
+    // Test if the player is holding A
+    if (key_down(A_KEY))
+        write_line("A key!");
+
+    // Test if the player clicked
+    if (mouse_clicked(LEFT_BUTTON))
+        write_line("click!");
+
+    // Draw a simple scene
+    fill_ellipse(rgba_color_from_double(0,1,0,1), 0, 400, 800, 400);
+    fill_rectangle(rgba_color_from_double(0.4,0.4,0.4,1), 300, 300, 200, 200);
+    fill_triangle(rgba_color_from_double(1,0,0,1), 250, 300, 400, 150, 550, 300);
+
+    // If the mouse is being held down,
+    // set the global variables circleX/Y
+    // to the mouse's position
+    if (mouse_down(LEFT_BUTTON)){
+        circleX = mouse_position().x;
+        circleY = mouse_position().y;
+    }
+
+    // Draw the circle!
+    fill_ellipse(
+        rgba_color_from_double(0.3,0.7,1,1), // Color of the ellipse
+        circleX - circleSize/2,             // The x (horizontal) position
+        circleY - circleSize/2,             // The y (vertical) position
+        circleSize,                          // The width
+        circleSize                           // The height
+    );
+}
 `;
 
 let defaultMainLoopCode =
-`process_events();
+`let windowName = "My Game!";
 
-if (key_down(A_KEY))
-    write_line("A key!");
+// Declare some global variables for the circle's position
+// Hide circle off screen at start
+// (way off past the top-left corner)
+let circleX = -1000;
+let circleY = -1000;
 
-if (mouse_clicked(LEFT_BUTTON))
-    write_line("click!");
+// Main function - when you change this,
+// you have to Restart the program!
+function main(){
+    // Open a window with the title stored in 'windowName'
+    open_window(windowName, 1280, 720);
+    write_line("Initialized!");
 
-clear_screen(rgba_color_from_double(1,1,1,1));
-fill_ellipse(rgba_color_from_double(0,1,0,1), 0, 400, 800, 400);
-fill_rectangle(rgba_color_from_double(0.4,0.4,0.4,1), 300, 300, 200, 200);
-fill_triangle(rgba_color_from_double(1,0,0,1), 250, 300, 400, 150, 550, 300);
+    while(true){
+        // Check if the user's clicked or pressed keys
+        process_events();
 
-if (mouse_down(LEFT_BUTTON))
-    fill_ellipse(rgba_color_from_double(0.3,0.7,1,1), mouse_position().x-50, mouse_position().y-50, 100, 100);
+        // Clear the screen - try removing this!
+		// If you change it, don't forget to "Restart"!
+        clear_screen(color_white());
 
-refresh_screen();
+        // Do the game related stuff (in the code block above!)
+        gameInnerLoop();
+
+        // Show the user what we've drawn!
+        refresh_screen();
+    }
+}
 `;
 
 

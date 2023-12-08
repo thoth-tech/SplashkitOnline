@@ -1,5 +1,11 @@
 "use strict";
 
+const ExecutionStatus = {
+  Unstarted: 'Unstarted',
+  Running: 'Running',
+  Paused: 'Paused'
+};
+
 class ExecutionEnvironment extends EventTarget{
 
     constructor(container) {
@@ -8,6 +14,10 @@ class ExecutionEnvironment extends EventTarget{
         this.container = container;
         this.iFrame = this._constructiFrame(container);
         let EE = this;
+
+        this.hasRunOnce = false;
+        this.executionStatus = ExecutionStatus.Unstarted;
+
         window.addEventListener('message', function(e){
             const key = e.message ? 'message' : 'data';
             const data = e[key];
@@ -16,10 +26,37 @@ class ExecutionEnvironment extends EventTarget{
                 EE.dispatchEvent(new Event("initialized"));
             }
             else if (data.type == "error"){
+                EE.executionStatus = ExecutionStatus.Unstarted;
+
                 let ev = new Event("error");
                 ev.message = data.message;
                 ev.line = data.line;
                 ev.block = data.block;
+                EE.dispatchEvent(ev);
+            }
+            else if (data.type == "programStarted"){
+                EE.hasRunOnce = true;
+                EE.executionStatus = ExecutionStatus.Running;
+
+                let ev = new Event("programStarted");
+                EE.dispatchEvent(ev);
+            }
+            else if (data.type == "programStopped"){
+                EE.executionStatus = ExecutionStatus.Unstarted;
+
+                let ev = new Event("programStopped");
+                EE.dispatchEvent(ev);
+            }
+            else if (data.type == "programPaused"){
+                EE.executionStatus = ExecutionStatus.Paused;
+
+                let ev = new Event("programPaused");
+                EE.dispatchEvent(ev);
+            }
+            else if (data.type == "programContinued"){
+                EE.executionStatus = ExecutionStatus.Running;
+
+                let ev = new Event("programContinued");
                 EE.dispatchEvent(ev);
             }
             else if (data.type == "FS")
@@ -51,31 +88,83 @@ class ExecutionEnvironment extends EventTarget{
 
     // Public Facing Methods
 
-    runCodeBlock(block, source){
-        if (block == "Init"){
-            this.iFrame.contentWindow.postMessage({
-                type: "InitCode",
-                code: source,
-            }, "*");
-        }
-        if (block == "Main"){
-            this.iFrame.contentWindow.postMessage({
-                type: "RunMainLoop",
-                code: source,
-            }, "*");
+    // --- Code Execution Functions ---
+    // Code blocks can be run, that declare variables, functions, classes, etc.
+    // The program itself can then be run - this will call main().
+    // Code blocks can then be updated while the program ("main()") is running.
+    runCodeBlocks(blocks){
+        for (let block of blocks){
+            this.runCodeBlock(block.name, block.code);
         }
     }
-    stop(){
+
+    runCodeBlock(block, source){
         this.iFrame.contentWindow.postMessage({
-            type: "StopMainLoop",
+            type: "RunCodeBlock",
+            name: block,
+            code: source,
         }, "*");
     }
 
+    runProgram(){
+        this.iFrame.contentWindow.postMessage({
+            type: "RunProgram",
+        }, "*");
+    }
+
+    async pauseProgram(){
+        return new Promise((resolve,reject) => {
+            let f = function(ev){this.removeEventListener("programPaused", f);resolve();}
+            this.addEventListener("programPaused", f);
+            this.iFrame.contentWindow.postMessage({
+                type: "PauseProgram",
+            }, "*");
+            setTimeout(function(){reject();}, 2000)
+        });
+    }
+
+    continueProgram(){
+        this.iFrame.contentWindow.postMessage({
+            type: "ContinueProgram",
+        }, "*");
+    }
+
+    async stopProgram(){
+        return new Promise((resolve,reject) => {
+            let f = function(ev){this.removeEventListener("programStopped", f);resolve();}
+            this.addEventListener("programStopped", f);
+            this.iFrame.contentWindow.postMessage({
+                type: "StopProgram",
+            }, "*");
+            setTimeout(function(){reject();}, 2000)
+        });
+    }
+
+
+    // --- Environment Functions ---
+
+    // Completely destroys and recreates the environment.
     resetEnvironment(){
         this.iFrame.remove();
         this.iFrame = this._constructiFrame(this.container);
+
+        this.executionStatus = ExecutionStatus.Unstarted;
+        this.hasRunOnce = false;
+
+        let ev = new Event("programStopped");
+        this.dispatchEvent(ev);
     }
 
+    // Does a 'best-efforts' attempt to tidy the environment,
+    // such as removing global variables.
+    // Much faster than resetEnvironment()
+    cleanEnvironment(){
+        this.iFrame.contentWindow.postMessage({
+            type: "CleanEnvironment",
+        }, "*");
+    }
+
+    // --- File System Functions ---
     mkdir(path){
         this.iFrame.contentWindow.postMessage({
             type: "mkdir",

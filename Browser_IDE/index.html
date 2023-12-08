@@ -37,22 +37,32 @@
         <div class="flex-row d-flex m-3 flex-grow-1">
             <div class="d-flex flex-column" style="max-width:40em;">
                 <div class="d-flex justify-content-between mb-2 bg-dark rounded p-2">
-                    <div class="flex-column col-12 w-25">
-                        <h3 style="color:white;"> Initialization </h3>
+                    <div class="flex-column">
+                        <h3 style="color:white;"> Program </h3>
                     </div>
-                    <div>
-                        <button type="button" id="runInit" class="btn btn-success"><i class="bi bi-play-fill"></i></button>
+                    <div class="flex-column">
+                        <button type="button" id="restartProgram" class="btn btn-success" style="display:none"><i class="bi bi-arrow-repeat">Restart</i></button>
+                        <button type="button" id="continueProgram" class="btn btn-success" style="display:none"><i class="bi bi-play-fill">Continue</i></button>
+                        <button type="button" id="runProgram" class="btn btn-success"><i class="bi bi-play-fill">Run</i></button>
+                        <button type="button" id="stopProgram" class="btn btn-success" style="display:none"><i class="bi bi-pause-fill">Pause</i></button>
                     </div>
                 </div>
-                <div class="d-flex mb-2 bg-dark rounded p-2 flex-shrink-2 flex-column" style="height:20%;">
-                    <textarea type="text" id="editorInit" class="form-control flex-shrink-1" aria-label="editor" style="height:100%;">
+                <div class="d-flex justify-content-between mb-2 bg-dark rounded p-2">
+                    <div class="flex-column">
+                        <h3 style="color:white;"> General Code </h3>
+                    </div>
+                    <div class="flex-column">
+                        <button type="button" id="runInit" class="btn btn-success"><i class="bi bi-upload">Update</i></button>
+                    </div>
+                </div>
+                <div class="d-flex mb-2 bg-dark rounded p-2 flex-grow-1  flex-column" style="height:20%; min-width:30em;">
+                    <textarea type="text" id="editorInit" class="form-control flex-grow-1 " aria-label="editor" style="height:100%;">
                     </textarea>
                 </div>
-                <div class="d-flex justify-content-between mb-2 bg-dark rounded p-2 ">
-                    <div class="flex-column col-12 w-25"><h3 style="color:white;"> Main Loop </h3></div>
-                    <div>
-                        <button type="button" id="runMainLoop" class="btn btn-success"><i class="bi bi-play-fill"></i></button>
-                        <button type="button" id="pauseMainLoop" class="btn btn-success"><i class="bi bi-pause-fill"></i></button>
+                <div class="d-flex justify-content-between mb-2 bg-dark rounded p-2 " >
+                    <div class="flex-column"><h3 style="color:white;"> Main Code</h3></div>
+                    <div class="flex-column">
+                        <button type="button" id="runMainLoop" class="btn btn-success"><i class="bi bi-upload">Update</i></button>
                     </div>
                 </div>
                 <div class="d-flex mb-2 bg-dark rounded p-2 flex-grow-1 flex-column">
