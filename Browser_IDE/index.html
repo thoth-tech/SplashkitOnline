@@ -69,30 +69,16 @@
                     </div>
                 </div>
             </div>
-            <div class="col d-flex flex-column rounded bg-dark px-4 justify-content-center flex-grow-1" >
-                <figure style="" id="spinner"><div></div><center style="margin-top:0.5em"><strong>emscripten</strong></center></figure>
-                <div id="status">Downloading...</div>
-                <div>
-                  <progress value="0" max="100" id="progress" hidden=1></progress>
-                </div>
-                <div class="row m-3">
-                  <canvas id="canvas" style="vertical-align:center; max-width: 100%; width:inherit;" oncontextmenu="event.preventDefault()" tabindex=-1></canvas>
-                </div>
-                <div class="row m-3">
-                    <textarea id="output"  readonly style="height:16em; background-color:#282a36; color:#f8f8f2; border:none;"></textarea>
-                </div>
+            <div class="col d-flex flex-column rounded bg-dark px-4 justify-content-center flex-grow-1" id="ExecutionEnvironment" >
             </div>
         </div>
     </div>
 </body>
 
-<script src="splashkit/SplashKitGlobalAPI.js"></script>
-<script src="loadsplashkit.js"></script>
-<script src="fsevents.js"></script>
+<script src="executionEnvironment.js"></script>
 <script src="IDBStoredProject.js"></script>
 <script src="projectInitializer.js"></script>
 <script src="script.js"></script>
 <script src="treeview.js"></script>
 <script src="fileview.js"></script>
-<script src="splashkit/SplashKitBackendWASM.js"></script>
 </html>

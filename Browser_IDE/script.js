@@ -23,42 +23,24 @@ let runMainLoopButton = document.getElementById("runMainLoop");
 let pauseMainLoopButton = document.getElementById("pauseMainLoop");
 
 // ------ Setup Project and Execution Environment ------
+let executionEnviroment = new ExecutionEnvironment(document.getElementById("ExecutionEnvironment"));
 let storedProject = new IDBStoredProject(makeNewProject);
 storedProject.attachToProject("Untitled");
 
 let haveMirrored = false;
 let canMirror = false;
-function clearFilesystem(path){
-    try{
-        let dirs_files = FS.readdir(path).slice(2);
-
-        for(let thing of dirs_files){
-            let abs_path = path+"/"+thing;
-
-            let info = FS.stat(abs_path);
-            if (FS.isDir(info.mode)){
-                clearFilesystem(abs_path+"/");
-            }
-            else{
-                FS.unlink(abs_path);
-            }
-        }
-        FS.rmdir(path);
-    }
-    catch{};
-}
 async function newProject(){
-    stopMainLoop();
+    disableCodeExecution();
     storedProject.detach();
-    clearFilesystem("/Resources");
-    clearFilesystem("/code");
+    canMirror = false;
+    executionEnviroment.resetEnvironment();
     await storedProject.deleteProject("Untitled");
     haveMirrored = false;
     await storedProject.attachToProject("Untitled");
 }
 
 // File System and File System View Initialization
-moduleEvents.addEventListener("onRuntimeInitialized", function() {
+executionEnviroment.addEventListener("initialized", function() {
     canMirror = true;
     MirrorToExecutionEnvironment();
 });
@@ -81,43 +63,46 @@ async function MirrorToExecutionEnvironment(){
             for(let node of dirs_files){
                 let abs_path = path+""+node.label;
                 if (node.children != null){
-                    FS.mkdir(abs_path);
+                    executionEnviroment.mkdir(abs_path);
                     mirror(node.children, abs_path+"/");
                 }
                 else{
-                    FS.writeFile(abs_path, await storedProject.readFile(abs_path));
+                    executionEnviroment.writeFile(abs_path, await storedProject.readFile(abs_path));
                 }
             }
         }
 
         await mirror(tree, "/");
+        enableCodeExecution();
     }
 }
 
 
 
 // ------ Code Execution + Saving ------
-let runMainLoopGo = false;
-let mainLoopCode = "";
-let mainLoop = function(){
-    eval(mainLoopCode);
-    if (runMainLoopGo)
-        window.requestAnimationFrame(mainLoop);
+disableCodeExecution();
+function disableCodeExecution(){
+    stopMainLoop();
+    runInitButton.disabled = true;
+    pauseMainLoopButton.disabled = true;
+    runMainLoopButton.disabled = true;
+}
+function enableCodeExecution(){
+    runInitButton.disabled = false;
+    pauseMainLoopButton.disabled = true;
+    runMainLoopButton.disabled = false;
 }
 
-
 function runInitialization(){
-    eval(editorInit.getValue());
+    executionEnviroment.runCodeBlock("Init", editorInit.getValue());
 }
 
 function runMainLoop(){
-    runMainLoopGo = true;
-    mainLoopCode = editorMainLoop.getValue();
-    window.requestAnimationFrame(mainLoop);
+    executionEnviroment.runCodeBlock("Main", editorMainLoop.getValue());
 }
 
 function stopMainLoop(){
-    runMainLoopGo = false;
+    executionEnviroment.stop();
 }
 
 async function saveInitialization(){
@@ -194,14 +179,13 @@ async function projectFromZip(file){
             let abs_path = "/"+rel_path;
             if (zipEntry.dir){
                 abs_path = abs_path.substring(0, abs_path.length-1);
-                try{
-                    FS.mkdir(abs_path);
-                }catch{}
+
+                executionEnviroment.mkdir(abs_path);
                 storedProject.mkdir(abs_path);
             }
             else{
                 let uint8_view = await zip.file(rel_path).async("uint8array");
-                FS.writeFile(abs_path, uint8_view);
+                executionEnviroment.writeFile(abs_path, uint8_view);
                 storedProject.writeFile(abs_path, uint8_view);
             }
         });
@@ -244,7 +228,7 @@ function uploadFileFromInput(){
 
         let path = document.getElementById('fileuploader').dataset.uploadDirectory;
         storedProject.writeFile(path+"/"+file.name, uint8_view);
-        FS.writeFile(path+"/"+file.name, uint8_view);
+        executionEnviroment.writeFile(path+"/"+file.name, uint8_view);
     });
     reader.readAsArrayBuffer(file);
 }
