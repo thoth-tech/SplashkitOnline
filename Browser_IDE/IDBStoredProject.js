@@ -6,6 +6,7 @@ class IDBStoredProject extends EventTarget{
         super();
         this.initializer = initializer;
         this.projectName = null;
+        this.lastKnownWriteTime = 0;
     }
 
     // Public Facing Methods
@@ -16,6 +17,9 @@ class IDBStoredProject extends EventTarget{
 
         // Force an init by performing an empty DB operation
         await this.access(function(){});
+
+        // Initial update of lastKnownWriteTime
+        await this.checkForWriteConflicts();
 
         this.dispatchEvent(new Event("attached"));
     }
@@ -32,6 +36,15 @@ class IDBStoredProject extends EventTarget{
         finally{
             RW.closeDB();
         }
+    }
+
+    async checkForWriteConflicts(){
+        let storedTime = await this.access((project)=>project.getLastWriteTime());
+        if (this.lastKnownWriteTime == 0){
+            this.lastKnownWriteTime = storedTime;
+        }
+        if (storedTime != this.lastKnownWriteTime)
+            this.dispatchEvent(new Event("timeConflict"));
     }
 
     detachFromProject(){
@@ -127,6 +140,7 @@ class __IDBStoredProjectRW{
                 return project.put({category: "lastWriteTime", time: time});
             });
         });
+        this.owner.lastKnownWriteTime = time;
     }
 
 

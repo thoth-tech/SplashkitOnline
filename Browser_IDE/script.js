@@ -461,3 +461,51 @@ executionEnviroment.addEventListener("error", function(e){
     }
     editor.focus();
 });
+
+
+// ----- Handle "Project Opened in Another Tab" Conflict -----
+let projectConflictModal = null;
+
+let userHasIgnoredProjectConflict = false;
+
+projectConflictModal = createModal(
+    "projectConflictModal",
+    "Project open in another tab!",
+
+    "<b>Reload now to avoid losing work!</b><br>"+
+    "This project is already open in another tab and has been modified.<br>"+
+    "Continuing to edit it in this tab will result in losing work! Please reload the project to continue working.",
+
+    {label:"Reload Now", callback: function(){
+        location.reload();
+    }},
+    {label:"Ignore", callback: function(){
+        userHasIgnoredProjectConflict = true;
+        // Remind the user in 60 seconds
+        setTimeout(function(){
+            userHasIgnoredProjectConflict = false;
+        }, 60000);
+        projectConflictModal.hide();
+    }}
+);
+
+storedProject.addEventListener("attached", async function() {
+    // Check for conflict every 2 seconds - if the lastWriteTime changes without us changing it,
+    // the user must be modifying the project in another tab - so show the conflict modal.
+    setInterval(function(){
+        storedProject.checkForWriteConflicts();
+    }, 2000);
+    // Also check on focus/visibilitychange (different compatability)
+    window.addEventListener("focus", function(){
+        storedProject.checkForWriteConflicts();
+    });
+    window.addEventListener("visibilitychange", function(){
+        storedProject.checkForWriteConflicts();
+    });
+});
+
+// If the conflict is detected, show the modal
+storedProject.addEventListener("timeConflict", async function() {
+    if (!userHasIgnoredProjectConflict)
+        projectConflictModal.show();
+});
