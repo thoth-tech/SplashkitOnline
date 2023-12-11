@@ -17,6 +17,7 @@
     <link rel="stylesheet" href="stylesheet.css">
 
     <script src="codemirror-5.65.15/lib/codemirror.js"></script>
+    <script src="jszip/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-OERcA2EqjJCMA+/3y+gxIOqMEjwtxJY7qPCqsdltbNJuaOe923+mo//f6V8Qbsw3"
         crossorigin="anonymous"></script>
@@ -65,8 +66,11 @@ write_line("Test!");
 </textarea>
                 </div>
                 <div class="d-flex flex-column column m-3 justify-content-center" style="color:white;height:16em;vertical-align:position:relative;">
-                    <h3 style="color:white;"> Files </h3>
-                    <input type="file" id="fileuploader" onchange="uploadFile()" style="display:none;">
+                    <div class="d-flex flex-row">
+                        <h3 style="color:white;" class="flex-grow-1"> Files </h3><button class="btn btn-success" id="SaveProject">Save Project</button><button class="btn btn-success" id="LoadProject">Load Project</button>
+                    </div>
+                    <input type="file" id="fileuploader" onchange="uploadFileFromInput()" style="display:none;">
+                    <input type="file" id="projectuploader" onchange="uploadProjectFromInput()" style="display:none;">
                     <div style="background-color:#282a36; color:#f8f8f2;top;overflow-y:auto;height:100%;position:relative;flex:1;">
                         <div class="directory node" id="fileView" data-path="" data-label=""><div class="node-label bi-folder2-open">/</div>
                             <div class="directory-contents open-directory"></div>

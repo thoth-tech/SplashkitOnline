@@ -117,7 +117,7 @@ function isViewablePath(path){
 
 // File System Upload/Download Functions
 let reader = null;
-function uploadFile(){
+function uploadFileFromInput(){
     reader= new FileReader();
     let files = document.getElementById('fileuploader').files;
     let file = files[0]; // maybe should handle multiple at once?
@@ -132,23 +132,9 @@ function uploadFile(){
 }
 
 // Thanks Lucas Vinicius Hartmann! - https://stackoverflow.com/a/54468787
-// for viewFile and downloadFile - somewhat modified
-function viewFile(filename, mime) {
+// for FSviewFile and downloadFile - somewhat modified
+function downloadFileGeneric(content, filename, mime) {
     mime = mime || "application/octet-stream";
-
-    let content = Module.FS.readFile(filename);
-
-    let url = URL.createObjectURL(new Blob([content], {type: mime}));
-
-    window.open(url+"#"+filename);
-    setTimeout(() => {
-        URL.revokeObjectURL(url);
-    }, 2000);
-}
-function downloadFile(filename, mime) {
-    mime = mime || "application/octet-stream";
-
-    let content = Module.FS.readFile(filename);
 
     let a = document.createElement('a');
     a.download = filename;
@@ -163,6 +149,23 @@ function downloadFile(filename, mime) {
         document.body.removeChild(a);
         URL.revokeObjectURL(a.href);
     }, 2000);
+}
+function FSviewFile(filename, mime) {
+    mime = mime || "application/octet-stream";
+
+    let content = Module.FS.readFile(filename);
+
+    let url = URL.createObjectURL(new Blob([content], {type: mime}));
+
+    window.open(url+"#"+filename);
+    setTimeout(() => {
+        URL.revokeObjectURL(url);
+    }, 2000);
+}
+function FSdownloadFile(filename, mime) {
+    let content = Module.FS.readFile(filename);
+
+    downloadFileGeneric(content, filename, mime);
 }
 
 
@@ -281,7 +284,7 @@ function makeFileNode(label){
     });
     file_node_label.addEventListener("dblclick", async function (e) {
         e.stopPropagation();
-        viewFile(getFullPath(file_node_label),"text/plain");
+        FSviewFile(getFullPath(file_node_label),"text/plain");
     });
 
     initFileNodeCallbacks(file_node_label);
@@ -412,27 +415,28 @@ moduleEvents.addEventListener("onRuntimeInitialized", function() {
     populatefileView(scanFilesystem("/"), document.getElementById("fileView").children[1]);
 
     // Attach to file system callbacks
-    FS.trackingDelegate['onMovePath'] = function(oldpath, newPath) {
-        moveNodeToPathUI(getNodeFromPath(oldpath), newPath, -1);
-    };
-    FS.trackingDelegate['onMakeDirectory'] = function(path, mode) {
-        if (!isViewablePath(path))return;
+    FSEvents.addEventListener('onMovePath', function(e) {
+        moveNodeToPathUI(getNodeFromPath(e.oldpath), e.newPath, -1);
+    });
+    FSEvents.addEventListener('onMakeDirectory', function(e) {
+        if (!isViewablePath(e.path))return;
 
-        let new_dir_node = getNodeFromPath(pathDirName(path));
+        let new_dir_node = getNodeFromPath(pathDirName(e.path));
 
-        let dir_node = makeDirectoryNode(pathFileName(path), path);
+        let dir_node = makeDirectoryNode(pathFileName(e.path), e.path);
         getDirectoryContents(new_dir_node).appendChild(dir_node);
 
-    };
-    FS.trackingDelegate['onDeletePath'] = function(path) {
-        if (!isViewablePath(path))return;
+    });
+    FSEvents.addEventListener('onDeletePath', function(e) {
+        if (!isViewablePath(e.path))return;
 
-        let new_dir_node = getNodeFromPath(pathDirName(path));
+        let new_dir_node = getNodeFromPath(pathDirName(e.path));
         new_dir_node.remove();
-    };
-    FS.trackingDelegate['onOpenFile'] = function(path, flags) {
+    });
+    FSEvents.addEventListener('onOpenFile', function(e) {
+		let path = e.path;
         if (!path.startsWith("/"))
-            path = "/"+path;
+            path = "/"+e.path;
         if (!isViewablePath(path))return;
 
         let new_dir_node = getNodeFromPath(path);
@@ -442,7 +446,7 @@ moduleEvents.addEventListener("onRuntimeInitialized", function() {
         new_dir_node = getNodeFromPath(pathDirName(path));
         let dir_node = makeFileNode(pathFileName(path), path);
         getDirectoryContents(new_dir_node).appendChild(dir_node);
-    };
+    });
 
     // Create default folders
     if (!FSFileExists("/Resources"))
@@ -463,4 +467,72 @@ moduleEvents.addEventListener("onRuntimeInitialized", function() {
         FS.mkdir("/Resources/server");
     if (!FSFileExists("/Resources/sounds"))
         FS.mkdir("/Resources/sounds");
+});
+
+// Project Zipping/Unzipping Functions
+async function projectFromZip(file){
+    await JSZip.loadAsync(file)
+    .then(async function(zip) {
+        zip.forEach(async function (rel_path, zipEntry) {
+            let abs_path = "/"+rel_path;
+            if (zipEntry.dir){
+                abs_path = abs_path.substring(0, abs_path.length-1);
+                if (!FSFileExists(abs_path)){
+                    FS.mkdir(abs_path);
+                }
+            }
+            else{
+                let uint8_view = await zip.file(rel_path).async("uint8array");
+                FS.writeFile(abs_path, uint8_view);
+            }
+        });
+    });
+}
+
+function projectToZip(){
+    var zip = new JSZip();
+
+    function addFolderToZip(path, zip){
+        let dirs_files = FS.readdir(path).slice(2);
+
+        for(let thing of dirs_files){
+            let abs_path = path+""+thing;
+
+            if (thing == "fd" || !isViewablePath(abs_path))
+                continue;
+
+            let info = FS.stat(abs_path);
+            if (FS.isDir(info.mode)){
+                addFolderToZip(abs_path+"/", zip.folder(thing));
+            }
+            else{
+                zip.file(thing, Module.FS.readFile(abs_path), {base64: false});
+            }
+        }
+    }
+
+    addFolderToZip("/",zip);
+    return zip.generateAsync({type:"blob"})
+}
+
+async function downloadProject(){
+    downloadFileGeneric(await projectToZip(), "project.zip");
+}
+
+
+
+// Project Zipping/Unzipping Click Handling
+async function uploadProjectFromInput(){
+    let reader = new FileReader();
+    let files = document.getElementById('projectuploader').files;
+    let file = files[0];
+
+    projectFromZip(file);
+}
+document.getElementById("SaveProject").addEventListener("click", async function () {
+    downloadProject();
+});
+document.getElementById("LoadProject").addEventListener("click", function (e) {
+    document.getElementById("projectuploader").click();
+    e.stopPropagation();
 });
