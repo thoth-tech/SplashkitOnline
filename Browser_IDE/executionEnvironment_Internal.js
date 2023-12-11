@@ -67,33 +67,62 @@ async function tryRunFunction_Internal(func) {
                 value: run
             };
         }
+
+
+        // Parse the non-standard exceptions stack with a regex,
+        // that returns file and line number.
+        // For reference, here's some example stacks:
+// Firefox:
+/*
+gameInnerLoop@Init.js`;:25:25
+main@Main.js`;:25:11
+async*tryRunFunction_Internal@http://localhost:8000/executionEnvironment_Internal.js:57:21
+tryRunFunction@http://localhost:8000/executionEnvironment_Internal.js:89:21
+runProgram@http://localhost:8000/executionEnvironment_Internal.js:132:15
+@http://localhost:8000/executionEnvironment_Internal.js:167:9
+EventListener.handleEvent*@http://localhost:8000/executionEnvironment_Internal.js:144:8
+*/
+
+// Edge/Chrome/Probably anything using V8
+/*
+ReferenceError: test is not defined
+    at gameInnerLoop (Init.js`;:24:33)
+    at main (Main.js`;:25:11)
+    at async tryRunFunction_Internal (executionEnvironment_Internal.js:57:15)
+    at async tryRunFunction (executionEnvironment_Internal.js:89:15)
+    at async :8000/runProgram (http://localhost:8000/executionEnvironment_Internal.js:132:9)}
+    at gameInnerLoop (Init.js`;:25:7)
+*/
+        // Currently those are the only two forms supported, but this should account for the majority well enough.
+        // It also doesn't parse the url style ones - it only needs to work for the local user's code, so good enough.
+
+        const stackParse = /(?:@|\()([^;:`]*)`?;?:([0-9]*)/g;
+        let stack = [...err.stack.matchAll(stackParse)];
         let lineNumber = null;
-        let message = "Error: "+err;
-        // TODO: Add support for browsers other than Firefox
-        if (err.hasOwnProperty("lineNumber")){
-            lineNumber = err.lineNumber;
-            message = "Error on line "+lineNumber+": "+err;
-        }
+
+        lineNumber = stack[0][2];
+        let message = "Error on line "+lineNumber+": "+err;
         return{
             state: "error",
             message: message,
             line: lineNumber,
+            block: stack[0][1],
         };
     }
 }
 
 // Run a function
-async function tryRunFunction(block, func, reportError = true){
+async function tryRunFunction(func, reportError = true){
     let res = await tryRunFunction_Internal(func);
     if (res.state == "error"){
         stopProgram();
-        ReportError(block, res.message, res.line);
+        ReportError(res.block, res.message, res.line);
     }
     return res;
 }
 async function tryEvalSource(block, source, reportError = true){
-    return await tryRunFunction(block, function(){
-        (0,eval)("\"use strict\";"+source);
+    return await tryRunFunction(function(){
+        (0,eval)("\"use strict\";"+source+"\n//# sourceURL="+block+"`;");
     }, reportError);
 }
 
@@ -127,7 +156,7 @@ async function runProgram(){
 
         mainIsRunning = true;
         parent.postMessage({type:"programStarted"},"*");
-        await tryRunFunction("Main", window.main);
+        await tryRunFunction(window.main);
         mainIsRunning = false;
         parent.postMessage({type:"programStopped"},"*");
     }

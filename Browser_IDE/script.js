@@ -1,20 +1,36 @@
 "use strict";
 
 // ------ Setup UI ------
-let editorInit = CodeMirror.fromTextArea(document.getElementById("editorInit"), {
-    mode: "text/javascript",
-    theme: "dracula",
-    lineNumbers: true,
-    autoCloseBrackets: true,
-});
+
+function setupCodeArea(element){
+    let editor = CodeMirror.fromTextArea(element, {
+        mode: "text/javascript",
+        theme: "dracula",
+        lineNumbers: true,
+        autoCloseBrackets: true,
+        styleActiveLine: true,
+        extraKeys: {"Ctrl-Space": "autocomplete"},
+        hintOptions: {
+            alignWithWord: false,
+            completeSingle: false,
+            useGlobalScope: false,
+        },
+        foldGutter: true,
+        gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"]
+    });
+
+    editor.on('inputRead', (cm, change) => {
+        if (!cm.state.completeActive) {
+            cm.showHint();
+        }
+    });
+    return editor;
+}
+
+let editorInit = setupCodeArea(document.getElementById("editorInit"));
 editorInit.display.wrapper.classList.add("flex-grow-1");
 
-let editorMainLoop = CodeMirror.fromTextArea(document.getElementById("editorMainLoop"), {
-    mode: "text/javascript",
-    theme: "dracula",
-    lineNumbers: true,
-    autoCloseBrackets: true,
-});
+let editorMainLoop = setupCodeArea(document.getElementById("editorMainLoop"));
 
 let editors = [editorInit, editorMainLoop]
 
@@ -113,19 +129,19 @@ function enableCodeExecution(){
 function runInitialization(){
     clearErrorLines();
 
-    executionEnviroment.runCodeBlock("Init", editorInit.getValue());
+    executionEnviroment.runCodeBlock("GeneralCode", editorInit.getValue());
 }
 
 function runMainLoop(){
     clearErrorLines();
 
-    executionEnviroment.runCodeBlock("Main", editorMainLoop.getValue());
+    executionEnviroment.runCodeBlock("MainCode", editorMainLoop.getValue());
 }
 
 function runAllCodeBlocks(){
     executionEnviroment.runCodeBlocks([
-        {name: "Init", code: editorInit.getValue()},
-        {name: "Main", code: editorMainLoop.getValue()}
+        {name: "GeneralCode", code: editorInit.getValue()},
+        {name: "MainCode", code: editorMainLoop.getValue()}
     ]);
 }
 
@@ -429,7 +445,7 @@ executionEnviroment.addEventListener("programStopped", function(e){
 
 // Also highlight errors when they come
 executionEnviroment.addEventListener("error", function(e){
-    let editor = (e.block=="Init"?editorInit:editorMainLoop);
+    let editor = (e.block=="GeneralCode"?editorInit:editorMainLoop);
     if (e.line != null){
         editor.addLineClass(e.line-1, "wrap", "error-line");
         editor.scrollIntoView({line:e.line-1, char:0}, 200);
