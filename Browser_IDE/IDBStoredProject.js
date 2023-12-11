@@ -56,6 +56,7 @@ class __IDBStoredProjectRW{
         this.ROOT = -1;// ID for root node
         this.db = null;
         this.doInitialization = false;
+        this.performedWrite = false;
     }
     openDB(){
         let IDBFS = this;
@@ -83,6 +84,7 @@ class __IDBStoredProjectRW{
                 IDBFS.db = openRequest.result;
                 if (IDBFS.doInitialization){
                     await IDBFS.owner.initializer(IDBFS);
+                    await IDBFS.updateLastWriteTime();
                 }
                 IDBFS.doInitialization = false;
                 resolve();
@@ -95,10 +97,38 @@ class __IDBStoredProjectRW{
     }
 
     closeDB(){
+        if (this.performedWrite)
+            this.updateLastWriteTime();
         if (this.db != null)
             this.db.close();
         this.db = null;
     }
+
+    async getLastWriteTime(){
+        let IDBSP = this;
+        return await this.doTransaction("project", "readwrite", async function(t, project){
+            let lastTime =  await IDBSP.request(t, function(){
+                return project.get("lastWriteTime");
+            });
+            if (lastTime == undefined || lastTime == null)
+                return 0;
+            else
+                return lastTime.time;
+        });
+    }
+
+    async updateLastWriteTime(time = null){
+        if (time == null)
+            time = Date.now();
+
+        let IDBSP = this;
+        await this.doTransaction("project", "readwrite", async function(t, project){
+            await IDBSP.request(t, function(){
+                return project.put({category: "lastWriteTime", time: time});
+            });
+        });
+    }
+
 
     // File System Related
     async mkdir(path){
@@ -241,11 +271,13 @@ class __IDBStoredProjectRW{
 
     // Basic Node Handling
     makeNode(transaction, files, name, type, data, parent){
+        this.performedWrite = true;
         return this.request(transaction, function(){
             return files.add({name:name, type:type, data:data, parent:parent});
         });
     }
     replaceNode(transaction, files, nodeId, name, type, data, parent){
+        this.performedWrite = true;
         return this.request(transaction, function(){
             return files.put({nodeId:nodeId, name:name, type:type, data:data, parent:parent});
         });
