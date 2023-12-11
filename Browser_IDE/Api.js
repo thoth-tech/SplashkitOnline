@@ -2,12 +2,12 @@ const express = require("express")
 const app = express()
 const bodyP = require("body-parser")
 const compiler = require("compilex")
+var path = require('path');
 const options = { stats: true }
 compiler.init(options)
 app.use(bodyP.json())
 
-// change this to the path of your codemirror folder before running the server
-app.use("/codemirror-5.65.15", express.static("E:\Code\web-editor\CodeEditor\codemirror-5.65.15"))
+app.use("/codemirror-5.65.15", express.static(path.join(__dirname,"node_modules/codemirror")))
 
 app.use(function (req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
@@ -19,13 +19,14 @@ app.use(function (req, res, next) {
     next();
   });
 
+app.use(express.static(path.join(__dirname,"")));
+
 app.get("/", function (req, res) {
     compiler.flush(function () {
         console.log("deleted")
     })
 
-    // change this to the path of your index.html file before running the server
-    res.sendFile("E:\Code\web-editor\CodeEditor\index.html")
+    res.sendFile("index.html", { root: __dirname })
 })
 app.post("/compile", function (req, res) {
     var code = req.body.code
