@@ -9,6 +9,7 @@ app.use(bodyP.json())
 
 app.use("/codemirror-5.65.15", express.static(path.join(__dirname,"node_modules/codemirror")))
 app.use("/jszip", express.static(path.join(__dirname,"node_modules/jszip/dist/")))
+app.use("/babel", express.static(path.join(__dirname,"node_modules/@babel/standalone/")))
 
 app.use(function (req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
