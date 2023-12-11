@@ -1,50 +1,98 @@
-var editor = CodeMirror.fromTextArea(document.getElementById("editor"), {
-    mode: "text/x-c++src",
+"use strict";
+
+let editorInit = CodeMirror.fromTextArea(document.getElementById("editorInit"), {
+    mode: "text/javascript",
     theme: "dracula",
     lineNumbers: true,
     autoCloseBrackets: true,
 })
+editorInit.display.wrapper.classList.add("flex-grow-1");
 
-var width = window.innerWidth
-var input = document.getElementById("input")
-var output = document.getElementById("output")
-var run = document.getElementById("run")
-editor.setSize(0.7 * width, "500")
-
-var option = document.getElementById("inlineFormSelectPref")
-
-option.addEventListener("change", function () {
-    if (option.value == "Java") {
-        editor.setOption("mode", "text/x-java")
-    }
-    else if (option.value == "Cpp") {
-        editor.setOption("mode", "text/x-c++src")
-    }
-    else {
-        editor.setOption("mode", "text/x-python")
-    }
+let editorMainLoop = CodeMirror.fromTextArea(document.getElementById("editorMainLoop"), {
+    mode: "text/javascript",
+    theme: "dracula",
+    lineNumbers: true,
+    autoCloseBrackets: true,
 })
+editorMainLoop.display.wrapper.classList.add("flex-grow-1");
 
-// Sherap's work starts here
-var code;
+let width = window.innerWidth
+let runInitButton = document.getElementById("runInit")
+let runMainLoopButton = document.getElementById("runMainLoop")
+let pauseMainLoopButton = document.getElementById("pauseMainLoop")
 
-run.addEventListener("click", async function () {
-    code = {
-        code: editor.getValue(),
-        input: input.value,
-        lang: option.value
+// Code Running
+let runMainLoopGo = false;
+let mainLoopCode = "";
+let mainLoop = function(){
+    eval(mainLoopCode);
+    if (runMainLoopGo)
+        window.requestAnimationFrame(mainLoop);
+}
+
+
+function runInitialization(){
+    eval(editorInit.getValue());
+}
+
+function runMainLoop(){
+    runMainLoopGo = true;
+    mainLoopCode = editorMainLoop.getValue();
+    window.requestAnimationFrame(mainLoop);
+}
+
+function stopMainLoop(){
+    runMainLoopGo = false;
+}
+
+let initCodePath = "/code/codeblock_init.js"
+let mainLoopCodePath = "/code/codeblock_mainloop.js"
+function makeCodeFolder(){
+    try{
+        FS.mkdir("/code");
     }
-    console.log(code)
-    var oData = await fetch("http://localhost:8000/compile", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(code)
-    })
-    var d = await oData.json()
-    output.value = d.output
-    console.log(d.output);
-})
-// Sherap's work ends here
+    catch {}
+}
+function saveInitialization(){
+    makeCodeFolder();
+    FS.writeFile(initCodePath, editorInit.getValue());
+}
+function saveMainLoop()
+{
+    makeCodeFolder();
+    FS.writeFile(mainLoopCodePath, editorMainLoop.getValue());
+}
 
+function loadInitialization(){
+    editorInit.setValue(FS.readFile(initCodePath, {encoding: 'utf8'}));
+}
+function loadMainLoop()
+{
+    editorMainLoop.setValue(FS.readFile(mainLoopCodePath, {encoding: 'utf8'}));
+}
+FSEvents.addEventListener('onWriteToFile', function(e) {
+    if (e.path == initCodePath)
+        loadInitialization();
+    else if (e.path == mainLoopCodePath)
+        loadMainLoop();
+});
+
+// Setup code editor buttons
+pauseMainLoopButton.disabled = true;
+
+runInitButton.addEventListener("click", async function () {
+    saveInitialization();
+    runInitialization();
+});
+
+runMainLoopButton.addEventListener("click", async function () {
+    saveMainLoop();
+    runMainLoop();
+    pauseMainLoopButton.disabled = false;
+});
+
+pauseMainLoopButton.addEventListener("click", async function () {
+    stopMainLoop();
+    runMainLoopButton.disabled = false;
+    pauseMainLoopButton.disabled = true;
+});
