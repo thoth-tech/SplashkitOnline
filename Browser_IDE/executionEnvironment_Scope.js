@@ -13,10 +13,17 @@ function* Execution_Scope(expr) {
             };
         }
         catch(err){
-            console.log(err);
+            let lineNumber = null;
+            let message = "Error: "+err;
+            // TODO: Add support for browsers other than Firefox
+            if (err.hasOwnProperty("lineNumber")){
+                lineNumber = err.lineNumber;
+                message = "Error on line "+lineNumber+": "+err;
+            }
             expr = yield{
                 state: "error",
-                value: err
+                message: message,
+                line: lineNumber,
             };
         }
     }

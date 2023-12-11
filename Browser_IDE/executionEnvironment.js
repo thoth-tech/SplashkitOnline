@@ -15,6 +15,13 @@ class ExecutionEnvironment extends EventTarget{
             if (data.type == "initialized"){
                 EE.dispatchEvent(new Event("initialized"));
             }
+            else if (data.type == "error"){
+                let ev = new Event("error");
+                ev.message = data.message;
+                ev.line = data.line;
+                ev.block = data.block;
+                EE.dispatchEvent(ev);
+            }
             else if (data.type == "FS")
             {
                 if (data.message.type == "onMovePath"){
