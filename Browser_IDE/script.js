@@ -54,7 +54,7 @@ let canMirror = false;
 
 async function newProject(){
     disableCodeExecution();
-    storedProject.detach();
+    storedProject.detachFromProject();
     canMirror = false;
     executionEnviroment.resetEnvironment();
     await storedProject.deleteProject("Untitled");
@@ -70,7 +70,7 @@ executionEnviroment.addEventListener("initialized", function() {
     MirrorToExecutionEnvironment();
 });
 
-storedProject.addEventListener("initialized", async function() {
+storedProject.addEventListener("attached", async function() {
     MirrorToExecutionEnvironment();
     loadInitialization();
     loadMainLoop();
@@ -79,7 +79,7 @@ storedProject.addEventListener("initialized", async function() {
 async function MirrorToExecutionEnvironment(){
     if (!haveMirrored && canMirror){
         haveMirrored = true;
-        let tree = await storedProject.getFileTree();
+        let tree = await storedProject.access((project)=>project.getFileTree());
 
         async function mirror(tree, path){
             let dirs_files = tree;
@@ -91,7 +91,7 @@ async function MirrorToExecutionEnvironment(){
                     mirror(node.children, abs_path+"/");
                 }
                 else{
-                    executionEnviroment.writeFile(abs_path, await storedProject.readFile(abs_path));
+                    executionEnviroment.writeFile(abs_path, await storedProject.access((project)=>project.readFile(abs_path)));
                 }
             }
         }
@@ -147,21 +147,29 @@ function runAllCodeBlocks(){
 
 // Functions to save/load the code blocks
 async function saveInitialization(){
-    await storedProject.mkdir(codePath);
-    await storedProject.writeFile(initCodePath, editorInit.getValue());
+    await storedProject.access(async function(project){
+        await project.mkdir(codePath);
+        await project.writeFile(initCodePath, editorInit.getValue());
+    });
 }
 async function saveMainLoop(){
-    await storedProject.mkdir(codePath);
-    await storedProject.writeFile(mainLoopCodePath, editorMainLoop.getValue());
+    await storedProject.access(async function(project){
+        await project.mkdir(codePath);
+        await project.writeFile(mainLoopCodePath, editorMainLoop.getValue());
+    });
 }
 
 async function loadInitialization(){
-    let newVal = await fileAsString(await storedProject.readFile(initCodePath));
+    let newVal = await fileAsString(await storedProject.access(function(project){
+        return project.readFile(initCodePath);
+    }));
     if (newVal != editorInit.getValue())
         editorInit.setValue(newVal);
 }
 async function loadMainLoop(){
-    let newVal = await fileAsString(await storedProject.readFile(mainLoopCodePath));
+    let newVal = await fileAsString(await storedProject.access(function(project){
+        return project.readFile(mainLoopCodePath);
+    }));
     if (newVal != editorMainLoop.getValue())
         editorMainLoop.setValue(newVal);
 }
@@ -301,12 +309,12 @@ async function projectFromZip(file){
                 abs_path = abs_path.substring(0, abs_path.length-1);
 
                 executionEnviroment.mkdir(abs_path);
-                storedProject.mkdir(abs_path);
+                storedProject.access((project)=>project.mkdir(abs_path));
             }
             else{
                 let uint8_view = await zip.file(rel_path).async("uint8array");
                 executionEnviroment.writeFile(abs_path, uint8_view);
-                storedProject.writeFile(abs_path, uint8_view);
+                storedProject.access((project)=>project.writeFile(abs_path, uint8_view));
             }
         });
     });
@@ -315,7 +323,7 @@ async function projectFromZip(file){
 async function projectToZip(){
     let zip = new JSZip();
 
-    let tree = await storedProject.getFileTree();
+    let tree = await storedProject.access((project)=>project.getFileTree());
 
     async function addFolderToZip(tree, path, zip){
         let dirs_files = tree;
@@ -326,7 +334,7 @@ async function projectToZip(){
                 addFolderToZip(node.children, abs_path+"/", zip.folder(node.label));
             }
             else{
-                zip.file(node.label, storedProject.readFile(abs_path), {base64: false});
+                zip.file(node.label, storedProject.access((project)=>project.readFile(abs_path)), {base64: false});
             }
         }
     }
@@ -347,7 +355,7 @@ function uploadFileFromInput(){
         const uint8_view = new Uint8Array(result);
 
         let path = document.getElementById('fileuploader').dataset.uploadDirectory;
-        storedProject.writeFile(path+"/"+file.name, uint8_view);
+        storedProject.access((project)=>project.writeFile(path+"/"+file.name, uint8_view));
         executionEnviroment.writeFile(path+"/"+file.name, uint8_view);
     });
     reader.readAsArrayBuffer(file);
@@ -374,7 +382,7 @@ function downloadFileGeneric(content, filename, mime) {
 async function FSviewFile(filename, mime) {
     mime = mime || "application/octet-stream";
 
-    let content = await storedProject.readFile(filename);
+    let content = await storedProject.access((project)=>project.readFile(filename));
 
     let url = URL.createObjectURL(new Blob([content], {type: mime}));
 
@@ -384,7 +392,7 @@ async function FSviewFile(filename, mime) {
     }, 2000);
 }
 async function FSdownloadFile(filename, mime) {
-    let content = await storedProject.readFile(filename);
+    let content = await storedProject.access((project)=>project.readFile(filename));
 
     downloadFileGeneric(content, filename, mime);
 }
