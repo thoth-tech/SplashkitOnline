@@ -206,10 +206,6 @@ function makeFunctionsAsyncAwaitTransform(babel){
 
             // Modify calls to user functions to 'await' their return value
             CallExpression: (path) => {
-                if (path.getFunctionParent() == null){
-                    path.skip();
-                    return;
-                }
                 const statement = path.node;
                 if (findGlobalDeclarationsTransform__userScope.has(path.node.callee.name) && (path.container.type != "AwaitExpression"))
                     path.replaceWith(types.awaitExpression(statement));
@@ -290,6 +286,7 @@ function processCodeForExecutionEnvironment(userCode, asyncStopName, asyncPauseN
         plugins: ["findGlobalDeclarationsTransform"]
     });
 
+    // Now do the actual transforms!
     userCode = Babel.transform(userCode, {
         plugins: ["makeFunctionsAsyncAwaitTransform","asyncify"],
         retainLines: true

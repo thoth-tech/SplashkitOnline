@@ -220,9 +220,14 @@ async function restartProgram(){
         await executionEnviroment.stopProgram(); // Make sure we wait for it to stop via await.
     executionEnviroment.cleanEnvironment();
 
-    runAllCodeBlocks();
+    // The syntax checking cannot run inside an async function,
+    // so just runAllCodeBlocks (which does syntax checking)
+    // inside a timeout instead. A bit of a cludge, but it works.
+    setTimeout(function(){
+        runAllCodeBlocks();
 
-    executionEnviroment.runProgram();
+        executionEnviroment.runProgram();
+    }, 0);
 }
 
 // ------ Setup code editor buttons ------
@@ -251,35 +256,35 @@ updateButtons();
 
 
 // Add events for the code blocks
-runInitButton.addEventListener("click", async function () {
+runInitButton.addEventListener("click", function () {
     saveInitialization();
     runInitialization();
 });
 
-runMainLoopButton.addEventListener("click", async function () {
+runMainLoopButton.addEventListener("click", function () {
     saveMainLoop();
     runMainLoop();
 });
 
 
 // Add events for the main program buttons
-runProgramButton.addEventListener("click", async function () {
+runProgramButton.addEventListener("click", function () {
     saveMainLoop();
     saveInitialization();
     runProgram();
 });
 
-stopProgramButton.addEventListener("click", async function () {
+stopProgramButton.addEventListener("click", function () {
     pauseProgram();
 });
 
-restartProgramButton.addEventListener("click", async function () {
+restartProgramButton.addEventListener("click", function () {
     saveMainLoop();
     saveInitialization();
     restartProgram();
 });
 
-continueProgramButton.addEventListener("click", async function () {
+continueProgramButton.addEventListener("click", function () {
     saveMainLoop();
     saveInitialization();
     continueProgram();
@@ -463,6 +468,8 @@ executionEnviroment.addEventListener("programStopped", function(e){
 executionEnviroment.addEventListener("error", function(e){
     let editor = (e.block=="GeneralCode"?editorInit:editorMainLoop);
     if (e.line != null){
+        if (editor.lineCount() < e.line)
+            e.line = editor.lineCount();
         editor.addLineClass(e.line-1, "wrap", "error-line");
         editor.scrollIntoView({line:e.line-1, char:0}, 200);
         editor.setCursor({line:e.line-1, char:0});
