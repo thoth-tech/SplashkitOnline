@@ -99,6 +99,9 @@ class ExecutionEnvironment extends EventTarget{
     }
 
     runCodeBlock(block, source){
+        // Syntax check code - will throw if fails.
+        this._syntaxCheckCode(block, source);
+
         this.iFrame.contentWindow.postMessage({
             type: "RunCodeBlock",
             name: block,
@@ -191,6 +194,51 @@ class ExecutionEnvironment extends EventTarget{
 
 
     // "Private" Methods
+
+    // The only cross browser way to syntax check the user's function
+    // and get a line number is to use window.onerror. Unfortunately,
+    // due to the sandboxed nature of the iFrame, the resulting information
+    // just becomes "Syntax error", with line/column as 0s. So we syntax
+    // check _outside_ the iFrame first.
+    // Once the code is running (inside the iFrame), the stack traces
+    // become more useful and can all be handled in there. It's only
+    // the syntax check that runs outside here, so this should be
+    // safe from a security point of view.
+
+    // Note: This function can only be called inside non-async functions!
+    // If called inside an async function, syntax errors will not propogate
+    // to the window.onerror handler.
+
+    _syntaxCheckCode(block, source){
+
+        let errorFunction = (errorEvent) => {
+            const {lineno, colno, message} = errorEvent;
+            errorEvent.preventDefault();
+
+            this.iFrame.contentWindow.postMessage({
+                type: "ReportError",
+                block: block,
+                line: lineno - userCodeStartLineOffset,
+                message: message,
+            }, "*");
+
+            window.removeEventListener('error', errorFunction);
+        }
+
+        window.addEventListener('error', errorFunction);
+
+        // Syntax check by creating a function based on the user's code
+        // Don't execute it here!
+        Object.getPrototypeOf(async function() {}).constructor(
+        "\"use strict\";"+source
+        );
+
+        // If there is a syntax error, this will not be reached
+        // So make sure we remove it in the `errorFunction`
+        // above too.
+        window.removeEventListener('error', errorFunction);
+    }
+
     _constructiFrame(container){
 
         var iframe = document.createElement('iframe');
@@ -204,4 +252,28 @@ class ExecutionEnvironment extends EventTarget{
         return iframe;
     }
 
+}
+
+// Note: Brought across from executionEnvironment_Internal.js
+// I don't like the duplication, but unsure how to avoid it without
+// placing this single function inside another script file.
+
+let userCodeStartLineOffset = findAsyncFunctionConstructorLineOffset();
+
+// In Firefox at least, the AsyncFunction constructor appends two lines of code to
+// the start of the function.
+// So we'll detect where a dummy identifier inserted on the first line of the code
+//  is located (*/SK_ID*/), and update userCodeStartLineOffsets.
+// Could just set it to 2, but unsure if this is browser/source dependent or not.
+function findAsyncFunctionConstructorLineOffset(){
+    let identifier = "/*SK_ID*/";
+    let blockFunction = Object.getPrototypeOf(async function() {}).constructor(
+        "\"use strict\";"+identifier+"\n;"
+    );
+    let functionCode = blockFunction.toString();
+    let codeUntilIdentifier = functionCode.slice(0, functionCode.indexOf(identifier));
+    let newlines = codeUntilIdentifier.match(/\n/g);
+    let newlineCount = ((newlines==null)?0:newlines.length);
+
+    return newlineCount;
 }
