@@ -52,7 +52,13 @@ storedProject.attachToProject("Untitled");
 let haveMirrored = false;
 let canMirror = false;
 
+let makingNewProject = false;
 async function newProject(){
+    // Guard against re-entry on double click
+    if (makingNewProject)
+        return;
+    makingNewProject = true;
+
     disableCodeExecution();
     storedProject.detachFromProject();
     canMirror = false;
@@ -60,6 +66,8 @@ async function newProject(){
     await storedProject.deleteProject("Untitled");
     haveMirrored = false;
     await storedProject.attachToProject("Untitled");
+
+    makingNewProject = false;
 }
 
 
@@ -489,19 +497,28 @@ projectConflictModal = createModal(
     }}
 );
 
-storedProject.addEventListener("attached", async function() {
-    // Check for conflict every 2 seconds - if the lastWriteTime changes without us changing it,
-    // the user must be modifying the project in another tab - so show the conflict modal.
-    setInterval(function(){
+// Check for conflict every 2 seconds - if the lastWriteTime changes without us changing it,
+// the user must be modifying the project in another tab - so show the conflict modal.
+setInterval(function(){
+    storedProject.checkForWriteConflicts();
+}, 2000);
+
+// Also check on focus/visibilitychange (different compatability)
+window.addEventListener("focus", function(){
+    storedProject.checkForWriteConflicts();
+});
+
+window.addEventListener("visibilitychange", function(){
+    // Calling checkForWriteConflicts() directly inside visibilitychange
+    // seems to cause the connection made to not close properly,
+    // leading to strange timeouts and other issues - particularly when
+    // deleting the database in newProject - it can delay up to 20 seconds
+    // or more. This bug tends to manifest _after_ a page reload, making it
+    // particularly confusing.
+    // The fix is simple - do the check after a short timeout instead.
+    setTimeout(function(){
         storedProject.checkForWriteConflicts();
-    }, 2000);
-    // Also check on focus/visibilitychange (different compatability)
-    window.addEventListener("focus", function(){
-        storedProject.checkForWriteConflicts();
-    });
-    window.addEventListener("visibilitychange", function(){
-        storedProject.checkForWriteConflicts();
-    });
+    }, 1);
 });
 
 // If the conflict is detected, show the modal

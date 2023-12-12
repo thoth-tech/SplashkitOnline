@@ -43,12 +43,13 @@ class IDBStoredProject extends EventTarget{
         if (this.lastKnownWriteTime == 0){
             this.lastKnownWriteTime = storedTime;
         }
-        if (storedTime != this.lastKnownWriteTime)
+        if (storedTime > this.lastKnownWriteTime)
             this.dispatchEvent(new Event("timeConflict"));
     }
 
     detachFromProject(){
         this.projectName = null;
+        this.lastKnownWriteTime = 0;
         this.dispatchEvent(new Event("detached"));
     }
 
