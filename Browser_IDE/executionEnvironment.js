@@ -26,8 +26,6 @@ class ExecutionEnvironment extends EventTarget{
                 EE.dispatchEvent(new Event("initialized"));
             }
             else if (data.type == "error"){
-                EE.executionStatus = ExecutionStatus.Unstarted;
-
                 let ev = new Event("error");
                 ev.message = data.message;
                 ev.line = data.line;
