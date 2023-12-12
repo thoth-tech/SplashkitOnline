@@ -4,47 +4,52 @@
 class IDBStoredProject extends EventTarget{
     constructor(initializer) {
         super();
-        this.ROOT = -1;// ID for root node
         this.initializer = initializer;
-        this.doInitialization = false;
+        this.projectName = null;
+        this.lastKnownWriteTime = 0;
     }
 
     // Public Facing Methods
 
     // Project Related
-    attachToProject(storeName){
-        let IDBFS = this;
-        return new Promise((resolve, reject) => {
-            let openRequest = indexedDB.open(storeName, 1);
+    async attachToProject(storeName){
+        this.projectName = storeName;
 
-            openRequest.onupgradeneeded = function() {
-                IDBFS.db = openRequest.result;
-                IDBFS.db.createObjectStore("project", {keyPath: "category"});
-                let files = IDBFS.db.createObjectStore("files", {keyPath: "nodeId", autoIncrement: true});
+        // Force an init by performing an empty DB operation
+        await this.access(function(){});
 
-                files.createIndex("name", "name", { unique: false });
-                files.createIndex("parent", "parent", { unique: false });
-                IDBFS.doInitialization = true;
-            };
-            openRequest.onsuccess = async function(e){
-                IDBFS.db = openRequest.result;
-                if (IDBFS.doInitialization){
-                    await IDBFS.initializer(IDBFS);
-                }
-                IDBFS.doInitialization = false;
-                IDBFS.dispatchEvent(new Event("initialized"));
-                resolve();
-            };
-            openRequest.onerror = function(e){
-                console.log("Failed to open DB");
-                IDBFS.dispatchEvent(new Event("initializationFailed"));
-                reject();
-            };
-        });
+        // Initial update of lastKnownWriteTime
+        await this.checkForWriteConflicts();
+
+        this.dispatchEvent(new Event("attached"));
     }
 
-    detach(){
-        this.db.close();
+    async access(func){
+        let RW = new __IDBStoredProjectRW(this);
+        try{
+            await RW.openDB();
+            return await func(RW);
+        }
+        catch(err){
+            throw err;
+        }
+        finally{
+            RW.closeDB();
+        }
+    }
+
+    async checkForWriteConflicts(){
+        let storedTime = await this.access((project)=>project.getLastWriteTime());
+        if (this.lastKnownWriteTime == 0){
+            this.lastKnownWriteTime = storedTime;
+        }
+        if (storedTime > this.lastKnownWriteTime)
+            this.dispatchEvent(new Event("timeConflict"));
+    }
+
+    detachFromProject(){
+        this.projectName = null;
+        this.lastKnownWriteTime = 0;
         this.dispatchEvent(new Event("detached"));
     }
 
@@ -56,6 +61,89 @@ class IDBStoredProject extends EventTarget{
         });
 
     }
+};
+
+// Private class - can create by calling the 'access' function on a IDBStoredProject
+class __IDBStoredProjectRW{
+    constructor(IDBSP) {
+        this.owner = IDBSP;
+        this.ROOT = -1;// ID for root node
+        this.db = null;
+        this.doInitialization = false;
+        this.performedWrite = false;
+    }
+    openDB(){
+        let IDBFS = this;
+        return new Promise(function(resolve, reject){
+
+            if (IDBFS.owner.projectName == null)
+                return reject();
+
+            if (IDBFS.db != null)
+                reject();
+
+            let openRequest = indexedDB.open(IDBFS.owner.projectName, 1);
+
+            openRequest.onupgradeneeded = function(ev) {
+                IDBFS.db = openRequest.result;
+                IDBFS.db.createObjectStore("project", {keyPath: "category"});
+                let files = IDBFS.db.createObjectStore("files", {keyPath: "nodeId", autoIncrement: true});
+
+                files.createIndex("name", "name", { unique: false });
+                files.createIndex("parent", "parent", { unique: false });
+                if (ev.oldVersion == 0)
+                    IDBFS.doInitialization = true;
+            };
+            openRequest.onsuccess = async function(e){
+                IDBFS.db = openRequest.result;
+                if (IDBFS.doInitialization){
+                    await IDBFS.owner.initializer(IDBFS);
+                    await IDBFS.updateLastWriteTime();
+                }
+                IDBFS.doInitialization = false;
+                resolve();
+            };
+            openRequest.onerror = function(e){
+                IDBFS.owner.dispatchEvent(new Event("connectionFailed"));
+                reject();
+            };
+        });
+    }
+
+    closeDB(){
+        if (this.performedWrite)
+            this.updateLastWriteTime();
+        if (this.db != null)
+            this.db.close();
+        this.db = null;
+    }
+
+    async getLastWriteTime(){
+        let IDBSP = this;
+        return await this.doTransaction("project", "readwrite", async function(t, project){
+            let lastTime =  await IDBSP.request(t, function(){
+                return project.get("lastWriteTime");
+            });
+            if (lastTime == undefined || lastTime == null)
+                return 0;
+            else
+                return lastTime.time;
+        });
+    }
+
+    async updateLastWriteTime(time = null){
+        if (time == null)
+            time = Date.now();
+
+        let IDBSP = this;
+        await this.doTransaction("project", "readwrite", async function(t, project){
+            await IDBSP.request(t, function(){
+                return project.put({category: "lastWriteTime", time: time});
+            });
+        });
+        this.owner.lastKnownWriteTime = time;
+    }
+
 
     // File System Related
     async mkdir(path){
@@ -67,7 +155,7 @@ class IDBStoredProject extends EventTarget{
                 await IDBSP.makeNode(t, files, dirName, "DIR", null, parentNode);
                 let ev = new Event("onMakeDirectory");
                 ev.path = path;
-                IDBSP.dispatchEvent(ev);
+                IDBSP.owner.dispatchEvent(ev);
             }
         });
     }
@@ -88,10 +176,10 @@ class IDBStoredProject extends EventTarget{
                 }
                 let ev = new Event("onOpenFile");
                 ev.path = path;
-                IDBSP.dispatchEvent(ev);
+                IDBSP.owner.dispatchEvent(ev);
                 ev = new Event("onWriteToFile");
                 ev.path = path;
-                IDBSP.dispatchEvent(ev);
+                IDBSP.owner.dispatchEvent(ev);
             }
         });
     }
@@ -115,7 +203,7 @@ class IDBStoredProject extends EventTarget{
                 let ev = new Event("onMovePath");
                 ev.oldPath = oldPath;
                 ev.newPath = newPath;
-                IDBSP.dispatchEvent(ev);
+                IDBSP.owner.dispatchEvent(ev);
             }
         });
     }
@@ -198,11 +286,13 @@ class IDBStoredProject extends EventTarget{
 
     // Basic Node Handling
     makeNode(transaction, files, name, type, data, parent){
+        this.performedWrite = true;
         return this.request(transaction, function(){
             return files.add({name:name, type:type, data:data, parent:parent});
         });
     }
     replaceNode(transaction, files, nodeId, name, type, data, parent){
+        this.performedWrite = true;
         return this.request(transaction, function(){
             return files.put({nodeId:nodeId, name:name, type:type, data:data, parent:parent});
         });

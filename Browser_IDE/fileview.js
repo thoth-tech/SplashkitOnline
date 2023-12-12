@@ -7,7 +7,7 @@ myTreeView.addEventListener("nodeMoveRequest", function(e){
     if (e.FS.includes("transient"))
         executionEnviroment.rename(e.oldPath, e.newPath);
     if (e.FS.includes("persistent"))
-        storedProject.rename(e.oldPath, e.newPath);
+        storedProject.access((project)=>project.rename(e.oldPath, e.newPath));
 });
 
 myTreeView.addEventListener("nodeDoubleClick", function(e){
@@ -57,8 +57,8 @@ storedProject.addEventListener('onOpenFile', function(e) {
 });
 
 
-storedProject.addEventListener("initialized", async function() {
-    let fileTree = await storedProject.getFileTree();
+storedProject.addEventListener("attached", async function() {
+    let fileTree = await storedProject.access((project)=>project.getFileTree());
     myTreeView.populatefileView(fileTree, "persistent");
 });
 

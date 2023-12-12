@@ -52,14 +52,22 @@ storedProject.attachToProject("Untitled");
 let haveMirrored = false;
 let canMirror = false;
 
+let makingNewProject = false;
 async function newProject(){
+    // Guard against re-entry on double click
+    if (makingNewProject)
+        return;
+    makingNewProject = true;
+
     disableCodeExecution();
-    storedProject.detach();
+    storedProject.detachFromProject();
     canMirror = false;
     executionEnviroment.resetEnvironment();
     await storedProject.deleteProject("Untitled");
     haveMirrored = false;
     await storedProject.attachToProject("Untitled");
+
+    makingNewProject = false;
 }
 
 
@@ -70,7 +78,7 @@ executionEnviroment.addEventListener("initialized", function() {
     MirrorToExecutionEnvironment();
 });
 
-storedProject.addEventListener("initialized", async function() {
+storedProject.addEventListener("attached", async function() {
     MirrorToExecutionEnvironment();
     loadInitialization();
     loadMainLoop();
@@ -79,7 +87,7 @@ storedProject.addEventListener("initialized", async function() {
 async function MirrorToExecutionEnvironment(){
     if (!haveMirrored && canMirror){
         haveMirrored = true;
-        let tree = await storedProject.getFileTree();
+        let tree = await storedProject.access((project)=>project.getFileTree());
 
         async function mirror(tree, path){
             let dirs_files = tree;
@@ -91,7 +99,7 @@ async function MirrorToExecutionEnvironment(){
                     mirror(node.children, abs_path+"/");
                 }
                 else{
-                    executionEnviroment.writeFile(abs_path, await storedProject.readFile(abs_path));
+                    executionEnviroment.writeFile(abs_path, await storedProject.access((project)=>project.readFile(abs_path)));
                 }
             }
         }
@@ -147,21 +155,29 @@ function runAllCodeBlocks(){
 
 // Functions to save/load the code blocks
 async function saveInitialization(){
-    await storedProject.mkdir(codePath);
-    await storedProject.writeFile(initCodePath, editorInit.getValue());
+    await storedProject.access(async function(project){
+        await project.mkdir(codePath);
+        await project.writeFile(initCodePath, editorInit.getValue());
+    });
 }
 async function saveMainLoop(){
-    await storedProject.mkdir(codePath);
-    await storedProject.writeFile(mainLoopCodePath, editorMainLoop.getValue());
+    await storedProject.access(async function(project){
+        await project.mkdir(codePath);
+        await project.writeFile(mainLoopCodePath, editorMainLoop.getValue());
+    });
 }
 
 async function loadInitialization(){
-    let newVal = await fileAsString(await storedProject.readFile(initCodePath));
+    let newVal = await fileAsString(await storedProject.access(function(project){
+        return project.readFile(initCodePath);
+    }));
     if (newVal != editorInit.getValue())
         editorInit.setValue(newVal);
 }
 async function loadMainLoop(){
-    let newVal = await fileAsString(await storedProject.readFile(mainLoopCodePath));
+    let newVal = await fileAsString(await storedProject.access(function(project){
+        return project.readFile(mainLoopCodePath);
+    }));
     if (newVal != editorMainLoop.getValue())
         editorMainLoop.setValue(newVal);
 }
@@ -301,12 +317,12 @@ async function projectFromZip(file){
                 abs_path = abs_path.substring(0, abs_path.length-1);
 
                 executionEnviroment.mkdir(abs_path);
-                storedProject.mkdir(abs_path);
+                storedProject.access((project)=>project.mkdir(abs_path));
             }
             else{
                 let uint8_view = await zip.file(rel_path).async("uint8array");
                 executionEnviroment.writeFile(abs_path, uint8_view);
-                storedProject.writeFile(abs_path, uint8_view);
+                storedProject.access((project)=>project.writeFile(abs_path, uint8_view));
             }
         });
     });
@@ -315,7 +331,7 @@ async function projectFromZip(file){
 async function projectToZip(){
     let zip = new JSZip();
 
-    let tree = await storedProject.getFileTree();
+    let tree = await storedProject.access((project)=>project.getFileTree());
 
     async function addFolderToZip(tree, path, zip){
         let dirs_files = tree;
@@ -326,7 +342,7 @@ async function projectToZip(){
                 addFolderToZip(node.children, abs_path+"/", zip.folder(node.label));
             }
             else{
-                zip.file(node.label, storedProject.readFile(abs_path), {base64: false});
+                zip.file(node.label, storedProject.access((project)=>project.readFile(abs_path)), {base64: false});
             }
         }
     }
@@ -347,7 +363,7 @@ function uploadFileFromInput(){
         const uint8_view = new Uint8Array(result);
 
         let path = document.getElementById('fileuploader').dataset.uploadDirectory;
-        storedProject.writeFile(path+"/"+file.name, uint8_view);
+        storedProject.access((project)=>project.writeFile(path+"/"+file.name, uint8_view));
         executionEnviroment.writeFile(path+"/"+file.name, uint8_view);
     });
     reader.readAsArrayBuffer(file);
@@ -374,7 +390,7 @@ function downloadFileGeneric(content, filename, mime) {
 async function FSviewFile(filename, mime) {
     mime = mime || "application/octet-stream";
 
-    let content = await storedProject.readFile(filename);
+    let content = await storedProject.access((project)=>project.readFile(filename));
 
     let url = URL.createObjectURL(new Blob([content], {type: mime}));
 
@@ -384,7 +400,7 @@ async function FSviewFile(filename, mime) {
     }, 2000);
 }
 async function FSdownloadFile(filename, mime) {
-    let content = await storedProject.readFile(filename);
+    let content = await storedProject.access((project)=>project.readFile(filename));
 
     downloadFileGeneric(content, filename, mime);
 }
@@ -452,4 +468,61 @@ executionEnviroment.addEventListener("error", function(e){
         editor.setCursor({line:e.line-1, char:0});
     }
     editor.focus();
+});
+
+
+// ----- Handle "Project Opened in Another Tab" Conflict -----
+let projectConflictModal = null;
+
+let userHasIgnoredProjectConflict = false;
+
+projectConflictModal = createModal(
+    "projectConflictModal",
+    "Project open in another tab!",
+
+    "<b>Reload now to avoid losing work!</b><br>"+
+    "This project is already open in another tab and has been modified.<br>"+
+    "Continuing to edit it in this tab will result in losing work! Please reload the project to continue working.",
+
+    {label:"Reload Now", callback: function(){
+        location.reload();
+    }},
+    {label:"Ignore", callback: function(){
+        userHasIgnoredProjectConflict = true;
+        // Remind the user in 60 seconds
+        setTimeout(function(){
+            userHasIgnoredProjectConflict = false;
+        }, 60000);
+        projectConflictModal.hide();
+    }}
+);
+
+// Check for conflict every 2 seconds - if the lastWriteTime changes without us changing it,
+// the user must be modifying the project in another tab - so show the conflict modal.
+setInterval(function(){
+    storedProject.checkForWriteConflicts();
+}, 2000);
+
+// Also check on focus/visibilitychange (different compatability)
+window.addEventListener("focus", function(){
+    storedProject.checkForWriteConflicts();
+});
+
+window.addEventListener("visibilitychange", function(){
+    // Calling checkForWriteConflicts() directly inside visibilitychange
+    // seems to cause the connection made to not close properly,
+    // leading to strange timeouts and other issues - particularly when
+    // deleting the database in newProject - it can delay up to 20 seconds
+    // or more. This bug tends to manifest _after_ a page reload, making it
+    // particularly confusing.
+    // The fix is simple - do the check after a short timeout instead.
+    setTimeout(function(){
+        storedProject.checkForWriteConflicts();
+    }, 1);
+});
+
+// If the conflict is detected, show the modal
+storedProject.addEventListener("timeConflict", async function() {
+    if (!userHasIgnoredProjectConflict)
+        projectConflictModal.show();
 });
