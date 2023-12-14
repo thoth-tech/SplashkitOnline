@@ -1,0 +1,4 @@
+[submodule "SplashKitWasm/splashkit-core"]
+	path = SplashKitWasm/external/splashkit-core
+	url = https://github.com/thoth-tech/splashkit-core.git
+	ignore = dirty
