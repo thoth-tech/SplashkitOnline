@@ -29,9 +29,9 @@ Installation involves two steps.
 ### Setting up the IDE
 The IDE is just a simple node project with few dependencies, and can be setup with the following lines:
 ```bash
-git clone https://github.com/WhyPenguins/SplashkitOnline.git
+git clone --recursive https://github.com/WhyPenguins/SplashkitOnline.git
 cd SplashkitOnline/Browser_IDE/
-npm install codemirror@5
+npm install
 npm run server
 ```
 Now you'll be able to load up `localhost:8000` in a browser and see the IDE! However, we also need to import the SplashKit library, as its not included in the repository by default. 
@@ -48,19 +48,15 @@ You can find unofficial pre-built files [here](https://github.com/WhyPenguins/Sp
 Manual compilation is a little more involved.
 First you'll need to install Emscripten, which will be used to compile SplashKit to Wasm so it can be used in the browser. The easiest way to do this is via the `emsdk`. Installation instructions are here - [Getting Started](https://emscripten.org/docs/getting_started/downloads.html)
 
-Once you've got Emscripten installed and activated, you can compile the SplashKit Wasm library!
-First checkout the unofficial Wasm build repository.
+Once you've got Emscripten installed and activated, you can compile the SplashKit Wasm library! We've included SplashKit's source code as a submodule, along with the scripts to compile it as a Wasm library, directly in this repo.
+
+Currently only cmake builds are supported, so navigate to the cmake project and build it using Emscripten's `emcmake` and `emmake` wrappers.
 ```bash
-git clone --recursive https://github.com/WhyPenguins/splashkit-core
-```
-Currently only cmake builds are supported, so navigate to the cmake project and build it using Emscripten's `emcmake` and `emmake` wrappers. We also need to setup an additional environment variable - this will hopefully not be necessary in the future.
-```bash
-cd splashkit-core\projects\cmake
-SET EMSCRIPTEN=%EMSDK%/upstream/emscripten #or if on linux, the bash equivalent
+cd SplashkitOnline\SplashKitWasm\cmake
 emcmake cmake -G "Unix Makefiles" .
 emmake make
 ```
-If all goes well, you should find the three files inside `out/lib/` - just copy them into `Browser_IDE/splashkit/` and you're done!
+If all goes well, you should find the three files built and copied to inside `Browser_IDE/splashkit/` - if so, you're done!
 
 ## Project Goals and Structure
 The goal of the SplashKit Online IDE is to provide a beginner friendly programming environment targeted towards using the SplashKit library. It has REPL like functionality to allow rapid feedback, with emphasis on game related functionality like interactivity, graphics rendering and audio playback. To support this, code execution should definitely happen in the browser (hence compiling SplashKit to run in the browser), and ideally compilation does as well. Currently Javascript is the only language supported (as it is quite easy to execute in a browser), however work on involving other languages is also under way.
@@ -70,7 +66,7 @@ The goal of the SplashKit Online IDE is to provide a beginner friendly programmi
 The IDE is written as simply as possible, using straight HTML, CSS and Javascript. The code editors use the CodeMirror library (version 5) to provide syntax highlighting and other editing features. It is currently ran by using node for some reason, however as demonstrated by the unofficial demo, any sort of static page server can do the trick (such as `python -m http.server`)
 
 ### Code Execution
-Currently Javascript is the only language supported in the IDE, and it is currently executed using an `eval` command. There are plans to improve this to run the user's code inside an iFrame to prevent accidentally affecting the IDE itself. 
+Currently Javascript is the language supported by the IDE, and it is executed securely inside an iFrame after some code transformations to make it run asynchronously and within a custom scope.
 
 The SplashKit API has been exposed to the global scope of Javascript, allowing the user to interface with it in much the same way they can in other languages, like C++ and Python. Calls to the SplashKit API are then executed by the SplashKit Wasm module as native code (or as native as it gets in a browser).
 
