@@ -12,7 +12,32 @@ api = json.load(inJSON)
 def outputC(string):
     outC.write(string)
 def outputIDL(string):
+    replacements = [
+        ("_window_data", "window"),
+        ("sk_font_data","font"),
+        ("sk_display","display"),
+        ("_bitmap_data","bitmap"),
+        ("_animation_script_data","animation_script"),
+        ("_animation_data","animation"),
+        ("_timer_data","timer"),
+        ("_sprite_data","sprite"),
+        ("sk_server_data","server_socket"),
+        ("sk_message","message"),
+        ("sk_connection_data","connection"),
+        ("sk_web_server","web_server"),
+        ("sk_http_request","http_request"),
+        ("sk_http_response","http_response"),
+        ("sk_json","json"),
+        ("sk_query_result","query_result"),
+        ("sk_database","database"),
+        ("_sound_data","sound_effect"),
+        ("_music_data","music"),
+    ]
+    for p,t in replacements:
+        string = string.replace("[Ref] "+t,p);
+        string = string.replace("[Value] "+t,p);
     outIDL.write(string)
+
 def outputJS(string):
     outJS.write(string)
 
@@ -107,6 +132,17 @@ outputC("""
 #include "window_manager.h"
 
 #include <cstring>
+
+#define sprite_data _sprite_data
+#define bitmap_data _bitmap_data
+#define sound_data _sound_data
+#define sound_effect_data _sound_effect_data
+#define animation_data _animation_data
+#define animation_script_data _animation_script_data
+#define window_data _window_data
+#define timer_data _timer_data
+#define music_data _music_data
+
 
 using namespace splashkit_lib;
 
@@ -307,7 +343,6 @@ for category_name in api:
 outputC("""
 };
 
-
 #include "SplashKitWasmGlue.cpp"
 """);
 
@@ -417,7 +452,47 @@ for category_name in api:
         outputIDL(generateIDLEnum(enum))
 
 
-outputIDL("""interface SplashKitJavascript {
+outputIDL("""
+interface _sprite_data {
+};
+interface _bitmap_data {
+};
+interface _sound_data {
+};
+interface _animation_data {
+};
+interface _animation_script_data {
+};
+interface _window_data {
+};
+interface sk_font_data {
+};
+interface sk_display {
+};
+interface _timer_data {
+};
+interface sk_server_data {
+};
+interface sk_message {
+};
+interface sk_connection_data {
+};
+interface sk_web_server {
+};
+interface sk_http_request {
+};
+interface sk_http_response {
+};
+interface sk_json {
+};
+interface sk_query_result {
+};
+interface sk_database {
+};
+interface _music_data {
+};
+
+interface SplashKitJavascript {
     void SplashKitJavascript();
 """)
 for category_name in api:
