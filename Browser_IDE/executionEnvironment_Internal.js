@@ -28,13 +28,22 @@ moduleEvents.addEventListener("onRuntimeInitialized", function() {
     // Patch open_window so that it cannot be called multiple times.
     // So far all other functions handle being re-called acceptably,
     // whereas when open_window is called enough, rendering stops working.
-    // TODO: Update window size if subsequent calls give a different size
+
     let original_open_window = open_window;
+    let window_pointer = null;
     open_window = function(name, w, h){
-        original_open_window(name, w, h);
+        window_pointer = original_open_window(name, w, h);
         open_window = function(name, w, h){
             console.log("Window already open, ignoring calling to open_window");
+
+            // Handle potential resize and initial clear manually:
+            resize_window(window_pointer, w, h);
+            clear_screen(color_white());
+            refresh_screen();
+
+            return window_pointer;
         }
+        return window_pointer;
     }
 
     // Patch screen_refresh to await a screen refresh, to unblock
