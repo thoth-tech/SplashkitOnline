@@ -1,10 +1,10 @@
 {
   "name": "codeeditor",
   "version": "1.0.0",
-  "main": "Api.js",
+  "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "server": "nodemon Api.js"
+    "server": "nodemon server.js"
   },
   "author": "",
   "license": "ISC",

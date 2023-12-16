@@ -126,7 +126,7 @@ function parseErrorStack(err){
 }
 
 
-async function tryRunFunction_Internal(func, block=null) {
+async function tryRunFunction_Internal(func) {
     try{
         let run = null;
         run = await func();
@@ -143,7 +143,7 @@ async function tryRunFunction_Internal(func, block=null) {
             };
         }
 
-        let error = parseErrorStack(err, block);
+        let error = parseErrorStack(err);
 
         return{
             state: "error",
@@ -188,7 +188,6 @@ async function tryEvalSource(block, source){
 
     return await tryRunFunction(
         blockFunction.value,
-        reportError
     );
 }
 
