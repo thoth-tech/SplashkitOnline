@@ -54,12 +54,15 @@ moduleEvents.addEventListener("onRuntimeInitialized", function() {
         original_refresh_screen();
         await asyncifyScreenRefresh();
     }
-    let original_refresh_screen_with_target_fps = refresh_screen_with_target_fps;
-    refresh_screen_with_target_fps = async function (target_fps){
-        original_refresh_screen_with_target_fps(target_fps);
-        await asyncifyScreenRefresh();
-    }
 
+    // In case function overloads are disabled
+    if (window.refresh_screen_with_target_fps != undefined){
+        let original_refresh_screen_with_target_fps = refresh_screen_with_target_fps;
+        refresh_screen_with_target_fps = async function (...args){
+            original_refresh_screen_with_target_fps(...args);
+            await asyncifyScreenRefresh();
+        }
+    }
     isInitialized = true;
 });
 

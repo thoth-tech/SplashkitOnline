@@ -25,6 +25,13 @@ IF(NOT DEFINED ENV{EMSDK})
   message(SEND_ERROR "==========================================\nPlease activate Emscripten before running!\n(use emsdk_env.bat/sh)\n==========================================")
 ENDIF()
 
+option(ENABLE_FUNCTION_OVERLOADING "Fake function overloading in the JavaScript bindings" ON)
+if (ENABLE_FUNCTION_OVERLOADING)
+    set(FUNCTION_OVERLOADING "true")
+else()
+    set(FUNCTION_OVERLOADING "false")
+endif()
+
 
 if (WIN32 OR MSYS OR MINGW)
   SET(MSYS "true")
@@ -226,29 +233,31 @@ if (EMSCRIPTEN)
     add_custom_target(WASMBindingsDirectory ALL
     COMMAND ${CMAKE_COMMAND} -E make_directory "${SK_WASMEXT}/generated/")
 
-    # Auto generate C++ Javascript Glue code from IDL bindings (the next dependency)
-    add_custom_target( WASMBindings ALL DEPENDS "${SK_WASMEXT}/generated/SplashKitWasm.idl" "${SK_WASMEXT}/generated/SplashKitWasmGlue.cpp")
+
+    # Auto generate C++ Javascript Glue code
+    add_custom_target( WASMBindings ALL DEPENDS
+        "${SK_WASMEXT}/generated/SplashKitWasmGlue.cpp"
+        "${SK_WASMEXT}/generated/SplashKitWasmGlue.js"
+    )
 
     add_custom_command(
-        DEPENDS "${SK_WASMEXT}/generated/SplashKitWasm.idl"
-        OUTPUT "${SK_WASMEXT}/generated/SplashKitWasmGlue.cpp" "${SK_WASMEXT}/generated/SplashKitWasmGlue.js"
-        COMMENT "Generating Bindings..."
-        COMMAND
-        python "$ENV{EMSDK}/upstream/emscripten/tools/webidl_binder.py" "${SK_WASMEXT}/generated/SplashKitWasm.idl" "${SK_WASMEXT}/generated/SplashKitWasmGlue")
+        DEPENDS
+            "${SK_CMAKE}/../../generated/docs/api.json"
+            "${SK_WASMEXT}/tools/generate_javascript_bindings_and_glue.py"
+            "${SK_WASMEXT}/tools/json_api_reader.py"
+            "${SK_WASMEXT}/tools/javascript_bindings_preamble.py"
+        OUTPUT
+            "${SK_WASMEXT}/generated/SplashKitWasmGlue.cpp"
+            "${SK_WASMEXT}/generated/SplashKitWasmGlue.js"
+        COMMENT "Generating Web IDL Bindings..."
+        COMMAND python "${SK_WASMEXT}/tools/generate_javascript_bindings_and_glue.py"
+            "${SK_CMAKE}/../../generated/docs/api.json"
+            "${SK_WASMEXT}/generated/SplashKitWasmGlue.cpp"
+            "${SK_WASMEXT}/generated/SplashKitWasmGlue.js"
+            "${FUNCTION_OVERLOADING}"
+        )
 
     add_dependencies(WASMBindings WASMBindingsDirectory)
-
-    # Auto generate IDL bindings first
-    add_custom_target( WebIDLBindings ALL DEPENDS "${SK_CMAKE}/../../generated/docs/api.json")
-
-    add_custom_command(
-        DEPENDS "${SK_CMAKE}/../../generated/docs/api.json" "${SK_WASMEXT}/tools/generateWebIDLBindings.py"
-        OUTPUT "${SK_WASMEXT}/generated/SplashKitWasmGlueWrapper.cpp" "${SK_WASMEXT}/generated/SplashKitWasm.idl" "${SK_OUT}/wasmlib/SplashKitGlobalAPI.js"
-        COMMENT "Generating Web IDL Bindings..."
-        COMMAND
-        python "${SK_WASMEXT}/tools/generateWebIDLBindings.py" "${SK_CMAKE}/../../generated/docs/api.json" "${SK_WASMEXT}/generated/SplashKitWasmGlueWrapper.cpp" "${SK_WASMEXT}/generated/SplashKitWasm.idl" "${SK_OUT}/wasmlib/SplashKitGlobalAPI.js")
-
-    add_dependencies(WASMBindings WebIDLBindings)
 
 endif()
 
@@ -292,8 +301,8 @@ set_target_properties(SplashKitBackend
 #### END SplashKitBackend STATIC LIBRARY ####
 #### SplashKitBackend WASM LIBRARY ####
 if (EMSCRIPTEN)
-    add_executable(SplashKitBackendWASM "${SK_WASMEXT}/generated/SplashKitWasmGlueWrapper.cpp")
-    set_target_properties(SplashKitBackendWASM PROPERTIES LINK_FLAGS "-sFS_DEBUG --post-js ${SK_WASMEXT}/generated/SplashKitWasmGlue.js")
+    add_executable(SplashKitBackendWASM "${SK_WASMEXT}/generated/SplashKitWasmGlue.cpp")
+    set_target_properties(SplashKitBackendWASM PROPERTIES LINK_FLAGS "-sALLOW_TABLE_GROWTH -s MAXIMUM_MEMORY=1gb -sALLOW_MEMORY_GROWTH -s EXPORTED_RUNTIME_METHODS=addFunction -s EXPORTED_FUNCTIONS=\"['_malloc','stackAlloc','stackSave','stackRestore','_free']\" -s EXPORT_ALL=1 -sFS_DEBUG --post-js ${SK_WASMEXT}/generated/SplashKitWasmGlue.js")
     target_link_libraries(SplashKitBackendWASM SplashKitBackend)
     set_target_properties(SplashKitBackendWASM
         PROPERTIES
@@ -301,12 +310,14 @@ if (EMSCRIPTEN)
     )
     add_dependencies(SplashKitBackendWASM WASMBindings)
     set_target_properties(SplashKitBackendWASM PROPERTIES SUFFIX ".js")
-    # Copy built library to the IDE
-    add_custom_command(TARGET SplashKitBackendWASM
-        POST_BUILD COMMAND
-        ${CMAKE_COMMAND} -E copy_directory "${SK_OUT}/wasmlib" $"${SK_BROWSERIDE}/splashkit")
 
-    add_custom_command(TARGET SplashKitBackendWASM POST_BUILD
+    # Copy built library to the IDE
+    add_custom_target( SplashKitOnlineIDEComponents ALL DEPENDS SplashKitBackendWASM)
+    add_custom_command(TARGET SplashKitOnlineIDEComponents
+        POST_BUILD COMMAND
+        ${CMAKE_COMMAND} -E copy_directory "${SK_OUT}/wasmlib" "${SK_BROWSERIDE}/splashkit")
+
+    add_custom_command(TARGET SplashKitOnlineIDEComponents POST_BUILD
                    COMMAND ${CMAKE_COMMAND} -E cmake_echo_color --cyan
                    "Copied built library to the IDE!")
 

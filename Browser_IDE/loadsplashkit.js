@@ -1,10 +1,5 @@
 "use strict";
 
-
-moduleEvents.addEventListener("onRuntimeInitialized", function() {
-    initializeGlobalSplashKitScope();
-});
-
 var Module = {
     onRuntimeInitialized: (function() {
         moduleEvents.dispatchEvent(new Event("onRuntimeInitialized"));
