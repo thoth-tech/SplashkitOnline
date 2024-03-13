@@ -241,9 +241,20 @@ function parseErrorStack(err){
     const stackParse = /(?:@|\()((?:[^;:`]|[:;`](?=.*(?:\/|\.)))*)`?;?:([0-9]*)/g;
     let stack = [...err.stack.matchAll(stackParse)];
 
-    let lineNumber = stack[0][2];
+    let stackIndex = 0;
 
-    let file = stack[0][1];
+    //Should we limit this to only SplashKitArgumentError? (i.e if (err instanceof SplashKitArgumentError))
+
+	// Unwind stack until we find user code:
+	while(stackIndex < stack.length && !stack[stackIndex][1].startsWith(userCodeBlockIdentifier))
+		stackIndex += 1;
+
+    if (stackIndex >= stack.length)
+        stackIndex = 0;
+
+    let lineNumber = stack[stackIndex][2];
+
+    let file = stack[stackIndex][1];
 
     if (file.startsWith(userCodeBlockIdentifier))
         lineNumber -= userCodeStartLineOffset;
