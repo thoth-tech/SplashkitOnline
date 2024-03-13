@@ -86,7 +86,7 @@ function asyncifyTransform(babel){
             if (ASYNCSTOPNAME)
                 throw new ForceBreakLoop("");
 
-            if (timeSinceLastAsync>16){
+            if (timeSinceLastAsync>14){
                 await new Promise(re => setTimeout(function(){
                     lastAsyncTime = LASTLOOPTIME = Date.now();
                     re();
@@ -227,6 +227,7 @@ Babel.registerPlugin("makeFunctionsAsyncAwaitTransform", makeFunctionsAsyncAwait
 let findGlobalDeclarationsTransform__userScope = new Set();
 findGlobalDeclarationsTransform__userScope.add("refresh_screen");
 findGlobalDeclarationsTransform__userScope.add("refresh_screen_with_target_fps");
+findGlobalDeclarationsTransform__userScope.add("delay");
 
 function findGlobalDeclarationsTransform(babel){
     return{
