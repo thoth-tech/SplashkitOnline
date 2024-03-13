@@ -19,7 +19,7 @@ function loadSplashKitAutocompletes() {
             }
         }
     };
-    xhr.open("GET", "splashkit_autocomplete.json", true);
+    xhr.open("GET", "splashkit/splashkit_autocomplete.json", true);
     xhr.send(null);
 }
 loadSplashKitAutocompletes();

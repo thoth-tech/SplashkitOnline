@@ -259,6 +259,24 @@ if (EMSCRIPTEN)
 
     add_dependencies(WASMBindings WASMBindingsDirectory)
 
+    # Auto generate JSON file used to perform autocomplete in the IDE
+    add_custom_target( AutocompleteJSON ALL DEPENDS "${SK_OUT}/wasmlib/splashkit_autocomplete.json")
+
+    add_custom_command(
+        DEPENDS
+            "${SK_CMAKE}/../../generated/docs/api.json"
+            "${SK_WASMEXT}/tools/generate_autocomplete_json.py"
+            "${SK_WASMEXT}/tools/json_api_reader.py"
+        OUTPUT "${SK_OUT}/wasmlib/splashkit_autocomplete.json"
+        COMMENT "Generating Autocomplete JSON..."
+        COMMAND python "${SK_WASMEXT}/tools/generate_autocomplete_json.py"
+            "${SK_CMAKE}/../../generated/docs/api.json"
+            "${SK_OUT}/wasmlib/splashkit_autocomplete.json"
+            "${FUNCTION_OVERLOADING}"
+    )
+
+    add_dependencies(AutocompleteJSON WASMBindingsDirectory)
+
 endif()
 
 if (MSYS)
@@ -312,7 +330,7 @@ if (EMSCRIPTEN)
     set_target_properties(SplashKitBackendWASM PROPERTIES SUFFIX ".js")
 
     # Copy built library to the IDE
-    add_custom_target( SplashKitOnlineIDEComponents ALL DEPENDS SplashKitBackendWASM)
+    add_custom_target( SplashKitOnlineIDEComponents ALL DEPENDS SplashKitBackendWASM AutocompleteJSON)
     add_custom_command(TARGET SplashKitOnlineIDEComponents
         POST_BUILD COMMAND
         ${CMAKE_COMMAND} -E copy_directory "${SK_OUT}/wasmlib" "${SK_BROWSERIDE}/splashkit")
