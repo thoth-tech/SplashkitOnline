@@ -261,6 +261,8 @@ def generate_js_overloaded_function(types_env, function_set):
 
     code += "}\n"
 
+    code = code.replace("<FunctionName>", longest_func.name)
+
     # Output the functions we couldn't include in the main overloaded one
     # These will be ones where there are multiple ones with conflicting signatures
     for group in grouped_by_signature.keys():
