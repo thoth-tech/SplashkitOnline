@@ -245,7 +245,7 @@ if (EMSCRIPTEN)
             "${SK_CMAKE}/../../generated/docs/api.json"
             "${SK_WASMEXT}/tools/generate_javascript_bindings_and_glue.py"
             "${SK_WASMEXT}/tools/json_api_reader.py"
-            "${SK_WASMEXT}/tools/javascript_bindings_preamble.py"
+            "${SK_WASMEXT}/tools/js_binding_gen/*.py"
         OUTPUT
             "${SK_WASMEXT}/generated/SplashKitWasmGlue.cpp"
             "${SK_WASMEXT}/generated/SplashKitWasmGlue.js"
