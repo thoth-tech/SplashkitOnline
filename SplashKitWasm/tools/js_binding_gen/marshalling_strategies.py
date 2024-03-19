@@ -491,10 +491,6 @@ def marshal_parameter(types_env, param, return_value=False, address_and_divisor 
 
     boundary_type = marshaled_param.boundary[0]
 
-    #if not types_env.is_primitive(boundary_type.typename) and boundary_type.is_value():
-    #    marshaled_param.boundary[0].const = True
-    #    marshaled_param.boundary[0].reference = True
-
     if address_and_divisor == None:
         address_and_divisor = (get_pointer_name(marshaled_param.name, 0), 0)
 
