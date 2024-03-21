@@ -1,10 +1,6 @@
 "use strict";
 
-let statusElement = document.getElementById('status');
-let progressElement = document.getElementById('progress');
-let spinnerElement = document.getElementById('spinner');
 
-let moduleEvents = new EventTarget();
 moduleEvents.addEventListener("onRuntimeInitialized", function() {
     initializeGlobalSplashKitScope();
 });
@@ -40,48 +36,84 @@ var Module = {
 
         return canvas;
     })(),
-    setStatus: (text) => {
-        if (!Module.setStatus.last) Module.setStatus.last = { time: Date.now(), text: '' };
-        if (text === Module.setStatus.last.text) return;
-        let m = text.match(/([^(]+)\((\d+(\.\d+)?)\/(\d+)\)/);
-        let now = Date.now();
-        if (m && now - Module.setStatus.last.time < 30) return; // if this is a progress update, skip it if too soon
-        Module.setStatus.last.time = now;
-        Module.setStatus.last.text = text;
-        if (m) {
-            text = m[1];
-            progressElement.value = parseInt(m[2])*100;
-            progressElement.max = parseInt(m[4])*100;
-            progressElement.hidden = false;
-            spinnerElement.hidden = false;
-        } else {
-            progressElement.value = null;
-            progressElement.max = null;
-            progressElement.hidden = true;
-            if (!text) spinnerElement.hidden = true;
-        }
-        statusElement.innerHTML = text;
-    },
     totalDependencies: 0,
     monitorRunDependencies: (left) => {
         this.totalDependencies = Math.max(this.totalDependencies, left);
-        Module.setStatus(left ? 'Preparing... (' + (this.totalDependencies-left) + '/' + this.totalDependencies + ')' : 'All downloads complete.');
     },
     preRun: (function() {
         ENV.SDL_EMSCRIPTEN_KEYBOARD_ELEMENT = "canvas";
     }),
 };
 
-Module.setStatus('Downloading...');
-window.onerror = () => {
-    Module.setStatus('Exception thrown, see JavaScript console');
-    spinnerElement.style.display = 'none';
-    Module.setStatus = (text) => {
-        if (text) console.error('[post-exception status] ' + text);
-    };
-};
-
 
 document.getElementById("canvas").addEventListener("click", async function () {
     document.getElementById("canvas").focus();
 });
+
+
+
+function LoadSplashKitWASMDependency(pieceURL, pieceName, pieceIndex, pieceCount){
+    return new Promise(function (resolve, reject) {
+
+        let req = new XMLHttpRequest();
+        req.responseType = 'arraybuffer';
+
+        let progressEvent = new Event("onDownloadProgress");
+
+        progressEvent.downloadName = pieceName;
+        progressEvent.downloadIndex = pieceIndex;
+        progressEvent.downloadCount = pieceCount;
+        progressEvent.downloadProgress = 0;
+
+        req.addEventListener("progress", function(event) {
+            progressEvent.info = event.target;
+
+            if (event.lengthComputable)
+                progressEvent.downloadProgress = event.loaded / event.total;
+
+            moduleEvents.dispatchEvent(progressEvent);
+        }, false);
+
+        req.addEventListener("loadend", function(event) {
+            if (event.target.status != 200 || !event.target.response.byteLength){
+                let failEvent = new Event("onDownloadFail");
+
+                failEvent.info = event.target;
+                failEvent.downloadName = pieceName;
+                failEvent.downloadIndex = pieceIndex;
+                failEvent.downloadCount = pieceCount;
+
+                moduleEvents.dispatchEvent(failEvent);
+                reject(event.target);
+            }
+
+            resolve(event.target);
+        }, false);
+
+        req.open("GET", pieceURL);
+        req.send();
+    });
+}
+
+// First, load the WebAssembly
+LoadSplashKitWASMDependency("splashkit/SplashKitBackendWASM.wasm", "SplashKit Library", 1, 2).then(function(e){
+
+    // Pre-set the module's binary with our manually downloaded one
+    Module.wasmBinary = e.response;
+
+    // Next, load the Emscripten generated JS runtime
+    LoadSplashKitWASMDependency("splashkit/SplashKitBackendWASM.js", "Runtime", 2, 2).then(function(e){
+
+        // Attach the downloaded script to the page
+        var s = document.createElement("script");
+
+        var blob = new Blob([e.response], {
+            type: "text/javascript"
+        });
+
+        s.src = window.URL.createObjectURL(blob);
+        document.documentElement.appendChild(s);
+
+    }).catch(function(){});
+
+}).catch(function(){});

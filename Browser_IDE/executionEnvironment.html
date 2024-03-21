@@ -19,11 +19,6 @@
 
 <body class="bg-dark" style="position:relative;width:100%;height:100vh;margin:0;padding:0;display:flex;">
             <div class="col d-flex flex-column bg-dark justify-content-center flex-grow-1" >
-                <figure style="" id="spinner"><div></div><center style="margin-top:0.5em"><strong>emscripten</strong></center></figure>
-                <div id="status">Downloading...</div>
-                <div>
-                  <progress value="0" max="100" id="progress" hidden=1></progress>
-                </div>
                 <div class="row m-3">
                   <canvas id="canvas" style="vertical-align:center; max-width: 100%; width:inherit; outline: none;" oncontextmenu="event.preventDefault()" tabindex=-1></canvas>
                 </div>
@@ -33,9 +28,9 @@
             </div>
 </body>
 <script src="splashkit/SplashKitGlobalAPI.js"></script>
+<script src="moduleEventTarget.js"></script>
 <script src="loadsplashkit.js"></script>
 <script src="fsevents.js"></script>
-<script src="splashkit/SplashKitBackendWASM.js"></script>
 <script src="executionEnvironment_CodeProcessor.js"></script>
 <script src="executionEnvironment_Internal.js"></script>
 </html>
