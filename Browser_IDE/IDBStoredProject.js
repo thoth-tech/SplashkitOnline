@@ -39,6 +39,8 @@ class IDBStoredProject extends EventTarget{
     }
 
     async checkForWriteConflicts(){
+        if (this.projectName == null) return;
+
         let storedTime = await this.access((project)=>project.getLastWriteTime());
         if (this.lastKnownWriteTime == 0){
             this.lastKnownWriteTime = storedTime;
