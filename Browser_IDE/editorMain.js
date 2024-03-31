@@ -28,21 +28,97 @@ function setupCodeArea(element){
 }
 
 let editorInit = setupCodeArea(document.getElementById("editorInit"));
-editorInit.display.wrapper.classList.add("flex-grow-1");
+editorInit.display.wrapper.classList.add("sk-contents");
 
 let editorMainLoop = setupCodeArea(document.getElementById("editorMainLoop"));
+editorMainLoop.display.wrapper.classList.add("sk-contents");
 
 let editors = [editorInit, editorMainLoop]
 
-editorMainLoop.display.wrapper.classList.add("flex-grow-1");
-
-let runInitButton = document.getElementById("runInit");
-let runMainLoopButton = document.getElementById("runMainLoop");
+let updateCodeButton = document.getElementById("runInit");
 
 let runProgramButton = document.getElementById("runProgram");
 let restartProgramButton = document.getElementById("restartProgram");
 let stopProgramButton = document.getElementById("stopProgram");
 let continueProgramButton = document.getElementById("continueProgram");
+
+var sizes = localStorage.getItem('sk-online-split-sizes')
+
+if (sizes) {
+    sizes = JSON.parse(sizes)
+} else {
+    sizes = [20, 50, 30]
+}
+// Create the splitters.
+// One problem is that they are too visible.
+// The 'gutter' option lets you provide a function that handles
+// creating the gutter, but unfortunately it adds the events
+// on whatever you return, making it difficult to create a wrapper
+// that lets the events pass through to the real gutter
+let gutterWidth = 6;
+Split(['#fileViewContainer', '#codeViewContainer', '#runtimeContainer'], {
+    gutterSize: gutterWidth,
+    sizes: sizes,
+    onDragEnd: function (sizes) {
+        localStorage.setItem('sk-online-split-sizes', JSON.stringify(sizes));
+    },
+});
+// So just wrap them and hide them afterwards instead
+const gutters = document.getElementsByClassName("gutter");
+for (let i = 0; i < gutters.length; i++) {
+    let gutterwrap = document.createElement('div')//wrapper
+    gutterwrap.style.position = 'relative';
+
+    // wrap
+    gutters[i].parentNode.insertBefore(gutterwrap, gutters[i]);
+    gutterwrap.appendChild(gutters[i]);
+
+    // fix position
+    gutters[i].style.position = 'absolute';
+    gutters[i].style.left = "-"+(gutterWidth/2).toString()+"px";
+    gutters[i].style.height = '100%';
+}
+
+// -------------------- Setup Tabs --------------------
+// Right now this is all a bit hardcoded, but in the near future hopefully
+// this will be abstracted out, and be dynamically openable/closeable
+let tabs = []
+let currentTab = null;
+
+function SwitchToTabs(tabName){
+    for (let i = 0; i < tabs.length; i ++) {
+        if (tabs[i].contents.id == tabName) {
+            tabs[i].contents.style.display = 'flex';
+            tabs[i].tab.classList.add('sk-tabs-active');
+
+            currentTab = tabs[i];
+        }
+        else {
+            tabs[i].contents.style.display = 'none';
+            tabs[i].tab.classList.remove('sk-tabs-active');
+        }
+    }
+
+    for (let i = 0; i < editors.length; i ++) {
+        editors[i].refresh();
+    }
+}
+
+let tabElems = document.getElementById("codeViewTabs").children;
+for (let i = 0; i < tabElems.length; i++) {
+    let tabElem = tabElems[i];
+
+    tabs.push({
+        tab: tabElem,
+        contents: document.getElementById(tabElem.dataset.tab)
+    });
+
+    tabElem.addEventListener('click', function(){
+        SwitchToTabs(tabElem.dataset.tab);
+    })
+}
+
+SwitchToTabs(tabs[0].contents.id);
 
 // ------ Setup Project and Execution Environment ------
 let executionEnviroment = new ExecutionEnvironment(document.getElementById("ExecutionEnvironment"));
@@ -234,8 +310,7 @@ async function restartProgram(){
 
 // Updates buttons based on the state of the ExecutionEnvironment
 function updateButtons(){
-    runInitButton.disabled = !allowExecution;
-    runMainLoopButton.disabled = !allowExecution;
+    updateCodeButton.disabled = !allowExecution;
 
     let runProgramButtonOn = executionEnviroment.executionStatus == ExecutionStatus.Unstarted && !executionEnviroment.hasRunOnce;
     let continueProgramButtonOn = executionEnviroment.executionStatus == ExecutionStatus.Paused
@@ -256,14 +331,16 @@ updateButtons();
 
 
 // Add events for the code blocks
-runInitButton.addEventListener("click", function () {
-    saveInitialization();
-    runInitialization();
-});
-
-runMainLoopButton.addEventListener("click", function () {
-    saveMainLoop();
-    runMainLoop();
+updateCodeButton.addEventListener("click", function () {
+    // Hack to make this work until this code gets generalized
+    if (currentTab.contents.dataset.file == "codeblock_init.js") {
+        saveInitialization();
+        runInitialization();
+    }
+    if (currentTab.contents.dataset.file == "codeblock_mainloop.js") {
+        saveMainLoop();
+        runMainLoop();
+    }
 });
 
 

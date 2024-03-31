@@ -5,10 +5,8 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>SplashKit Online</title>
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet"
-        integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous">
     <link rel="stylesheet" href="codemirror-5.65.15/lib/codemirror.css">
     <link rel="stylesheet" href="codemirror-5.65.15/theme/dracula.css">
     <link rel="stylesheet" href="codemirror-5.65.15/addon/hint/show-hint.css">
@@ -32,67 +30,65 @@
     <script src="codemirror-5.65.15/addon/fold/comment-fold.js"></script>
     <script src="split.js/split.min.js"></script>
 </head>
-
-<body class="bg-dark" style="position:relative;width:100%;height:100vh;margin:0;padding:0;display:flex;">
-    <div class="flex-column d-flex flex-grow-1">
-        <div class="flex-row d-flex p-3 justify-content-center" style="color:white;background-color:#3F51B5; vertical-align:middle;align-items:center;">
-            <img src="splashkit_logo.webp" style="width:5em;"/>
-            <h1>SplashKit Online IDE</h1>
-        </div>
-        <div class="flex-row d-flex justify-content-start bg-dark text-bg-dark ">
-            <button class="btn btn-success m-2" id="NewProject">New Project</button>
-            <button class="btn btn-success m-2" id="DownloadProject">Save Project To Drive</button>
-            <button class="btn btn-success m-2" id="UploadProject">Load Project From Drive</button>
-        </div>
-        <div class="flex-row d-flex m-3 flex-grow-1">
-            <div class="d-flex flex-column" style="max-width:40em;">
-                <div class="d-flex justify-content-between mb-2 bg-dark rounded p-2">
-                    <div class="flex-column">
-                        <h3 style="color:white;"> Program </h3>
-                    </div>
-                    <div class="flex-column">
-                        <button type="button" id="restartProgram" class="btn btn-success" style="display:none"><i class="bi bi-arrow-repeat">Restart</i></button>
-                        <button type="button" id="continueProgram" class="btn btn-success" style="display:none"><i class="bi bi-play-fill">Continue</i></button>
-                        <button type="button" id="runProgram" class="btn btn-success"><i class="bi bi-play-fill">Run</i></button>
-                        <button type="button" id="stopProgram" class="btn btn-success" style="display:none"><i class="bi bi-pause-fill">Pause</i></button>
-                    </div>
-                </div>
-                <div class="d-flex justify-content-between mb-2 bg-dark rounded p-2">
-                    <div class="flex-column">
-                        <h3 style="color:white;"> General Code </h3>
-                    </div>
-                    <div class="flex-column">
-                        <button type="button" id="runInit" class="btn btn-success"><i class="bi bi-upload">Update</i></button>
-                    </div>
-                </div>
-                <div class="d-flex mb-2 bg-dark rounded p-2 flex-grow-1  flex-column" style="height:20%; min-width:30em;">
-                    <textarea type="text" id="editorInit" class="form-control flex-grow-1 " aria-label="editor" style="height:100%;">
-                    </textarea>
-                </div>
-                <div class="d-flex justify-content-between mb-2 bg-dark rounded p-2 " >
-                    <div class="flex-column"><h3 style="color:white;"> Main Code</h3></div>
-                    <div class="flex-column">
-                        <button type="button" id="runMainLoop" class="btn btn-success"><i class="bi bi-upload">Update</i></button>
-                    </div>
-                </div>
-                <div class="d-flex mb-2 bg-dark rounded p-2 flex-grow-1 flex-column">
-                <textarea type="text" id="editorMainLoop" class="form-control flex-grow-1" aria-label="editorMainLoop" style="height:100%;">
-                </textarea>
-                </div>
-                <div class="d-flex flex-column column m-3 justify-content-center" style="color:white;height:16em;vertical-align:position:relative;">
-                    <div class="d-flex flex-row">
-                        <h3 style="color:white;" class="flex-grow-1"> Files </h3>
-                    </div>
-                    <input type="file" id="fileuploader" onchange="uploadFileFromInput()" style="display:none;">
-                    <input type="file" id="projectuploader" onchange="uploadProjectFromInput()" style="display:none;">
-                    <div id="fileView" style="background-color:#282a36; color:#f8f8f2;top;overflow-y:auto;height:100%;position:relative;flex:1;">
-                    </div>
-                </div>
-            </div>
-            <div class="col d-flex flex-column rounded bg-dark px-4 justify-content-center flex-grow-1" id="ExecutionEnvironment" >
-            </div>
-        </div>
-    </div>
+<body class="sk-body">
+	<div class="sk-header">
+		<ul class="sk-menu">
+			<li><img src="splashkit_logo.webp" style="width:2em; height:2em;"></li>
+			<li><button id="NewProject">New Project</button></li>
+			<li><button id="DownloadProject">Export Project</button></li>
+			<li><button id="UploadProject">Import Project</button></li>
+		</ul>
+	</div>
+	<div class="sk-main-columns">
+		<div class="sk-column" id="fileViewContainer">
+			<div class="sk-header sk-header-indent">
+				FILES
+			</div>
+			<input type="file" id="fileuploader" onchange="uploadFileFromInput()" style="display:none;">
+			<input type="file" id="projectuploader" onchange="uploadProjectFromInput()" style="display:none;">
+			<div class = "sk-header-indent sk-contents sk-contents-focusable" tabindex="0">
+				<div id="fileView"></div>
+			</div>
+		</div>
+		<div class="sk-column" id="codeViewContainer">
+			<div class="sk-header sk-header-indent">
+				<ul class="sk-tabs" id="codeViewTabs">
+					<!-- Right now this is hardcoded, but hopefully in the future these will be dynamically openable/closeable-->
+					<li data-tab="codeblock_init_tab">codeblock_init.js</li>
+					<li data-tab="codeblock_mainloop_tab">codeblock_mainloop.js</li>
+				</ul>
+				<div class="flex-column">
+					<button type="button" id="runInit"><i class="bi bi-upload">Run Current File</i></button>
+				</div>
+			</div>
+			<div class="sk-contents sk-tab-hidden" id="codeblock_init_tab" data-file="codeblock_init.js">
+				<textarea type="text" id="editorInit" aria-label="editor" style="flex-grow:1;">
+				</textarea>
+			</div>
+			<div class="sk-contents sk-tab-hidden" id="codeblock_mainloop_tab" data-file="codeblock_mainloop.js">
+				<textarea type="text" id="editorMainLoop" aria-label="editorMainLoop" style="height:100%;">
+				</textarea>
+			</div>
+		</div>
+		<div class="sk-column" id="runtimeContainer">
+			<div class="sk-header sk-header-indent">
+				<div class="flex-column">
+					PROGRAM
+				</div>
+				<div class="flex-column">
+					<button type="button" id="restartProgram" style="display:none"><i class="bi bi-arrow-repeat">Restart</i></button>
+					<button type="button" id="continueProgram" style="display:none"><i class="bi bi-play-fill">Continue</i></button>
+					<button type="button" id="runProgram"><i class="bi bi-play-fill">Run</i></button>
+					<button type="button" id="stopProgram" style="display:none"><i class="bi bi-pause-fill">Pause</i></button>
+				</div>
+			</div>
+			<div class="sk-contents" id="ExecutionEnvironment">
+			</div>
+		</div>
+	</div>
+	<div class="sk-header">
+		<div style="width:2em; height:2em;"></div>
+	</div>
 </body>
 
 <script src="executionEnvironment.js"></script>

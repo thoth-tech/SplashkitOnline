@@ -9,15 +9,15 @@ function createModal(name, title, content, primaryButton, secondaryButton = null
     let modalString = [
     '<div id="'+name+'" tabindex="-1" class="modal fade" aria-hidden="true" aria-labelledby="exampleModalLabel">',
     '  <div class="modal-dialog">',
-    '    <div class="modal-content bg-dark text-bg-dark">',
-    '      <div class="modal-header">',
-    '        <h5 class="modal-title">'+title+'</h5>',
+    '    <div class="sk-contents">',
+    '      <div class="sk-header sk-header-indent">',
+    '        <h2>'+title+'</h2>',
     '        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>',
     '      </div>',
-    '      <div class="modal-body">',
+    '      <div class="sk-contents modal-body">',
     '        '+content+'',
     '      </div>',
-    '      <div class="modal-footer">',
+    '      <div class="sk-header sk-modal-footer">',
     '      </div>',
     '    </div>',
     '  </div>',
@@ -30,14 +30,14 @@ function createModal(name, title, content, primaryButton, secondaryButton = null
         sButton.classList.add("btn","btn-secondary");
         sButton.innerText = secondaryButton.label;
         sButton.onclick = secondaryButton.callback;
-        modal.getElementsByClassName("modal-footer")[0].appendChild(sButton);
+        modal.getElementsByClassName("sk-modal-footer")[0].appendChild(sButton);
     }
     if (primaryButton != null){
         var pButton = document.createElement("button");
         pButton.classList.add("btn","btn-success");
         pButton.innerText = primaryButton.label;
         pButton.onclick = primaryButton.callback;
-        modal.getElementsByClassName("modal-footer")[0].appendChild(pButton);
+        modal.getElementsByClassName("sk-modal-footer")[0].appendChild(pButton);
     }
 
     document.body.appendChild(modal);
