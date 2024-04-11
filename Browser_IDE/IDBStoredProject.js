@@ -63,6 +63,18 @@ class IDBStoredProject extends EventTarget {
         });
 
     }
+
+    async unlink(path) {
+        return this.access(async (rw) => {
+            await rw.unlink(path);
+        });
+    }
+
+    async rmdir(path) {
+        return this.access(async (rw) => {
+            await rw.rmdir(path);
+        });
+    }
 };
 
 // Private class - can create by calling the 'access' function on a IDBStoredProject
