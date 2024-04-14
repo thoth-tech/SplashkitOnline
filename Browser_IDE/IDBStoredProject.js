@@ -247,6 +247,10 @@ class __IDBStoredProjectRW{
 
                     if(childNode.type == "FILE"){
                         await IDBSP.deleteNode(t, files, childNode.nodeId);
+
+                        let ev = new Event("onDeletePath");
+                        ev.path = nodePath+"/"+childNode.name;
+                        IDBSP.owner.dispatchEvent(ev);
                     }
                     if(childNode.type == "DIR"){
                         await deleteRecursive(t, files, childNode.nodeId, nodePath+"/"+childNode.name);
