@@ -8,6 +8,7 @@ myTreeView.addEventListener("nodeMoveRequest", function(e){
         executionEnviroment.rename(e.oldPath, e.newPath);
     if (e.FS.includes("persistent"))
         storedProject.access((project)=>project.rename(e.oldPath, e.newPath));
+	 e.accept();
 });
 
 myTreeView.addEventListener("nodeDoubleClick", function(e){
