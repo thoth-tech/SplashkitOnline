@@ -220,15 +220,62 @@ class __IDBStoredProjectRW{
         });
     }
 
-    // TODO: Finish these functions
-    /*unlink(path){
+    async unlink(path){
+        let IDBSP = this;
+        await this.doTransaction("files", "readwrite", async function(t, files){
+            let nodeId = await IDBSP.getNodeFromPath(t, files, path);
+            if (nodeId == null)
+                return;
 
+            await IDBSP.deleteNode(t, files, nodeId);
+            
+            let ev = new Event("onDeletePath");
+            ev.path = path;
+            IDBSP.owner.dispatchEvent(ev);
+        });
     }
 
-    rmdir(path){
+    async rmdir(path, recursive = false){
+        let IDBSP = this;
+        await this.doTransaction("files", "readwrite", async function(t, files){
 
-    }*/
+            let deleteRecursive = async function(t, files, nodeId, nodePath){
+                let childNodes = await IDBSP.getChildNodes(t, files, nodeId);
+                for(let childNode of childNodes){
+                    if(childNode == null)
+                        continue;
 
+                    if(childNode.type == "FILE"){
+                        await IDBSP.deleteNode(t, files, childNode.nodeId);
+                    }
+                    if(childNode.type == "DIR"){
+                        await deleteRecursive(t, files, childNode.nodeId, nodePath+"/"+childNode.name);
+                    }
+                }
+
+                await IDBSP.deleteNode(t, files, nodeId);
+
+                let ev = new Event("onDeletePath");
+                ev.path = nodePath;
+                IDBSP.owner.dispatchEvent(ev);
+            }
+
+            let nodeId = await IDBSP.getNodeFromPath(t, files, path);
+            if (nodeId == null)
+                return;
+
+            if(recursive){
+                deleteRecursive(t, files, nodeId, path);
+            } else {
+                await IDBSP.deleteNode(t, files, nodeId);
+            
+                let ev = new Event("onDeletePath");
+                ev.path = path;
+                IDBSP.owner.dispatchEvent(ev);
+            }
+        });
+    }
+   
     getAllFilesRaw(){
         let IDBSP = this;
         return new Promise((resolve, reject) => {
@@ -297,6 +344,12 @@ class __IDBStoredProjectRW{
         this.performedWrite = true;
         return this.request(transaction, function(){
             return files.put({nodeId:nodeId, name:name, type:type, data:data, parent:parent});
+        });
+    }
+    deleteNode(transaction, files, nodeId){
+        this.performedWrite = true;
+        return this.request(transaction, function(){
+            return files.delete(nodeId);
         });
     }
     getNode(transaction, files, nodeId){
