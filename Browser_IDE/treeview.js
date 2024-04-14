@@ -100,7 +100,7 @@ class TreeView extends EventTarget{
 
     // Public Facing Methods
     // note: None of these manual changes to the tree call any callbacks - this stops any recursion happening
-    moveNode(oldPath, newPath, index = -1, FS){
+    moveNode(oldPath, newPath, FS){
         let treeView = this;
         if (oldPath == newPath)
             return;
