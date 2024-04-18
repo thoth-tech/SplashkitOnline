@@ -42,7 +42,7 @@ Installing the SplashKit library involves:
 2. Copying them all into the `Browser_IDE/splashkit/`
 
 #### For Pre-Built Files
-You can find unofficial pre-built files [here](https://github.com/WhyPenguins/SplashkitOnline/tree/github-live/Browser_IDE/splashkit); just download those three files and copy them into `Browser_IDE/splashkit/`, and you're good to go! They're WebAssembly(Wasm) files so they'll run on any OS.
+You can find unofficial pre-built files [here](https://github.com/thoth-tech/SplashkitOnline/tree/f7b8143e3d7d84c97307ea173184094205c08b46/Browser_IDE/splashkit); just download those three files and copy them into `Browser_IDE/splashkit/`, and you're good to go! They're WebAssembly(Wasm) files so they'll run on any OS.
 
 #### For Manual Compilation
 Manual compilation is a little more involved.
