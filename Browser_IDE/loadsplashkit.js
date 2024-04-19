@@ -1,11 +1,9 @@
 "use strict";
 
-<<<<<<< HEAD
-
 moduleEvents.addEventListener("onRuntimeInitialized", function() {
     initializeGlobalSplashKitScope();
 });
-=======
+
 function updateLoadingProgress(progress) {
     const progressBar = document.getElementById("loading-progress");
     if (progressBar) {
@@ -39,7 +37,6 @@ function updateLoadingProgress(progress) {
   moduleEvents.addEventListener("onRuntimeInitialized", function (event) {
     hideLoadingBar();
   });
->>>>>>> 5392b17 (Added a Loading bar on Startup.)
 
 var Module = {
     onRuntimeInitialized: (function() {
