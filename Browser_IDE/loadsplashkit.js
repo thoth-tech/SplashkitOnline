@@ -1,9 +1,45 @@
 "use strict";
 
+<<<<<<< HEAD
 
 moduleEvents.addEventListener("onRuntimeInitialized", function() {
     initializeGlobalSplashKitScope();
 });
+=======
+function updateLoadingProgress(progress) {
+    const progressBar = document.getElementById("loading-progress");
+    if (progressBar) {
+      progressBar.style.width = progress.downloadProgress * 100 + "%";
+      progressBar.setAttribute("aria-valuenow", progress.downloadProgress * 100);
+    }
+  }
+  
+  function showLoadingBar() {
+    const loadingBar = document.getElementById("loading-bar");
+    if (loadingBar) {
+      loadingBar.style.display = "block";
+    }
+  }
+  
+  function hideLoadingBar() {
+    const loadingBar = document.getElementById("loading-bar");
+    if (loadingBar) {
+      loadingBar.style.display = "none";
+    }
+  }
+  
+  moduleEvents.addEventListener("onDownloadProgress", function (progress) {
+    updateLoadingProgress(progress);
+    showLoadingBar();
+  });
+  
+  moduleEvents.addEventListener("onDownloadFail", function (progress) {
+  });
+  
+  moduleEvents.addEventListener("onRuntimeInitialized", function (event) {
+    hideLoadingBar();
+  });
+>>>>>>> 5392b17 (Added a Loading bar on Startup.)
 
 var Module = {
     onRuntimeInitialized: (function() {
