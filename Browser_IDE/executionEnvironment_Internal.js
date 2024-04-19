@@ -326,3 +326,11 @@ moduleEvents.addEventListener("onRuntimeInitialized", function() {
 
     parent.postMessage({type:"initialized"},"*");
 });
+
+let readlineResolve = null;
+
+function read_line() {
+    return new Promise((resolve) => {
+        readlineResolve = resolve;
+    });
+}

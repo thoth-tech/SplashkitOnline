@@ -21,6 +21,7 @@
 		</div>
 		<div class="sk-contents">
 			<textarea id="output" class="sk-contents sk-contents-darker" readonly style="border:0; padding-left:1em; resize: none;"></textarea>
+			<input type="text" id="user-input" class="sk-input" style="width:100%; padding:0.5em; margin-top:0.5em;" placeholder="Type command here and press Enter..." onkeydown="handleUserInput(event)">
 		</div>
 	</div>
 </body>
@@ -30,4 +31,5 @@
 <script src="fsevents.js"></script>
 <script src="executionEnvironment_CodeProcessor.js"></script>
 <script src="executionEnvironment_Internal.js"></script>
+<script src="handleUserInput.js"></script>
 </html>
