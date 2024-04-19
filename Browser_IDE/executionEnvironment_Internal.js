@@ -25,40 +25,128 @@ function findAsyncFunctionConstructorLineOffset(){
 let isInitialized = false;
 
 moduleEvents.addEventListener("onRuntimeInitialized", function() {
-    // Patch open_window so that it cannot be called multiple times.
-    // So far all other functions handle being re-called acceptably,
-    // whereas when open_window is called enough, rendering stops working.
-
-    let original_open_window = open_window;
-    let window_pointer = null;
-    open_window = function(name, w, h){
-        window_pointer = original_open_window(name, w, h);
-        open_window = function(name, w, h){
-            console.log("Window already open, ignoring calling to open_window");
-
-            // Handle potential resize and initial clear manually:
-            resize_window(window_pointer, w, h);
-            clear_screen(color_white());
-            refresh_screen();
-
-            return window_pointer;
-        }
-        return window_pointer;
-    }
 
     // Patch screen_refresh to await a screen refresh, to unblock
     // 'main' while loops and give the browser time to process the UI.
     // See executionEnvironment_CodeProcessor.js for plenty of detail.
     let original_refresh_screen = refresh_screen;
-    refresh_screen = async function (){
-        original_refresh_screen();
-        await asyncifyScreenRefresh();
+    refresh_screen = async function (...args){
+        original_refresh_screen(...args);
+
+        let target_fps = undefined;
+        if (args[0] != undefined)
+            target_fps = args[0];
+        // Heuristic - only yield to browser if the
+        // user is aiming for less than 90fps.
+        // That way it runs as fast as possible if
+        // not restricted, as it does natively.
+        // It will still yield eventually thanks
+        // to the automatic loop yielding inserted
+        // during code processing
+        if (target_fps!=undefined && target_fps<90)
+            await asyncifyScreenRefresh();
     }
-    let original_refresh_screen_with_target_fps = refresh_screen_with_target_fps;
-    refresh_screen_with_target_fps = async function (target_fps){
-        original_refresh_screen_with_target_fps(target_fps);
-        await asyncifyScreenRefresh();
+
+    delay = function(milliseconds){
+        return new Promise((re) => setTimeout(re, milliseconds));
     }
+
+    // In case function overloads are disabled
+    if (window.refresh_screen_with_target_fps != undefined){
+        let original_refresh_screen_with_target_fps = refresh_screen_with_target_fps;
+        refresh_screen_with_target_fps = async function (...args){
+            original_refresh_screen_with_target_fps(...args);
+            await asyncifyScreenRefresh();
+        }
+    }
+
+
+    // Keep track of registered notifiers, so we can
+    // de-register them when doing a clean.
+    // In the future we could perhaps have a deregister_all_callbacks()
+    // in-built, which would remove the need for this.
+    let key_down_callbacks = new Set();
+    let key_typed_callbacks = new Set();
+    let key_up_callbacks = new Set();
+    let free_notifier_callbacks = new Set();
+    let sprite_event_callbacks = new Set();
+
+    let original_register_callback_on_key_down = register_callback_on_key_down;
+    register_callback_on_key_down = function(...args){
+        original_register_callback_on_key_down(...args);
+        key_down_callbacks.add((args[0]));
+        console.log(key_down_callbacks);
+    }
+    let original_register_callback_on_key_typed = register_callback_on_key_typed;
+    register_callback_on_key_typed = function(...args){
+        original_register_callback_on_key_typed(...args);
+        key_typed_callbacks.add((args[0]));
+    }
+    let original_register_callback_on_key_up = register_callback_on_key_up;
+    register_callback_on_key_up = function(...args){
+        original_register_callback_on_key_up(...args);
+        key_up_callbacks.add((args[0]));
+    }
+    let original_register_free_notifier = register_free_notifier;
+    register_free_notifier = function(...args){
+        original_register_free_notifier(...args);
+        free_notifier_callbacks.add((args[0]));
+    }
+    let original_call_on_sprite_event = call_on_sprite_event;
+    call_on_sprite_event = function(...args){
+        original_call_on_sprite_event(...args);
+        sprite_event_callbacks.add((args[0]));
+    }
+
+    let original_deregister_callback_on_key_down = deregister_callback_on_key_down;
+    deregister_callback_on_key_down = function(...args){
+        original_deregister_callback_on_key_down(...args);
+        key_down_callbacks.delete((args[0]));
+    }
+    let original_deregister_callback_on_key_typed = deregister_callback_on_key_typed;
+    deregister_callback_on_key_typed = function(...args){
+        original_deregister_callback_on_key_typed(...args);
+        key_typed_callbacks.delete((args[0]));
+    }
+    let original_deregister_callback_on_key_up = deregister_callback_on_key_up;
+    deregister_callback_on_key_up = function(...args){
+        original_deregister_callback_on_key_up(...args);
+        key_up_callbacks.delete((args[0]));
+    }
+    let original_deregister_free_notifier = deregister_free_notifier;
+    deregister_free_notifier = function(...args){
+        original_deregister_free_notifier(...args);
+        free_notifier_callbacks.delete((args[0]));
+    }
+    let original_stop_calling_on_sprite_event = stop_calling_on_sprite_event;
+    stop_calling_on_sprite_event = function(...args){
+        original_stop_calling_on_sprite_event(...args);
+        sprite_event_callbacks.delete((args[0]));
+    }
+
+    window.deregister_all_callbacks = function deregister_all_callbacks(){
+        for (let callback of                key_down_callbacks)
+            original_deregister_callback_on_key_down(callback);
+
+        for (let callback of               key_typed_callbacks)
+            original_deregister_callback_on_key_typed(callback);
+
+        for (let callback of                key_up_callbacks)
+            original_deregister_callback_on_key_up(callback);
+
+        for (let callback of    free_notifier_callbacks)
+            original_deregister_free_notifier(callback);
+
+        for (let callback of      sprite_event_callbacks)
+            original_stop_calling_on_sprite_event(callback);
+
+        key_down_callbacks.clear();
+        key_typed_callbacks.clear();
+        key_up_callbacks.clear();
+        free_notifier_callbacks.clear();
+        sprite_event_callbacks.clear();
+    }
+
 
     isInitialized = true;
 });
@@ -87,10 +175,39 @@ function ReportError(block, message, line){
 }
 
 // ------ Code Running ------
+let finishResetNextRun = false;
 function ResetExecutionScope(){
     for (let decl of findGlobalDeclarationsTransform__userScope){
-        delete window[decl];
+        try{
+            delete window[decl];
+        }
+        catch(err){
+            console.log(err);
+        }
     }
+    // Make sure we free bundles first - will try to double free otherwise and throw warnings
+    free_all_resource_bundles();
+    free_all_music();
+    free_all_sound_effects();
+    //free_all_timers(); // Seems to also double up on freeing?
+    free_all_json();
+    free_all_animation_scripts();
+    free_all_bitmaps();
+    free_all_fonts();
+    free_all_query_results();
+    free_all_databases();
+    //free_all_sprite_packs(); // Calling free_all_sprite_packs makes free_all_sprites attempt to double free and throw warnings
+    free_all_sprites();
+    close_all_connections();
+    close_all_servers();
+    deregister_all_callbacks();
+    finishResetNextRun = true;
+    // We should also close_all_windows() here,
+    // but this causes visible flicker before the next window is created.
+    // Let's wait until the program is run next, and
+    // close all windows then. If the user creates the window before
+    // any loops, it will be entirely synchronous and there will be
+    // little/no flicker.
 }
 
 // Parse the non-standard exceptions stack with a regex,
@@ -124,9 +241,20 @@ function parseErrorStack(err){
     const stackParse = /(?:@|\()((?:[^;:`]|[:;`](?=.*(?:\/|\.)))*)`?;?:([0-9]*)/g;
     let stack = [...err.stack.matchAll(stackParse)];
 
-    let lineNumber = stack[0][2];
+    let stackIndex = 0;
 
-    let file = stack[0][1];
+    //Should we limit this to only SplashKitArgumentError? (i.e if (err instanceof SplashKitArgumentError))
+
+	// Unwind stack until we find user code:
+	while(stackIndex < stack.length && !stack[stackIndex][1].startsWith(userCodeBlockIdentifier))
+		stackIndex += 1;
+
+    if (stackIndex >= stack.length)
+        stackIndex = 0;
+
+    let lineNumber = stack[stackIndex][2];
+
+    let file = stack[stackIndex][1];
 
     if (file.startsWith(userCodeBlockIdentifier))
         lineNumber -= userCodeStartLineOffset;
@@ -138,6 +266,13 @@ function parseErrorStack(err){
 async function tryRunFunction_Internal(func) {
     try{
         let run = null;
+        // If we are running the user's main,
+        // finishing resetting the environment
+        if (func == window.main){
+            if (finishResetNextRun)
+                close_all_windows();
+            finishResetNextRun = false;
+        }
         run = await func();
         return{
             state: "success",

@@ -86,7 +86,7 @@ function asyncifyTransform(babel){
             if (ASYNCSTOPNAME)
                 throw new ForceBreakLoop("");
 
-            if (timeSinceLastAsync>16){
+            if (timeSinceLastAsync>14){
                 await new Promise(re => setTimeout(function(){
                     lastAsyncTime = LASTLOOPTIME = Date.now();
                     re();
@@ -207,7 +207,11 @@ function makeFunctionsAsyncAwaitTransform(babel){
             // Modify calls to user functions to 'await' their return value
             CallExpression: (path) => {
                 const statement = path.node;
-                if (findGlobalDeclarationsTransform__userScope.has(path.node.callee.name) && (path.container.type != "AwaitExpression"))
+
+                let shouldAwait =  findGlobalDeclarationsTransform__awaitables.has(path.node.callee.name)
+                                 ||findGlobalDeclarationsTransform__userScope.has(path.node.callee.name);
+
+                if (shouldAwait && (path.container.type != "AwaitExpression"))
                     path.replaceWith(types.awaitExpression(statement));
             },
             // Use patched up constructor on user classes
@@ -225,8 +229,11 @@ Babel.registerPlugin("makeFunctionsAsyncAwaitTransform", makeFunctionsAsyncAwait
 
 // -------- Handle Finding Global Declarations --------
 let findGlobalDeclarationsTransform__userScope = new Set();
-findGlobalDeclarationsTransform__userScope.add("refresh_screen");
-findGlobalDeclarationsTransform__userScope.add("refresh_screen_with_target_fps");
+
+let findGlobalDeclarationsTransform__awaitables = new Set();
+findGlobalDeclarationsTransform__awaitables.add("refresh_screen");
+findGlobalDeclarationsTransform__awaitables.add("refresh_screen_with_target_fps");
+findGlobalDeclarationsTransform__awaitables.add("delay");
 
 function findGlobalDeclarationsTransform(babel){
     return{

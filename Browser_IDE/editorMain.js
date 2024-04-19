@@ -138,7 +138,7 @@ async function newProject(){
     disableCodeExecution();
     storedProject.detachFromProject();
     canMirror = false;
-    executionEnviroment.resetEnvironment();
+    await executionEnviroment.resetEnvironment();
     await storedProject.deleteProject("Untitled");
     haveMirrored = false;
     await storedProject.attachToProject("Untitled");

@@ -7,3 +7,4 @@ cmake_install.cmake
 out/
 splashkit/
 generated/
+__pycache__/

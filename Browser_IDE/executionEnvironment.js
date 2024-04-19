@@ -146,14 +146,22 @@ class ExecutionEnvironment extends EventTarget{
 
     // Completely destroys and recreates the environment.
     resetEnvironment(){
-        this.iFrame.remove();
-        this.iFrame = this._constructiFrame(this.container);
+        return new Promise((resolve,reject) => {
 
-        this.executionStatus = ExecutionStatus.Unstarted;
-        this.hasRunOnce = false;
+            this.iFrame.remove();
 
-        let ev = new Event("programStopped");
-        this.dispatchEvent(ev);
+            let f = function(ev){this.removeEventListener("initialized", f);resolve();}
+            this.addEventListener("initialized", f);
+
+            this.iFrame = this._constructiFrame(this.container);
+
+            this.executionStatus = ExecutionStatus.Unstarted;
+            this.hasRunOnce = false;
+
+            let ev = new Event("programStopped");
+            this.dispatchEvent(ev);
+            setTimeout(function(){reject();}, 20000)
+        });
     }
 
     // Does a 'best-efforts' attempt to tidy the environment,

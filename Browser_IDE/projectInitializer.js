@@ -17,25 +17,24 @@ function gameInnerLoop(){
         write_line("click!");
 
     // Draw a simple scene
-    fill_ellipse(rgba_color_from_double(0,1,0,1), 0, 400, 800, 400);
-    fill_rectangle(rgba_color_from_double(0.4,0.4,0.4,1), 300, 300, 200, 200);
-    fill_triangle(rgba_color_from_double(1,0,0,1), 250, 300, 400, 150, 550, 300);
+    fill_ellipse(COLOR_LIME, 0, 400, 800, 400);
+    fill_rectangle(rgba_color(0.4,0.4,0.4,1), 300, 300, 200, 200);
+    fill_triangle(COLOR_RED, 250, 300, 400, 150, 550, 300);
 
     // If the mouse is being held down,
-    // set the global variables circleX/Y
+    // set the global variable circle_pos
     // to the mouse's position
     if (mouse_down(LEFT_BUTTON)){
-        circleX = mouse_position().x;
-        circleY = mouse_position().y;
+        circle_pos = mouse_position();
     }
 
     // Draw the circle!
     fill_ellipse(
-        rgba_color_from_double(0.3,0.7,1,1), // Color of the ellipse
-        circleX - circleSize/2,             // The x (horizontal) position
-        circleY - circleSize/2,             // The y (vertical) position
-        circleSize,                          // The width
-        circleSize                           // The height
+        rgba_color(0.3,0.7,1,0.7),     // Color of the ellipse
+        circle_pos.x - circleSize/2, // The x (horizontal) position
+        circle_pos.y - circleSize/2, // The y (vertical) position
+        circleSize,                  // The width
+        circleSize                   // The height
     );
 }
 `;
@@ -43,11 +42,10 @@ function gameInnerLoop(){
 let defaultMainLoopCode =
 `let windowName = "My Game!";
 
-// Declare some global variables for the circle's position
+// Declare a global variable for the circle's position
 // Hide circle off screen at start
 // (way off past the top-left corner)
-let circleX = -1000;
-let circleY = -1000;
+let circle_pos = new point_2d(-1000, -1000);
 
 // Main function - when you change this,
 // you have to Restart the program!
@@ -62,13 +60,13 @@ function main(){
 
         // Clear the screen - try removing this!
 		// If you change it, don't forget to "Restart"!
-        clear_screen(color_white());
+        clear_screen(COLOR_WHITE);
 
         // Do the game related stuff (in the code block above!)
         gameInnerLoop();
 
         // Show the user what we've drawn!
-        refresh_screen();
+        refresh_screen(60);
     }
 }
 `;
