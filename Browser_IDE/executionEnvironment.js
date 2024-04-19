@@ -18,6 +18,10 @@ class ExecutionEnvironment extends EventTarget{
         this.hasRunOnce = false;
         this.executionStatus = ExecutionStatus.Unstarted;
 
+        // Resize canvas to maintain aspect ratio
+        window.addEventListener('resize', this.resizeCanvas.bind(this), false);
+        this.resizeCanvas(); // Call this function initially to set the correct size
+
         window.addEventListener('message', function(e){
             const key = e.message ? 'message' : 'data';
             const data = e[key];
@@ -52,7 +56,7 @@ class ExecutionEnvironment extends EventTarget{
                 EE.dispatchEvent(ev);
             }
             else if (data.type == "programContinued"){
-                EE.executionStatus = ExecutionStatus.Running;
+                EE.executionStatus = Running;
 
                 let ev = new Event("programContinued");
                 EE.dispatchEvent(ev);
@@ -82,6 +86,27 @@ class ExecutionEnvironment extends EventTarget{
                 }
             }
         });
+    }
+
+    // Resize canvas to maintain aspect ratio
+    resizeCanvas() {
+        const canvas = document.getElementById('canvas');
+        if (!canvas) return; // If the canvas is not found, exit the function
+
+        const container = canvas.parentElement;
+        const ratio = 16 / 9; // Define the desired aspect ratio
+        let containerWidth = container.offsetWidth;
+        let containerHeight = containerWidth / ratio;
+
+        if (containerHeight > window.innerHeight) {
+            containerHeight = window.innerHeight;
+            containerWidth = containerHeight * ratio;
+        }
+
+        canvas.width = containerWidth;
+        canvas.height = containerHeight;
+        canvas.style.width = `${containerWidth}px`;
+        canvas.style.height = `${containerHeight}px`;
     }
 
     // Public Facing Methods
@@ -141,19 +166,24 @@ class ExecutionEnvironment extends EventTarget{
         });
     }
 
-
-    // --- Environment Functions ---
-
     // Completely destroys and recreates the environment.
     resetEnvironment(){
-        this.iFrame.remove();
-        this.iFrame = this._constructiFrame(this.container);
+        return new Promise((resolve,reject) => {
 
-        this.executionStatus = ExecutionStatus.Unstarted;
-        this.hasRunOnce = false;
+            this.iFrame.remove();
 
-        let ev = new Event("programStopped");
-        this.dispatchEvent(ev);
+            let f = function(ev){this.removeEventListener("initialized", f);resolve();}
+            this.addEventListener("initialized", f);
+
+            this.iFrame = this._constructiFrame(this.container);
+
+            this.executionStatus = ExecutionStatus.Unstarted;
+            this.hasRunOnce = false;
+
+            let ev = new Event("programStopped");
+            this.dispatchEvent(ev);
+            setTimeout(function(){reject();}, 20000)
+        });
     }
 
     // Does a 'best-efforts' attempt to tidy the environment,
@@ -186,10 +216,6 @@ class ExecutionEnvironment extends EventTarget{
             newPath: newPath,
         }, "*");
     }
-
-
-
-
 
     // "Private" Methods
 

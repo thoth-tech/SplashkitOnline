@@ -473,3 +473,7 @@ li.CodeMirror-hint-active {
   flex: 1 1 auto;
   padding: var(--bs-modal-padding);
 }
+#fileViewContainer {
+  overflow-y: auto; /* Enable vertical scrolling */
+  max-height: 90vh; /* Adjust the height as needed */
+}
