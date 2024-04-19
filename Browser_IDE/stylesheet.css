@@ -123,3 +123,8 @@ li.CodeMirror-hint-active {
     background: #08f;
     color: white;
 }
+
+#fileViewContainer {
+    overflow-y: auto; /* Enable vertical scrolling */
+    max-height: 90vh; /* Adjust the height as needed */
+}

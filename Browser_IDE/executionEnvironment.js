@@ -18,6 +18,10 @@ class ExecutionEnvironment extends EventTarget{
         this.hasRunOnce = false;
         this.executionStatus = ExecutionStatus.Unstarted;
 
+        // Resize canvas to maintain aspect ratio
+        window.addEventListener('resize', this.resizeCanvas.bind(this), false);
+        this.resizeCanvas(); // Call this function initially to set the correct size
+
         window.addEventListener('message', function(e){
             const key = e.message ? 'message' : 'data';
             const data = e[key];
@@ -52,7 +56,7 @@ class ExecutionEnvironment extends EventTarget{
                 EE.dispatchEvent(ev);
             }
             else if (data.type == "programContinued"){
-                EE.executionStatus = ExecutionStatus.Running;
+                EE.executionStatus = Running;
 
                 let ev = new Event("programContinued");
                 EE.dispatchEvent(ev);
@@ -82,6 +86,27 @@ class ExecutionEnvironment extends EventTarget{
                 }
             }
         });
+    }
+
+    // Resize canvas to maintain aspect ratio
+    resizeCanvas() {
+        const canvas = document.getElementById('canvas');
+        if (!canvas) return; // If the canvas is not found, exit the function
+
+        const container = canvas.parentElement;
+        const ratio = 16 / 9; // Define the desired aspect ratio
+        let containerWidth = container.offsetWidth;
+        let containerHeight = containerWidth / ratio;
+
+        if (containerHeight > window.innerHeight) {
+            containerHeight = window.innerHeight;
+            containerWidth = containerHeight * ratio;
+        }
+
+        canvas.width = containerWidth;
+        canvas.height = containerHeight;
+        canvas.style.width = '${containerWidth}px';
+        canvas.style.height = '${containerHeight}px';
     }
 
     // Public Facing Methods
@@ -141,19 +166,24 @@ class ExecutionEnvironment extends EventTarget{
         });
     }
 
-
-    // --- Environment Functions ---
-
     // Completely destroys and recreates the environment.
     resetEnvironment(){
-        this.iFrame.remove();
-        this.iFrame = this._constructiFrame(this.container);
+        return new Promise((resolve,reject) => {
 
-        this.executionStatus = ExecutionStatus.Unstarted;
-        this.hasRunOnce = false;
+            this.iFrame.remove();
 
-        let ev = new Event("programStopped");
-        this.dispatchEvent(ev);
+            let f = function(ev){this.removeEventListener("initialized", f);resolve();}
+            this.addEventListener("initialized", f);
+
+            this.iFrame = this._constructiFrame(this.container);
+
+            this.executionStatus = ExecutionStatus.Unstarted;
+            this.hasRunOnce = false;
+
+            let ev = new Event("programStopped");
+            this.dispatchEvent(ev);
+            setTimeout(function(){reject();}, 20000)
+        });
     }
 
     // Does a 'best-efforts' attempt to tidy the environment,
@@ -187,17 +217,13 @@ class ExecutionEnvironment extends EventTarget{
         }, "*");
     }
 
-
-
-
-
     // "Private" Methods
 
     // The only cross browser way to syntax check the user's function
     // and get a line number is to use window.onerror. Unfortunately,
     // due to the sandboxed nature of the iFrame, the resulting information
     // just becomes "Syntax error", with line/column as 0s. So we syntax
-    // check _outside_ the iFrame first.
+    // check outside the iFrame first.
     // Once the code is running (inside the iFrame), the stack traces
     // become more useful and can all be handled in there. It's only
     // the syntax check that runs outside here, so this should be
@@ -232,7 +258,7 @@ class ExecutionEnvironment extends EventTarget{
         );
 
         // If there is a syntax error, this will not be reached
-        // So make sure we remove it in the `errorFunction`
+        // So make sure we remove it in the errorFunction
         // above too.
         window.removeEventListener('error', errorFunction);
     }
@@ -261,10 +287,10 @@ let userCodeStartLineOffset = findAsyncFunctionConstructorLineOffset();
 // In Firefox at least, the AsyncFunction constructor appends two lines of code to
 // the start of the function.
 // So we'll detect where a dummy identifier inserted on the first line of the code
-//  is located (*/SK_ID*/), and update userCodeStartLineOffsets.
+//  is located (/SK_ID/), and update userCodeStartLineOffsets.
 // Could just set it to 2, but unsure if this is browser/source dependent or not.
 function findAsyncFunctionConstructorLineOffset(){
-    let identifier = "/*SK_ID*/";
+    let identifier = "/SK_ID/";
     let blockFunction = Object.getPrototypeOf(async function() {}).constructor(
         "\"use strict\";"+identifier+"\n;"
     );
