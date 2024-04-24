@@ -20,6 +20,15 @@ myTreeView.addEventListener("folderUploadRequest", function(e){
     document.getElementById("fileuploader").click();
 });
 
+myTreeView.addEventListener("fileDeleteRequest", function(e){
+	if (e.FS.includes("persistent"))
+        storedProject.access((project)=>project.unlink(e.path));
+});
+
+myTreeView.addEventListener("folderDeleteRequest", function(e){
+	if (e.FS.includes("persistent"))
+        storedProject.access((project)=>project.rmdir(e.path, true));
+});
 
 // Attach to file system callbacks within the Execution Environment
 executionEnviroment.addEventListener('onMovePath', function(e) {
