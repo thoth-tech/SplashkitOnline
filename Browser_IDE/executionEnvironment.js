@@ -200,7 +200,13 @@ class ExecutionEnvironment extends EventTarget{
             path: path
         }, "*");
     }
-
+    rmdir(path, recursive = false){
+        this.iFrame.contentWindow.postMessage({
+            type: "rmdir",
+            path: path,
+            recursive: recursive
+        }, "*");
+    }
 
 
 

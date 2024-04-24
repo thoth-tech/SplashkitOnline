@@ -437,6 +437,8 @@ window.addEventListener('message', function(m){
 	if (m.data.type == "unlink"){
 		FS.unlink(m.data.path);
 	}
+	
+	// TODO: handle rmdir
 
 }, false);
 

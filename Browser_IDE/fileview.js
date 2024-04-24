@@ -28,6 +28,8 @@ myTreeView.addEventListener("fileDeleteRequest", function(e){
 });
 
 myTreeView.addEventListener("folderDeleteRequest", function(e){
+	if (e.FS.includes("transient"))
+        executionEnviroment.rmdir(e.path, true);
 	if (e.FS.includes("persistent"))
         storedProject.access((project)=>project.rmdir(e.path, true));
 });
