@@ -445,6 +445,9 @@ window.addEventListener('message', function(m){
                 for(let entry of entries){
                     if(entry == "." || entry == "..")
                         continue;
+					// All directories contain a reference to themself
+					// and to their parent directory. Ignore them.
+
                     let entryPath = p + "/" + entry;
                     let entryStat = FS.stat(entryPath, false);
 
@@ -459,6 +462,8 @@ window.addEventListener('message', function(m){
             }
             deleteContentsRecursive(m.data.path);
             FS.rmdir(m.data.path);
+			// FS.rmdir expects the directory to be empty
+			// and will throw an error if it is not.
         } else {
             FS.rmdir(m.data.path);
         }
