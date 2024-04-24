@@ -21,16 +21,16 @@ myTreeView.addEventListener("folderUploadRequest", function(e){
 });
 
 myTreeView.addEventListener("fileDeleteRequest", function(e){
-	if (e.FS.includes("transient"))
+    if (e.FS.includes("transient"))
         executionEnviroment.unlink(e.path);
-	if (e.FS.includes("persistent"))
+    if (e.FS.includes("persistent"))
         storedProject.access((project)=>project.unlink(e.path));
 });
 
 myTreeView.addEventListener("folderDeleteRequest", function(e){
-	if (e.FS.includes("transient"))
+    if (e.FS.includes("transient"))
         executionEnviroment.rmdir(e.path, true);
-	if (e.FS.includes("persistent"))
+    if (e.FS.includes("persistent"))
         storedProject.access((project)=>project.rmdir(e.path, true));
 });
 
