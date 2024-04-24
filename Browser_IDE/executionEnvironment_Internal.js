@@ -438,7 +438,31 @@ window.addEventListener('message', function(m){
 		FS.unlink(m.data.path);
 	}
 	
-	// TODO: handle rmdir
+	if (m.data.type == "rmdir"){
+		if(m.data.recursive){
+			let deleteContentsRecursive = function(p){
+				let entries = FS.readdir(p);
+				for(let entry of entries){
+					if(entry == "." || entry == "..")
+						continue;
+					let entryPath = p + "/" + entry;
+					let entryStat = FS.stat(entryPath, false);
+
+					if(FS.isDir(entryStat.mode)){
+						deleteContentsRecursive(entryPath);
+						FS.rmdir(entryPath);
+					} else if(FS.isFile(entryStat.mode)){
+						FS.unlink(entryPath);
+					}
+					
+				}
+			}
+			deleteContentsRecursive(m.data.path);
+			FS.rmdir(m.data.path);
+		} else {
+			FS.rmdir(m.data.path);
+		}
+	}
 
 }, false);
 
