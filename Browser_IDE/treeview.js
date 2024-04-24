@@ -340,8 +340,9 @@ class TreeView extends EventTarget{
         // The root directory should not be deleteable.
         // Seems hack-y. Is "" a valid file/dir name?
         // Maybe it would be better for the caller to just remove the button afterwards. 
+        let dir_node_delete_button = undefined;
         if(label != ""){
-            let dir_node_delete_button = document.createElement("button");
+            dir_node_delete_button = document.createElement("button");
             dir_node_delete_button.classList.add("bi-dash-circle", "node-button");
         }
 
