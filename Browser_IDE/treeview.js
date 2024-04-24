@@ -337,8 +337,13 @@ class TreeView extends EventTarget{
         let dir_node_upload_file_button = document.createElement("button");
         dir_node_upload_file_button.classList.add("bi-plus-circle", "node-button");
 
-        let dir_node_delete_button = document.createElement("button");
-        dir_node_delete_button.classList.add("bi-dash-circle", "node-button");
+        // The root directory should not be deleteable.
+        // Seems hack-y. Is "" a valid file/dir name?
+        // Maybe it would be better for the caller to just remove the button afterwards. 
+        if(label != ""){
+            let dir_node_delete_button = document.createElement("button");
+            dir_node_delete_button.classList.add("bi-dash-circle", "node-button");
+        }
 
         let dir_node_label_text = document.createTextNode(label==""?"/":label);
 
@@ -349,7 +354,11 @@ class TreeView extends EventTarget{
         dir_node_label_text_div.appendChild(dir_node_label_text);
         dir_node_label.appendChild(dir_node_label_text_div);
         dir_node_label.appendChild(dir_node_upload_file_button);
-        dir_node_label.appendChild(dir_node_delete_button);
+
+        if(label != ""){
+            dir_node_label.appendChild(dir_node_delete_button);
+        }
+
         dir_node.appendChild(dir_node_label);
         dir_node.appendChild(dir_node_contents);
 
@@ -393,14 +402,16 @@ class TreeView extends EventTarget{
             e.stopPropagation();
         });
 
-        dir_node_delete_button.addEventListener("click", async function(e){
-            let ev = new Event("folderDeleteRequest");
-            ev.treeView = boundTree;
-            ev.path = boundTree.getFullPath(dir_node);
-            ev.FS = boundTree.nodeGetFS(dir_node);
-            boundTree.dispatchEvent(ev);
-            e.stopPropagation();
-        });
+        if(label != ""){
+            dir_node_delete_button.addEventListener("click", async function(e){
+                let ev = new Event("folderDeleteRequest");
+                ev.treeView = boundTree;
+                ev.path = boundTree.getFullPath(dir_node);
+                ev.FS = boundTree.nodeGetFS(dir_node);
+                boundTree.dispatchEvent(ev);
+                e.stopPropagation();
+            });
+        }
 
         this.initFileNodeCallbacks(dir_node);
         return dir_node;
