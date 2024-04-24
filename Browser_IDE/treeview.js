@@ -337,6 +337,9 @@ class TreeView extends EventTarget{
         let dir_node_upload_file_button = document.createElement("button");
         dir_node_upload_file_button.classList.add("bi-plus-circle", "node-button");
 
+        let dir_node_delete_button = document.createElement("button");
+        dir_node_delete_button.classList.add("bi-dash-circle", "node-button");
+
         let dir_node_label_text = document.createTextNode(label==""?"/":label);
 
         let dir_node_contents = document.createElement("div");
@@ -346,6 +349,7 @@ class TreeView extends EventTarget{
         dir_node_label_text_div.appendChild(dir_node_label_text);
         dir_node_label.appendChild(dir_node_label_text_div);
         dir_node_label.appendChild(dir_node_upload_file_button);
+        dir_node_label.appendChild(dir_node_delete_button);
         dir_node.appendChild(dir_node_label);
         dir_node.appendChild(dir_node_contents);
 
@@ -389,6 +393,14 @@ class TreeView extends EventTarget{
             e.stopPropagation();
         });
 
+        dir_node_delete_button.addEventListener("click", async function(e){
+            let ev = new Event("folderDeleteRequest");
+            ev.treeView = boundTree;
+            ev.path = boundTree.getFullPath(dir_node);
+            ev.FS = boundTree.nodeGetFS(dir_node);
+            boundTree.dispatchEvent(ev);
+            e.stopPropagation();
+        });
 
         this.initFileNodeCallbacks(dir_node);
         return dir_node;
@@ -410,10 +422,14 @@ class TreeView extends EventTarget{
         let file_node_label_text_div = document.createElement("div");
         file_node_label_text_div.classList.add("node-label-text");
 
+        let file_node_delete_button = document.createElement("button");
+        file_node_delete_button.classList.add("bi-dash-circle", "node-button");
+
         let file_node_label_text = document.createTextNode(label);
 
         file_node_label_text_div.appendChild(file_node_label_text);
         file_node_label.appendChild(file_node_label_text_div);
+        file_node_label.appendChild(file_node_delete_button);
 
         file_node_label.addEventListener("click", async function (e) {
             e.stopPropagation();
@@ -427,6 +443,15 @@ class TreeView extends EventTarget{
             ev.path = boundTree.getFullPath(file_node_label);
             ev.FS = boundTree.nodeGetFS(file_node_label);
             boundTree.dispatchEvent(ev);
+        });
+
+        file_node_delete_button.addEventListener("click", async function(e){
+            let ev = new Event("fileDeleteRequest");
+            ev.treeView = boundTree;
+            ev.path = boundTree.getFullPath(file_node_label);
+            ev.FS = boundTree.nodeGetFS(file_node_label);
+            boundTree.dispatchEvent(ev);
+            e.stopPropagation();
         });
 
         this.initFileNodeCallbacks(file_node_label);
