@@ -194,7 +194,12 @@ class ExecutionEnvironment extends EventTarget{
             newPath: newPath,
         }, "*");
     }
-
+    unlink(path){
+        this.iFrame.contentWindow.postMessage({
+            type: "unlink",
+            path: path
+        }, "*");
+    }
 
 
 

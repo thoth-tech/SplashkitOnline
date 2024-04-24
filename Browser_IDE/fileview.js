@@ -21,6 +21,8 @@ myTreeView.addEventListener("folderUploadRequest", function(e){
 });
 
 myTreeView.addEventListener("fileDeleteRequest", function(e){
+	if (e.FS.includes("transient"))
+        executionEnviroment.unlink(e.path);
 	if (e.FS.includes("persistent"))
         storedProject.access((project)=>project.unlink(e.path));
 });

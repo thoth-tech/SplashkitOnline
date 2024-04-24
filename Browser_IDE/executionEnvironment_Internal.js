@@ -434,6 +434,10 @@ window.addEventListener('message', function(m){
         FS.rename(m.data.oldPath,m.data.newPath);
     }
 
+	if (m.data.type == "unlink"){
+		FS.unlink(m.data.path);
+	}
+
 }, false);
 
 // FS Event Forwarding
