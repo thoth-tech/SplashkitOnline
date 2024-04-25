@@ -54,6 +54,9 @@ class ExecutionEnvironment extends EventTarget{
                 ev.block = data.block;
                 EE.dispatchEvent(ev);
             }
+            else if (data.type == "callback"){
+                executeTempCallback(data.callbackID, data.error);
+            }
             else if (data.type == "programStarted"){
                 EE.hasRunOnce = true;
                 EE.executionStatus = ExecutionStatus.Running;
