@@ -335,7 +335,7 @@ class TreeView extends EventTarget{
         dir_node_label_text_div.classList.add("node-label-text");
 
         let dir_node_upload_file_button = document.createElement("button");
-        dir_node_upload_file_button.classList.add("bi-plus-circle", "node-button");
+        dir_node_upload_file_button.classList.add("bi-file-earmark-arrow-up", "node-button");
 
         // The root directory should not be deleteable.
         // Seems hack-y. Is "" a valid file/dir name?
@@ -343,7 +343,7 @@ class TreeView extends EventTarget{
         let dir_node_delete_button = undefined;
         if(label != ""){
             dir_node_delete_button = document.createElement("button");
-            dir_node_delete_button.classList.add("bi-dash-circle", "node-button");
+            dir_node_delete_button.classList.add("bi-trash", "node-button");
         }
 
         let dir_node_label_text = document.createTextNode(label==""?"/":label);
@@ -435,7 +435,7 @@ class TreeView extends EventTarget{
         file_node_label_text_div.classList.add("node-label-text");
 
         let file_node_delete_button = document.createElement("button");
-        file_node_delete_button.classList.add("bi-dash-circle", "node-button");
+        file_node_delete_button.classList.add("bi-trash", "node-button");
 
         let file_node_label_text = document.createTextNode(label);
 
