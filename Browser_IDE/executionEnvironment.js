@@ -22,6 +22,18 @@ async function executeTempCallback(callbackID, error){
     }
 }
 
+async function postMessageFallible(oWindow, message){
+    return new Promise((resolve, reject) => {
+        let _message = structuredClone(message);
+        _message.callbackID = registerTempCallback((error) => {
+            if(error !== undefined) reject(error);
+            else resolve();
+        });
+
+        oWindow.postMessage(_message, "*");
+    });
+}
+
 const ExecutionStatus = {
   Unstarted: 'Unstarted',
   Running: 'Running',
@@ -199,25 +211,25 @@ class ExecutionEnvironment extends EventTarget{
     }
 
     // --- File System Functions ---
-    mkdir(path){
-        this.iFrame.contentWindow.postMessage({
+    async mkdir(path){
+        await postMessageFallible(this.iFrame.contentWindow, {
             type: "mkdir",
             path: path,
-        }, "*");
+        });
     }
-    writeFile(path, data){
-        this.iFrame.contentWindow.postMessage({
+    async writeFile(path, data){
+        await postMessageFallible(this.iFrame.contentWindow, {
             type: "writeFile",
             path: path,
             data: data,
-        }, "*");
+        });
     }
-    rename(oldPath, newPath){
-        this.iFrame.contentWindow.postMessage({
+    async rename(oldPath, newPath){
+        await postMessageFallible(this.iFrame.contentWindow, {
             type: "rename",
             oldPath: oldPath,
             newPath: newPath,
-        }, "*");
+        });
     }
     unlink(path){
         this.iFrame.contentWindow.postMessage({
