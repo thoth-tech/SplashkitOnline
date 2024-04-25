@@ -379,59 +379,78 @@ function stopProgram(){
 // ------ Message Listening ------
 window.addEventListener('message', function(m){
 
-    // --- Code Execution Functions ---
-    if (m.data.type == "RunCodeBlock"){
-        let processedCode = "";
-        try {
-            // At this point, the code has already been syntax checked outside of the iFrame, so we
-            // should have no trouble here.
-            processedCode = processCodeForExecutionEnvironment(m.data.code, "mainLoopStop", "mainLoopPause", "mainLoopContinuer", "onProgramPause");
+    try {
 
-            tryEvalSource(m.data.name, processedCode);
+        // --- Code Execution Functions ---
+        if (m.data.type == "RunCodeBlock"){
+            let processedCode = "";
+            try {
+                // At this point, the code has already been syntax checked outside of the iFrame, so we
+                // should have no trouble here.
+                processedCode = processCodeForExecutionEnvironment(m.data.code, "mainLoopStop", "mainLoopPause", "mainLoopContinuer", "onProgramPause");
+    
+                tryEvalSource(m.data.name, processedCode);
+            }
+            catch(e) {
+                // If we got a syntax error from Babel, we know the browser can't return a more user friendly
+                // one since it didn't report one initially. So for now just report Unknown error.
+                // TODO: Report Babel's syntax error.
+                ReportError(userCodeBlockIdentifier+m.data.name, "Unknown syntax error.", null);
+            }
         }
-        catch(e) {
-            // If we got a syntax error from Babel, we know the browser can't return a more user friendly
-            // one since it didn't report one initially. So for now just report Unknown error.
-            // TODO: Report Babel's syntax error.
-            ReportError(userCodeBlockIdentifier+m.data.name, "Unknown syntax error.", null);
+    
+        if (m.data.type == "ReportError"){
+            ReportError(userCodeBlockIdentifier + m.data.block, m.data.message, m.data.line);
         }
-    }
-
-    if (m.data.type == "ReportError"){
-        ReportError(userCodeBlockIdentifier + m.data.block, m.data.message, m.data.line);
-    }
-
-    if (m.data.type == "CleanEnvironment"){
-        ResetExecutionScope();
-    }
-
-    if (m.data.type == "RunProgram"){
-        runProgram();
-    }
-    if (m.data.type == "PauseProgram"){
-        pauseProgram();
-    }
-    if (m.data.type == "ContinueProgram"){
-        continueProgram();
-    }
-    if (m.data.type == "StopProgram"){
-        stopProgram();
-    }
-
-    // --- FS Handling ---
-    if (m.data.type == "mkdir"){
-        try{
+    
+        if (m.data.type == "CleanEnvironment"){
+            ResetExecutionScope();
+        }
+    
+        if (m.data.type == "RunProgram"){
+            runProgram();
+        }
+        if (m.data.type == "PauseProgram"){
+            pauseProgram();
+        }
+        if (m.data.type == "ContinueProgram"){
+            continueProgram();
+        }
+        if (m.data.type == "StopProgram"){
+            stopProgram();
+        }
+    
+        // --- FS Handling ---
+        if (m.data.type == "mkdir"){
             FS.mkdir(m.data.path);
         }
-        catch{}
-    }
-
-    if (m.data.type == "writeFile"){
-        FS.writeFile(m.data.path,m.data.data);
-    }
-
-    if (m.data.type == "rename"){
-        FS.rename(m.data.oldPath,m.data.newPath);
+    
+        if (m.data.type == "writeFile"){
+            FS.writeFile(m.data.path,m.data.data);
+        }
+    
+        if (m.data.type == "rename"){
+            FS.rename(m.data.oldPath,m.data.newPath);
+        }
+    
+        if('callbackID' in m.data){
+            parent.postMessage({
+                type: "callback",
+                callbackID: m.data.callbackID,
+                error: undefined,
+            }, "*");
+        }
+    
+    } catch(err){
+    
+        if('callbackID' in m.data){
+            parent.postMessage({
+                type: "callback",
+                callbackID: m.data.callbackID,
+                error: err,
+            }, "*");
+        }
+    
     }
 
     if (m.data.type == "unlink"){
