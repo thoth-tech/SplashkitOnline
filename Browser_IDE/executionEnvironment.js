@@ -1,5 +1,27 @@
 "use strict";
 
+// Temporary callbacks for inter-window messaging
+// Consider a better place to put this.
+
+let __tempCallbacks = new Map();
+let __nextTempCallbackID = 0; // I *believe* a global counter like this is safe.
+
+function registerTempCallback(callbackFn){
+    let callbackID = __nextTempCallbackID++;
+    __tempCallbacks[callbackID] = callbackFn;
+    return callbackID;
+}
+
+async function executeTempCallback(callbackID, error){
+    try {
+        await __tempCallbacks[callbackID](error);
+    } catch(e){
+        throw e;
+    } finally {
+        __tempCallbacks.delete(callbackID);
+    }
+}
+
 const ExecutionStatus = {
   Unstarted: 'Unstarted',
   Running: 'Running',
