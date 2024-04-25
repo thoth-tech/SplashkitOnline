@@ -8,6 +8,7 @@ myTreeView.addEventListener("nodeMoveRequest", function(e){
         executionEnviroment.rename(e.oldPath, e.newPath);
     if (e.FS.includes("persistent"))
         storedProject.access((project)=>project.rename(e.oldPath, e.newPath));
+    e.accept();
 });
 
 myTreeView.addEventListener("nodeDoubleClick", function(e){
@@ -23,7 +24,7 @@ myTreeView.addEventListener("folderUploadRequest", function(e){
 
 // Attach to file system callbacks within the Execution Environment
 executionEnviroment.addEventListener('onMovePath', function(e) {
-    myTreeView.moveNode(e.oldPath, e.newPath, -1, "transient");
+    myTreeView.moveNode(e.oldPath, e.newPath, "transient");
 });
 
 executionEnviroment.addEventListener('onMakeDirectory', function(e) {
@@ -41,7 +42,7 @@ executionEnviroment.addEventListener('onOpenFile', function(e) {
 // Attach to file system callbacks within the IDBStoredProject
 storedProject.addEventListener('onMovePath', function(e) {
     //TODO: Get moving to specific index working again - ideally make it persistent as well
-    myTreeView.moveNode(e.oldPath, e.newPath, -1, "persistent");
+    myTreeView.moveNode(e.oldPath, e.newPath, "persistent");
 });
 
 storedProject.addEventListener('onMakeDirectory', function(e) {
