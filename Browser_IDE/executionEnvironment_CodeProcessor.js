@@ -229,7 +229,7 @@ findGlobalDeclarationsTransform__userScope.add("refresh_screen");
 findGlobalDeclarationsTransform__userScope.add("refresh_screen_with_target_fps");
 
 let findGlobalDeclarationsTransform__awaitables = new Set();
-findGlobalDeclarationsTransform__awaitables.add("read_line");
+findGlobalDeclarationsTransform__awaitables.add("customReadLine");
 
 function findGlobalDeclarationsTransform(babel){
     return{
@@ -253,10 +253,8 @@ function findGlobalDeclarationsTransform(babel){
             },
             CallExpression(path) {
                 const calleeName = path.node.callee.name;
-                if (findGlobalDeclarationsTransform__awaitables.has(calleeName)) {
-                    const awaitExpression = babel.types.awaitExpression(
-                        path.node
-                    );
+                    if (findGlobalDeclarationsTransform__awaitables.has(calleeName)) {
+                    const awaitExpression = babel.types.awaitExpression(path.node);
                     path.replaceWith(awaitExpression);
                 }
             },

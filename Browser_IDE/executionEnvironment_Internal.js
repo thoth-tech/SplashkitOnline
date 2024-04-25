@@ -327,10 +327,11 @@ moduleEvents.addEventListener("onRuntimeInitialized", function() {
     parent.postMessage({type:"initialized"},"*");
 });
 
-let readlineResolve = null;
+window.userInputResolve = null;
 
-function read_line() {
+function customReadLine() {
+    console.log("customReadLine is waiting for input...");
     return new Promise((resolve) => {
-        readlineResolve = resolve;
+        window.userInputResolve = resolve; 
     });
 }

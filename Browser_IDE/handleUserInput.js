@@ -1,15 +1,16 @@
 function handleUserInput(event) {
     if (event.key === "Enter") {
-        event.preventDefault(); // Prevent form submission
+        console.log("Event triggered:", event);
+        event.preventDefault();
         const input = document.getElementById('user-input');
         const output = document.getElementById('output');
         const command = input.value;
-        input.value = ''; // Clear input field
+        input.value = ''; // Clear the input field
         
-        if (readlineResolve) {
+        if (window.userInputResolve) {
             output.value += "> " + command + "\n"; // Display the command in the output area
-            readlineResolve(command); // Resolve the Promise with the command
-            readlineResolve = null; // Reset the resolve function
+            window.userInputResolve(command); // Resolve the Promise with the command
+            window.userInputResolve = null; // Reset the resolve function
         }
     }
 }
