@@ -3,12 +3,17 @@ let myTreeView = new TreeView(document.getElementById("fileView"), {"persistent"
 
 
 // Attach callbacks for treeview GUI
-myTreeView.addEventListener("nodeMoveRequest", function(e){
-    if (e.FS.includes("transient"))
-        executionEnviroment.rename(e.oldPath, e.newPath);
-    if (e.FS.includes("persistent"))
-        storedProject.access((project)=>project.rename(e.oldPath, e.newPath));
-    e.accept();
+myTreeView.addEventListener("nodeMoveRequest", async function(e){
+    try {
+        if (e.FS.includes("transient"))
+            await executionEnviroment.rename(e.oldPath, e.newPath);
+        if (e.FS.includes("persistent"))
+            await storedProject.access((project)=>project.rename(e.oldPath, e.newPath));
+    
+        if('onsuccess' in e) e.onsuccess();
+    } catch(err){
+        if('onerror' in e) e.onerror(err);
+    }
 });
 
 myTreeView.addEventListener("nodeDoubleClick", function(e){

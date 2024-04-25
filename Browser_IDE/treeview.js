@@ -60,10 +60,28 @@ document.addEventListener("mouseup", function(e) {
         ev.oldPath = oldPath;
         ev.newPath = newPath.path;
         ev.FS = boundTree.nodeGetFS(boundNode);
-        ev.accept = function(){
-            boundNode.remove();
-            boundTree.moveNodeToPathUI(boundNode, newPath.path, newPath.index);
+
+        ev.onsuccess = () => {
+            // TODO: Move moveNodeToPathUI call here.
+            // It currently expects to run *before* the FS node is renamed,
+            // and so it cannot check whether the rename succeeded.
         };
+        ev.onerror = (err) => {
+            let visualDragFailedModal = createModal(
+                "visualDragFailedModal",
+                "Unable to move file/directory",
+                "An error occured and the file/directory could not be moved to its new location.\n\nReason:\n" + err,
+                null,
+                null
+            );
+            visualDragFailedModal.show();
+
+            boundTree.moveNodeToPathUI(boundNode, oldPath, 0);
+        };
+        
+        boundNode.remove();
+        boundTree.moveNodeToPathUI(boundNode, newPath.path, newPath.index);
+
         activeTree.dispatchEvent(ev);
 
 
