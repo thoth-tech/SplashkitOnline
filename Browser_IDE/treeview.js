@@ -67,6 +67,8 @@ document.addEventListener("mouseup", function(e) {
             // and so it cannot check whether the rename succeeded.
         };
         ev.onerror = (err) => {
+            // This should probably be somewhere else.
+            // And we should reuse the modal.
             let visualDragFailedModal = createModal(
                 "visualDragFailedModal",
                 "Unable to move file/directory",
