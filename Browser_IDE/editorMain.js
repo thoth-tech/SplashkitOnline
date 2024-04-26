@@ -612,6 +612,7 @@ storedProject.addEventListener("timeConflict", async function() {
 });
 
 
+
 window.addEventListener("needConfirmation", async function(ev){
     let confirmLabel = ev.confirmLabel || "Confirm";
     let cancelLabel = ev.cancelLabel || "Cancel";
@@ -636,3 +637,18 @@ window.addEventListener("needConfirmation", async function(ev){
         confirmationModalEl.dispose();
     });
 });
+
+window.addEventListener("filesystemError", async function(ev){
+	// We should find a way to reuse this.
+	// I am unsure what the interface of a modal is
+	// beyond the show and hide methods.
+	let errorModal = createModal(
+		"filesystemErrorModal",
+		ev.shortMessage,
+		ev.longMessage,
+		null,
+		null
+	);
+	errorModal.show();
+});
+

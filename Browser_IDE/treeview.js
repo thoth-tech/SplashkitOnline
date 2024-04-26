@@ -67,16 +67,10 @@ document.addEventListener("mouseup", function(e) {
             // and so it cannot check whether the rename succeeded.
         };
         ev.onerror = (err) => {
-            // This should probably be somewhere else.
-            // And we should reuse the modal.
-            let visualDragFailedModal = createModal(
-                "visualDragFailedModal",
-                "Unable to move file/directory",
-                "An error occured and the file/directory could not be moved to its new location.\n\nReason:\n" + err,
-                null,
-                null
-            );
-            visualDragFailedModal.show();
+			let errEv = new Event("filesystemError");
+			errEv.shortMessage = "Move failed";
+			errEv.longMessage = "An error occured and the file/directory could not be moved to its new location.\n\nReason:\n" + err;
+			window.dispatchEvent(errEv);
 
             boundTree.moveNodeToPathUI(boundNode, oldPath, 0);
         };
