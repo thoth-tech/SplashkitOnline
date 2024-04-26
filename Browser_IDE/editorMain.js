@@ -650,5 +650,10 @@ window.addEventListener("filesystemError", async function(ev){
 		null
 	);
 	errorModal.show();
+
+	let errorModelEl = document.getElementById("filesystemErrorModal");
+	errorModelEl.addEventListener("hidden.bs.modal", function(innerEv){
+		errorModal.dispose();
+	});
 });
 
