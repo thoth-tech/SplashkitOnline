@@ -123,6 +123,7 @@ SwitchToTabs(tabs[0].contents.id);
 // ------ Setup Project and Execution Environment ------
 let executionEnviroment = new ExecutionEnvironment(document.getElementById("ExecutionEnvironment"));
 let storedProject = new IDBStoredProject(makeNewProject);
+let unifiedFS = new UnifiedFS(storedProject, executionEnviroment);
 storedProject.attachToProject("Untitled");
 
 let haveMirrored = false;
@@ -398,13 +399,11 @@ async function projectFromZip(file){
             if (zipEntry.dir){
                 abs_path = abs_path.substring(0, abs_path.length-1);
 
-                executionEnviroment.mkdir(abs_path);
-                storedProject.access((project)=>project.mkdir(abs_path));
+                unifiedFS.mkdir(abs_path);
             }
             else{
                 let uint8_view = await zip.file(rel_path).async("uint8array");
-                executionEnviroment.writeFile(abs_path, uint8_view);
-                storedProject.access((project)=>project.writeFile(abs_path, uint8_view));
+                unifiedFS.writeFile(abs_path, uint8_view);
             }
         });
     });
@@ -447,8 +446,7 @@ function uploadFileFromInput(){
         let path = document.getElementById('fileuploader').dataset.uploadDirectory;
         
         try {
-            storedProject.access((project)=>project.writeFile(path+"/"+file.name, uint8_view));
-            executionEnviroment.writeFile(path+"/"+file.name, uint8_view);
+            unifiedFS.writeFile(path+"/"+file.name, uint8_view);
         } catch(err){
             let errEv = new Event("filesystemError");
             errEv.shortMessage = "Upload failed";

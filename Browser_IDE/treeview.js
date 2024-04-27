@@ -73,6 +73,8 @@ document.addEventListener("mouseup", function(e) {
 			window.dispatchEvent(errEv);
 
             boundTree.moveNodeToPathUI(boundNode, oldPath, 0);
+
+			throw err;
         };
         
         boundNode.remove();
