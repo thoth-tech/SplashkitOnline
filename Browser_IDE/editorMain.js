@@ -445,8 +445,17 @@ function uploadFileFromInput(){
         const uint8_view = new Uint8Array(result);
 
         let path = document.getElementById('fileuploader').dataset.uploadDirectory;
-        storedProject.access((project)=>project.writeFile(path+"/"+file.name, uint8_view));
-        executionEnviroment.writeFile(path+"/"+file.name, uint8_view);
+        
+        try {
+            storedProject.access((project)=>project.writeFile(path+"/"+file.name, uint8_view));
+            executionEnviroment.writeFile(path+"/"+file.name, uint8_view);
+        } catch(err){
+            let errEv = new Event("filesystemError");
+            errEv.shortMessage = "Upload failed";
+            errEv.longMessage = "An error occured and the file could not be created.\n\nReason:\n" + err;
+            window.dispatchEvent(errEv);
+            return;
+        }
     });
     reader.readAsArrayBuffer(file);
 }
