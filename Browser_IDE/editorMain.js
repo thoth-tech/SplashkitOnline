@@ -614,7 +614,7 @@ storedProject.addEventListener("timeConflict", async function() {
 
 window.addEventListener("needConfirmation", async function(ev){
     let confirmLabel = ev.confirmLabel || "Confirm";
-    let cancelLabel = ev.cancelLabel || "cancel";
+    let cancelLabel = ev.cancelLabel || "Cancel";
     
     let confirmationModal = createModal(
         "confirmationModal",
