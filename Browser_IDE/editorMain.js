@@ -472,17 +472,17 @@ function downloadFileGeneric(content, filename, mime) {
 async function FSviewFile(filename, mime) {
     mime = mime || "application/octet-stream";
 
-	let content = undefined;
+    let content = undefined;
     
-	try {
-		content = await storedProject.access((project)=>project.readFile(filename));
-	} catch(err){
-		let errEv = new Event("filesystemError");
-		errEv.shortMessage = "Open failed";
-		errEv.longMessage = "An error occured and the file could not be opened.\n\nReason:\n" + err;
-		window.dispatchEvent(errEv);
-		return;
-	}
+    try {
+        content = await storedProject.access((project)=>project.readFile(filename));
+    } catch(err){
+        let errEv = new Event("filesystemError");
+        errEv.shortMessage = "Open failed";
+        errEv.longMessage = "An error occured and the file could not be opened.\n\nReason:\n" + err;
+        window.dispatchEvent(errEv);
+        return;
+    }
 
     let url = URL.createObjectURL(new Blob([content], {type: mime}));
 
@@ -492,7 +492,17 @@ async function FSviewFile(filename, mime) {
     }, 2000);
 }
 async function FSdownloadFile(filename, mime) {
-    let content = await storedProject.access((project)=>project.readFile(filename));
+    let content = undefined;
+
+    try {
+        content = await storedProject.access((project)=>project.readFile(filename));
+    } catch(err){
+        let errEv = new Event("filesystemError");
+        errEv.shortMessage = "Download failed";
+        errEv.longMessage = "An error occured and the file could not be read.\n\nReason:\n" + err;
+        window.dispatchEvent(errEv);
+        return;
+    }
 
     downloadFileGeneric(content, filename, mime);
 }
@@ -649,21 +659,21 @@ window.addEventListener("needConfirmation", async function(ev){
 });
 
 window.addEventListener("filesystemError", async function(ev){
-	// We should find a way to reuse this.
-	// I am unsure what the interface of a modal is
-	// beyond the show and hide methods.
-	let errorModal = createModal(
-		"filesystemErrorModal",
-		ev.shortMessage,
-		ev.longMessage,
-		null,
-		null
-	);
-	errorModal.show();
+    // We should find a way to reuse this.
+    // I am unsure what the interface of a modal is
+    // beyond the show and hide methods.
+    let errorModal = createModal(
+        "filesystemErrorModal",
+        ev.shortMessage,
+        ev.longMessage,
+        null,
+        null
+    );
+    errorModal.show();
 
-	let errorModelEl = document.getElementById("filesystemErrorModal");
-	errorModelEl.addEventListener("hidden.bs.modal", function(innerEv){
-		errorModal.dispose();
-	});
+    let errorModelEl = document.getElementById("filesystemErrorModal");
+    errorModelEl.addEventListener("hidden.bs.modal", function(innerEv){
+        errorModal.dispose();
+    });
 });
 
