@@ -405,11 +405,19 @@ class TreeView extends EventTarget{
 
         if(label != ""){
             dir_node_delete_button.addEventListener("click", async function(e){
-                let ev = new Event("folderDeleteRequest");
-                ev.treeView = boundTree;
-                ev.path = boundTree.getFullPath(dir_node);
-                ev.FS = boundTree.nodeGetFS(dir_node);
-                boundTree.dispatchEvent(ev);
+                let confirmEv = new Event("needConfirmation");
+                confirmEv.shortMessage = "Confirm delete";
+                confirmEv.longMessage = "Are you sure you want to delete this?";
+                confirmEv.confirmLabel = "Delete";
+                confirmEv.oncancel = ()=>{};
+                confirmEv.onconfirm = ()=>{
+                    let deleteEv = new Event("folderDeleteRequest");
+                    deleteEv.treeView = boundTree;
+                    deleteEv.path = boundTree.getFullPath(dir_node);
+                    deleteEv.FS = boundTree.nodeGetFS(dir_node);
+                    boundTree.dispatchEvent(deleteEv);
+                };
+                window.dispatchEvent(confirmEv);
                 e.stopPropagation();
             });
         }
@@ -458,11 +466,19 @@ class TreeView extends EventTarget{
         });
 
         file_node_delete_button.addEventListener("click", async function(e){
-            let ev = new Event("fileDeleteRequest");
-            ev.treeView = boundTree;
-            ev.path = boundTree.getFullPath(file_node_label);
-            ev.FS = boundTree.nodeGetFS(file_node_label);
-            boundTree.dispatchEvent(ev);
+            let confirmEv = new Event("needConfirmation");
+            confirmEv.shortMessage = "Confirm delete";
+            confirmEv.longMessage = "Are you sure you want to delete this?";
+            confirmEv.confirmLabel = "Delete";
+            confirmEv.oncancel = ()=>{};
+            confirmEv.onconfirm = ()=>{
+                let deleteEv = new Event("fileDeleteRequest");
+                deleteEv.treeView = boundTree;
+                deleteEv.path = boundTree.getFullPath(file_node_label);
+                deleteEv.FS = boundTree.nodeGetFS(file_node_label);
+                boundTree.dispatchEvent(deleteEv);
+            };
+            window.dispatchEvent(confirmEv);
             e.stopPropagation();
         });
 

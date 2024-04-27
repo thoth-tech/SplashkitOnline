@@ -610,3 +610,29 @@ storedProject.addEventListener("timeConflict", async function() {
     if (!userHasIgnoredProjectConflict)
         projectConflictModal.show();
 });
+
+
+window.addEventListener("needConfirmation", async function(ev){
+    let confirmLabel = ev.confirmLabel || "Confirm";
+    let cancelLabel = ev.cancelLabel || "cancel";
+    
+    let confirmationModal = createModal(
+        "confirmationModal",
+        ev.shortMessage,
+        ev.longMessage,
+        {label: cancelLabel, callback: ()=>{
+            ev.oncancel();
+            confirmationModal.hide();
+        }},
+        {label: confirmLabel, callback: ()=>{
+            ev.onconfirm();
+            confirmationModal.hide();
+        }}
+    );
+    confirmationModal.show();
+
+    let confirmationModalEl = document.getElementById("confirmationModal");
+    confirmationModalEl.addEventListener("hidden.bs.modal", function(innerEv){
+        confirmationModalEl.dispose();
+    });
+});
