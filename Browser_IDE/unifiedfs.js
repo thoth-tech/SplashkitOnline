@@ -26,8 +26,8 @@ class UnifiedFS {
         }
 
         if(err){
-            // If one fails, we need to revert the other.
-            // TODO: Relies on deletion functions in executionEnvironment.js
+            if (tSucc) this.executionEnvironment.rmdir(path);
+            if (pSucc) this.storedProject.access((project)=>project.rmdir(path));
             throw err;
         }
     }
@@ -42,7 +42,7 @@ class UnifiedFS {
         if (t && p){
             // We don't have a general notion of transactions so
             // this seems like the simplest, even if most naive, solution.
-            let pOriginalData = await this.storedProject.access((project)=>project.readFile(path, data));
+            let pOriginalData = await this.storedProject.access((project)=>project.readFile(path));
             let tOriginalData = pOriginalData;
                 // TODO: Create executionEnvironment.readFile function and use here.
 
@@ -106,9 +106,44 @@ class UnifiedFS {
 
     async unlink(path, t = true, p = true){
         // TODO: Relies on deletion functions in executionEnvironment.js
+        if (t && p){
+            let pOriginalData = await this.storedProject.access((project)=>project.readFile(path));
+            let tOriginalData = pOriginalData;
+            let tSucc = false;
+            let pSucc = false;
+            let err = undefined;
+
+            try {
+                await this.executionEnvironment.unlink(path);
+                tSucc = true;
+
+                await this.storedProject.access((project)=>project.unlink(path));
+                pSucc = true;
+            } catch(_err){
+                err = _err;
+            }
+
+            if(err){
+                // If one fails, we need to revert the other.
+                if(tSucc) await this.executionEnvironment.writeFile(path, tOriginalData);
+                if(pSucc) await this.storedProject.access((project)=>project.writeFile(path, pOriginalData));
+                throw err;
+            }
+
+            return;
+        }
+
+        if (t) await this.executionEnvironment.unlink(path);
+        if (p) await this.storedProject.access((project)=>project.unlink(path));
     }
 
     async rmdir(path, recursive, t = true, p = true){
-        // TODO: Relies on deletion functions in executionEnvironment.js
+        // TODO: Properly.
+        // We cannot save the contents of an entire
+        // folder in case we need to revert the deletion,
+        // so what should be done?
+
+        if (t) await this.executionEnvironment.rmdir(path, recursive);
+        if (p) await this.storedProject.access((project)=>project.rmdir(path, recursive));
     }
 }

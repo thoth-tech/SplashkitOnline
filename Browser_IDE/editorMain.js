@@ -661,7 +661,7 @@ window.addEventListener("needConfirmation", async function(ev){
 
     let confirmationModalEl = document.getElementById("confirmationModal");
     confirmationModalEl.addEventListener("hidden.bs.modal", function(innerEv){
-        confirmationModalEl.dispose();
+        confirmationModal.dispose();
     });
 });
 

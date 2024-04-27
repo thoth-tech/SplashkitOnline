@@ -28,18 +28,33 @@ myTreeView.addEventListener("folderUploadRequest", function(e){
     document.getElementById("fileuploader").click();
 });
 
-myTreeView.addEventListener("fileDeleteRequest", function(e){
-    if (e.FS.includes("transient"))
-        executionEnviroment.unlink(e.path);
-    if (e.FS.includes("persistent"))
-        storedProject.access((project)=>project.unlink(e.path));
+myTreeView.addEventListener("fileDeleteRequest", async function(e){
+    try {
+        await unifiedFS.unlink(
+            e.path,
+            e.FS.includes("transient"),
+            e.FS.includes("persistent")
+        );
+
+        if('onsuccess' in e) e.onsuccess();
+    } catch(err){
+        if('onerror' in e) e.onerror(err);
+    }
 });
 
-myTreeView.addEventListener("folderDeleteRequest", function(e){
-    if (e.FS.includes("transient"))
-        executionEnviroment.rmdir(e.path, true);
-    if (e.FS.includes("persistent"))
-        storedProject.access((project)=>project.rmdir(e.path, true));
+myTreeView.addEventListener("folderDeleteRequest", async function(e){
+    try {
+        await unifiedFS.rmdir(
+            e.path,
+            true,
+            e.FS.includes("transient"),
+            e.FS.includes("persistent")
+        );
+
+        if('onsuccess' in e) e.onsuccess();
+    } catch(err){
+        if('onerror' in e) e.onerror(err);
+    }
 });
 
 // Attach to file system callbacks within the Execution Environment

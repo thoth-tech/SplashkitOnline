@@ -432,6 +432,41 @@ window.addEventListener('message', function(m){
         if (m.data.type == "rename"){
             FS.rename(m.data.oldPath,m.data.newPath);
         }
+
+        if (m.data.type == "unlink"){
+            FS.unlink(m.data.path);
+        }
+        
+        if (m.data.type == "rmdir"){
+            if(m.data.recursive){
+                let deleteContentsRecursive = function(p){
+                    let entries = FS.readdir(p);
+                    for(let entry of entries){
+                        if(entry == "." || entry == "..")
+                            continue;
+                        // All directories contain a reference to themself
+                        // and to their parent directory. Ignore them.
+    
+                        let entryPath = p + "/" + entry;
+                        let entryStat = FS.stat(entryPath, false);
+    
+                        if(FS.isDir(entryStat.mode)){
+                            deleteContentsRecursive(entryPath);
+                            FS.rmdir(entryPath);
+                        } else if(FS.isFile(entryStat.mode)){
+                            FS.unlink(entryPath);
+                        }
+                        
+                    }
+                }
+                deleteContentsRecursive(m.data.path);
+                FS.rmdir(m.data.path);
+                // FS.rmdir expects the directory to be empty
+                // and will throw an error if it is not.
+            } else {
+                FS.rmdir(m.data.path);
+            }
+        }
     
         if('callbackID' in m.data){
             parent.postMessage({
@@ -451,41 +486,6 @@ window.addEventListener('message', function(m){
             }, "*");
         }
     
-    }
-
-    if (m.data.type == "unlink"){
-        FS.unlink(m.data.path);
-    }
-    
-    if (m.data.type == "rmdir"){
-        if(m.data.recursive){
-            let deleteContentsRecursive = function(p){
-                let entries = FS.readdir(p);
-                for(let entry of entries){
-                    if(entry == "." || entry == "..")
-                        continue;
-                    // All directories contain a reference to themself
-                    // and to their parent directory. Ignore them.
-
-                    let entryPath = p + "/" + entry;
-                    let entryStat = FS.stat(entryPath, false);
-
-                    if(FS.isDir(entryStat.mode)){
-                        deleteContentsRecursive(entryPath);
-                        FS.rmdir(entryPath);
-                    } else if(FS.isFile(entryStat.mode)){
-                        FS.unlink(entryPath);
-                    }
-                    
-                }
-            }
-            deleteContentsRecursive(m.data.path);
-            FS.rmdir(m.data.path);
-            // FS.rmdir expects the directory to be empty
-            // and will throw an error if it is not.
-        } else {
-            FS.rmdir(m.data.path);
-        }
     }
 
 }, false);
