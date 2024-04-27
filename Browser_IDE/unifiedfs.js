@@ -1,5 +1,9 @@
 "use strict";
 
+/**
+ * An adapter for mutating the IDB filesystem and the Emscripten filesystem at the same time.
+ * Using this helps to avoid the two filesystems becoming out-of-sync.
+ */
 class UnifiedFS {
     constructor(_storedProject, _executionEnvironment){
         this.storedProject = _storedProject;
