@@ -67,14 +67,14 @@ document.addEventListener("mouseup", function(e) {
             // and so it cannot check whether the rename succeeded.
         };
         ev.onerror = (err) => {
-			let errEv = new Event("filesystemError");
-			errEv.shortMessage = "Move failed";
-			errEv.longMessage = "An error occured and the file/directory could not be moved to its new location.\n\nReason:\n" + err;
-			window.dispatchEvent(errEv);
+            let errEv = new Event("filesystemError");
+            errEv.shortMessage = "Move failed";
+            errEv.longMessage = "An error occured and the file/directory could not be moved to its new location.\n\nReason:\n" + err;
+            window.dispatchEvent(errEv);
 
             boundTree.moveNodeToPathUI(boundNode, oldPath, 0);
 
-			throw err;
+            throw err;
         };
         
         boundNode.remove();
