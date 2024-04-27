@@ -194,8 +194,19 @@ class ExecutionEnvironment extends EventTarget{
             newPath: newPath,
         }, "*");
     }
-
-
+    unlink(path){
+        this.iFrame.contentWindow.postMessage({
+            type: "unlink",
+            path: path
+        }, "*");
+    }
+    rmdir(path, recursive = false){
+        this.iFrame.contentWindow.postMessage({
+            type: "rmdir",
+            path: path,
+            recursive: recursive
+        }, "*");
+    }
 
 
 
