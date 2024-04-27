@@ -472,7 +472,17 @@ function downloadFileGeneric(content, filename, mime) {
 async function FSviewFile(filename, mime) {
     mime = mime || "application/octet-stream";
 
-    let content = await storedProject.access((project)=>project.readFile(filename));
+	let content = undefined;
+    
+	try {
+		content = await storedProject.access((project)=>project.readFile(filename));
+	} catch(err){
+		let errEv = new Event("filesystemError");
+		errEv.shortMessage = "Open failed";
+		errEv.longMessage = "An error occured and the file could not be opened.\n\nReason:\n" + err;
+		window.dispatchEvent(errEv);
+		return;
+	}
 
     let url = URL.createObjectURL(new Blob([content], {type: mime}));
 
