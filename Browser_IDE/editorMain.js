@@ -472,7 +472,7 @@ function downloadFileGeneric(content, filename, mime) {
 async function FSviewFile(filename) {
 
     let content = await storedProject.access((project)=>project.readFile(filename));
-    let mimeType = mime.getType(filename);
+    let mimeType = mime.getType(filename) || 'application/octet-stream';
     let blob = new Blob([content], {type: mimeType});
 
     let url = URL.createObjectURL(blob);
