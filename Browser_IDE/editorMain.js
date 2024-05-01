@@ -442,11 +442,11 @@ async function projectFromZip(file){
                 if (zipEntry.dir){
                     abs_path = abs_path.substring(0, abs_path.length-1);
 
-                    unifiedFS.mkdir(abs_path);
+                    await unifiedFS.mkdir(abs_path);
                 }
                 else{
                     let uint8_view = await zip.file(rel_path).async("uint8array");
-                    unifiedFS.writeFile(abs_path, uint8_view);
+                    await unifiedFS.writeFile(abs_path, uint8_view);
                 }
             });
         });
@@ -497,14 +497,14 @@ function uploadFileFromInput(){
     reader= new FileReader();
     let files = document.getElementById('fileuploader').files;
     let file = files[0]; // maybe should handle multiple at once?
-    reader.addEventListener('loadend', function(e){
+    reader.addEventListener('loadend', async function(e){
         let result = reader.result;
         const uint8_view = new Uint8Array(result);
 
         let path = document.getElementById('fileuploader').dataset.uploadDirectory;
         
         try {
-            unifiedFS.writeFile(path+"/"+file.name, uint8_view);
+            await unifiedFS.writeFile(path+"/"+file.name, uint8_view);
         } catch(err){
             let errEv = new Event("filesystemError");
             errEv.shortMessage = "Upload failed";
