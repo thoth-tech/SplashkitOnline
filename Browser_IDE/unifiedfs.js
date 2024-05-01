@@ -105,7 +105,6 @@ class UnifiedFS {
     }
 
     async unlink(path, t = true, p = true){
-        // TODO: Relies on deletion functions in executionEnvironment.js
         if (t && p){
             let pOriginalData = await this.storedProject.access((project)=>project.readFile(path));
             let tOriginalData = pOriginalData;
