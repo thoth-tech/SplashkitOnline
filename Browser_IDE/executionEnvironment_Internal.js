@@ -477,6 +477,11 @@ window.addEventListener('message', function(m){
         }
     
     } catch(err){
+
+        // For good reason, postMessage cannot transfer function references.
+        // We need to sanitise err to avoid that.
+        // TODO: Do anything other than this.
+        err = err.toString();
     
         if('callbackID' in m.data){
             parent.postMessage({
