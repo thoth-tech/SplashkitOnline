@@ -162,27 +162,35 @@ storedProject.addEventListener("attached", async function() {
 });
 
 async function MirrorToExecutionEnvironment(){
-    if (!haveMirrored && canMirror){
-        haveMirrored = true;
-        let tree = await storedProject.access((project)=>project.getFileTree());
+    try {
+        if (!haveMirrored && canMirror){
+            haveMirrored = true;
+            let tree = await storedProject.access((project)=>project.getFileTree());
 
-        async function mirror(tree, path){
-            let dirs_files = tree;
+            async function mirror(tree, path){
+                let dirs_files = tree;
 
-            for(let node of dirs_files){
-                let abs_path = path+""+node.label;
-                if (node.children != null){
-                    executionEnviroment.mkdir(abs_path);
-                    mirror(node.children, abs_path+"/");
-                }
-                else{
-                    executionEnviroment.writeFile(abs_path, await storedProject.access((project)=>project.readFile(abs_path)));
+                for(let node of dirs_files){
+                    let abs_path = path+""+node.label;
+                    if (node.children != null){
+                        executionEnviroment.mkdir(abs_path);
+                        mirror(node.children, abs_path+"/");
+                    }
+                    else{
+                        executionEnviroment.writeFile(abs_path, await storedProject.access((project)=>project.readFile(abs_path)));
+                    }
                 }
             }
-        }
 
-        await mirror(tree, "/");
-        enableCodeExecution();
+            await mirror(tree, "/");
+            enableCodeExecution();
+        }
+    } catch(err){
+        let errEv = new Event("filesystemError");
+        errEv.shortMessage = "Internal error";
+        errEv.longMessage = "Failed to sync execution environment filesystem.\n\nReason:\n" + err;
+        window.dispatchEvent(errEv);
+        return;
     }
 }
 
@@ -232,29 +240,63 @@ function runAllCodeBlocks(){
 
 // Functions to save/load the code blocks
 async function saveInitialization(){
-    await storedProject.access(async function(project){
-        await project.mkdir(codePath);
-        await project.writeFile(initCodePath, editorInit.getValue());
-    });
+    try {
+        await storedProject.access(async function(project){
+            await project.mkdir(codePath);
+            await project.writeFile(initCodePath, editorInit.getValue());
+        });
+    } catch(err){
+        let errEv = new Event("filesystemError");
+        errEv.shortMessage = "Save failed";
+        errEv.longMessage = "An error occured and the initialisation code could not be saved.\n\nReason:\n" + err;
+        window.dispatchEvent(errEv);
+        return;
+    }
 }
 async function saveMainLoop(){
-    await storedProject.access(async function(project){
-        await project.mkdir(codePath);
-        await project.writeFile(mainLoopCodePath, editorMainLoop.getValue());
-    });
+    try {
+        await storedProject.access(async function(project){
+            await project.mkdir(codePath);
+            await project.writeFile(mainLoopCodePath, editorMainLoop.getValue());
+        });
+    } catch(err){
+        let errEv = new Event("filesystemError");
+        errEv.shortMessage = "Save failed";
+        errEv.longMessage = "An error occured and the main loop code could not be saved.\n\nReason:\n" + err;
+        window.dispatchEvent(errEv);
+        return;
+    }
 }
 
 async function loadInitialization(){
-    let newVal = await fileAsString(await storedProject.access(function(project){
-        return project.readFile(initCodePath);
-    }));
+    let newVal = undefined;
+    try {
+        newVal = await fileAsString(await storedProject.access(function(project){
+            return project.readFile(initCodePath);
+        }));
+    } catch(err){
+        let errEv = new Event("filesystemError");
+        errEv.shortMessage = "Load failed";
+        errEv.longMessage = "An error occured and the initialisation code could not be loaded.\n\nReason:\n" + err;
+        window.dispatchEvent(errEv);
+        return;
+    }
     if (newVal != editorInit.getValue())
         editorInit.setValue(newVal);
 }
 async function loadMainLoop(){
-    let newVal = await fileAsString(await storedProject.access(function(project){
-        return project.readFile(mainLoopCodePath);
-    }));
+    let newVal = undefined;
+    try {
+        newVal = await fileAsString(await storedProject.access(function(project){
+            return project.readFile(mainLoopCodePath);
+        }));
+    } catch(err){
+        let errEv = new Event("filesystemError");
+        errEv.shortMessage = "Load failed";
+        errEv.longMessage = "An error occured and the main loop code could not be loaded.\n\nReason:\n" + err;
+        window.dispatchEvent(errEv);
+        return;
+    }
     if (newVal != editorMainLoop.getValue())
         editorMainLoop.setValue(newVal);
 }
@@ -392,44 +434,60 @@ async function fileAsString(buffer){
 
 // ------ Project Zipping/Unzipping Functions ------
 async function projectFromZip(file){
-    await JSZip.loadAsync(file)
-    .then(async function(zip) {
-        zip.forEach(async function (rel_path, zipEntry) {
-            let abs_path = "/"+rel_path;
-            if (zipEntry.dir){
-                abs_path = abs_path.substring(0, abs_path.length-1);
+    try {
+        await JSZip.loadAsync(file)
+        .then(async function(zip) {
+            zip.forEach(async function (rel_path, zipEntry) {
+                let abs_path = "/"+rel_path;
+                if (zipEntry.dir){
+                    abs_path = abs_path.substring(0, abs_path.length-1);
 
-                unifiedFS.mkdir(abs_path);
-            }
-            else{
-                let uint8_view = await zip.file(rel_path).async("uint8array");
-                unifiedFS.writeFile(abs_path, uint8_view);
-            }
+                    unifiedFS.mkdir(abs_path);
+                }
+                else{
+                    let uint8_view = await zip.file(rel_path).async("uint8array");
+                    unifiedFS.writeFile(abs_path, uint8_view);
+                }
+            });
         });
-    });
+    } catch(err){
+        let errEv = new Event("filesystemError");
+        errEv.shortMessage = "Import failed";
+        errEv.longMessage = "An error occured and the project could not be imported.\n\nReason:\n" + err;
+        window.dispatchEvent(errEv);
+        return;
+    }
 }
 
 async function projectToZip(){
-    let zip = new JSZip();
+    try {
+        let zip = new JSZip();
 
-    let tree = await storedProject.access((project)=>project.getFileTree());
+        let tree = await storedProject.access((project)=>project.getFileTree());
 
-    async function addFolderToZip(tree, path, zip){
-        let dirs_files = tree;
+        async function addFolderToZip(tree, path, zip){
+            let dirs_files = tree;
 
-        for(let node of dirs_files){
-            let abs_path = path+""+node.label;
-            if (node.children != null){
-                addFolderToZip(node.children, abs_path+"/", zip.folder(node.label));
-            }
-            else{
-                zip.file(node.label, storedProject.access((project)=>project.readFile(abs_path)), {base64: false});
+            for(let node of dirs_files){
+                let abs_path = path+""+node.label;
+                if (node.children != null){
+                    addFolderToZip(node.children, abs_path+"/", zip.folder(node.label));
+                }
+                else{
+                    zip.file(node.label, storedProject.access((project)=>project.readFile(abs_path)), {base64: false});
+                }
             }
         }
-    }
 
-    await addFolderToZip(tree, "/",zip);
-    return zip.generateAsync({type:"blob"});
+        await addFolderToZip(tree, "/",zip);
+        return zip.generateAsync({type:"blob"});
+    } catch(err){
+        let errEv = new Event("filesystemError");
+        errEv.shortMessage = "Export failed";
+        errEv.longMessage = "An error occured and the project could not be exported.\n\nReason:\n" + err;
+        window.dispatchEvent(errEv);
+        return;
+    }
 }
 
 
