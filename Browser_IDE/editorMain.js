@@ -1,39 +1,30 @@
 "use strict";
 
 // ------ Setup UI ------
+let activeCodeEditors = [];
 
-function setupCodeArea(element){
-    let editor = CodeMirror.fromTextArea(element, {
-        mode: "text/javascript",
-        theme: "dracula",
-        lineNumbers: true,
-        autoCloseBrackets: true,
-        styleActiveLine: true,
-        extraKeys: {"Ctrl-Space": "autocomplete"},
-        hintOptions: {
-            alignWithWord: false,
-            completeSingle: false,
-            useGlobalScope: false,
-        },
-        foldGutter: true,
-        gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"]
-    });
+function addNewEditor(filename, codeAreaId) {
+    // Create a new CodeEditor instance
+    let newEditor = new CodeEditor(filename, codeAreaId);
+    activeCodeEditors.push(newEditor);
+    newEditor.display.wrapper.classList.add("sk-contents");
+    // Create a new tab
+    let newTab = document.createElement('li');
+    newTab.dataset.tab = codeAreaId + '_tab';
+    newTab.textContent = filename;
+    document.getElementById('codeViewTabs').appendChild(newTab);
 
-    editor.on('inputRead', (cm, change) => {
-        if (!cm.state.completeActive) {
-            cm.showHint();
-        }
-    });
-    return editor;
+    // Create a new textarea
+    let newTextArea = document.createElement('textarea');
+    newTextArea.type = 'text';
+    newTextArea.id = codeAreaId;
+    newTextArea.ariaLabel = 'editor';
+    newTextArea.style.flexGrow = '1';
+    document.getElementById('codeEditorContainer').appendChild(newTextArea);
 }
+addNewEditor('GeneralCode.js', 'editorInit');
+addNewEditor('MainCode.js', 'editorMainLoop');
 
-let editorInit = setupCodeArea(document.getElementById("editorInit"));
-editorInit.display.wrapper.classList.add("sk-contents");
-
-let editorMainLoop = setupCodeArea(document.getElementById("editorMainLoop"));
-editorMainLoop.display.wrapper.classList.add("sk-contents");
-
-let editors = [editorInit, editorMainLoop]
 
 let updateCodeButton = document.getElementById("runInit");
 
@@ -154,11 +145,7 @@ executionEnviroment.addEventListener("initialized", function() {
     MirrorToExecutionEnvironment();
 });
 
-storedProject.addEventListener("attached", async function() {
-    MirrorToExecutionEnvironment();
-    loadInitialization();
-    loadMainLoop();
-});
+
 
 async function MirrorToExecutionEnvironment(){
     if (!haveMirrored && canMirror){
@@ -187,6 +174,7 @@ async function MirrorToExecutionEnvironment(){
 
 
 
+
 // ------ Code Execution + Saving ------
 // TODO: Generalize to multiple code files better.
 // There is currently a lot of repetition (for instance, runInitialization/runMainLoop, saveInitialization/saveMainLoop, etc)
@@ -205,65 +193,36 @@ function disableCodeExecution(){
 }
 function enableCodeExecution(){
     allowExecution = true;
-    updateButtons();
+    updateButton
+    s();
 }
 
+updateCodeButton.addEventListener("click", function () {
+    // Get the currently active editor
+    let activeEditor = activeCodeEditors.find(editor => editor.codeArea.id === currentTab.dataset.tab.slice(0, -4));
+    if (activeEditor) {
+        // Save and run the code in the active editor
+        activeEditor.saveCode();
+        activeEditor.runCode();
+    }
+});
 
-// Functions to run the code blocks
-function runInitialization(){
-    clearErrorLines();
-
-    executionEnviroment.runCodeBlock("GeneralCode", editorInit.getValue());
-}
-
-function runMainLoop(){
-    clearErrorLines();
-
-    executionEnviroment.runCodeBlock("MainCode", editorMainLoop.getValue());
-}
-
-function runAllCodeBlocks(){
-    executionEnviroment.runCodeBlocks([
-        {name: "GeneralCode", code: editorInit.getValue()},
-        {name: "MainCode", code: editorMainLoop.getValue()}
-    ]);
-}
-
-// Functions to save/load the code blocks
-async function saveInitialization(){
-    await storedProject.access(async function(project){
-        await project.mkdir(codePath);
-        await project.writeFile(initCodePath, editorInit.getValue());
+function runAllCodeBlocks() {
+    let codeBlocks = activeCodeEditors.map(editor => {
+        return {name: editor.filename, code: editor.editor.getValue()};
     });
-}
-async function saveMainLoop(){
-    await storedProject.access(async function(project){
-        await project.mkdir(codePath);
-        await project.writeFile(mainLoopCodePath, editorMainLoop.getValue());
-    });
+    executionEnviroment.runCodeBlocks(codeBlocks);
 }
 
-async function loadInitialization(){
-    let newVal = await fileAsString(await storedProject.access(function(project){
-        return project.readFile(initCodePath);
-    }));
-    if (newVal != editorInit.getValue())
-        editorInit.setValue(newVal);
-}
-async function loadMainLoop(){
-    let newVal = await fileAsString(await storedProject.access(function(project){
-        return project.readFile(mainLoopCodePath);
-    }));
-    if (newVal != editorMainLoop.getValue())
-        editorMainLoop.setValue(newVal);
-}
 
 storedProject.addEventListener('onWriteToFile', function(e) {
-    if (e.path == initCodePath)
-        loadInitialization();
-    else if (e.path == mainLoopCodePath)
-        loadMainLoop();
+    MirrorToExecutionEnvironment();
+    let activeEditor = activeCodeEditors.find(editor => editor.filename === e.path);
+    if (activeEditor) {
+        activeEditor.loadCode();
+    }
 });
+
 
 
 // Functions to run/pause/continue/stop/restart the program itself
@@ -330,41 +289,38 @@ function updateButtons(){
 updateButtons();
 
 
-// Add events for the code blocks
-updateCodeButton.addEventListener("click", function () {
-    // Hack to make this work until this code gets generalized
-    if (currentTab.contents.dataset.file == "codeblock_init.js") {
-        saveInitialization();
-        runInitialization();
-    }
-    if (currentTab.contents.dataset.file == "codeblock_mainloop.js") {
-        saveMainLoop();
-        runMainLoop();
-    }
-});
-
-
 // Add events for the main program buttons
 runProgramButton.addEventListener("click", function () {
-    saveMainLoop();
-    saveInitialization();
-    runProgram();
+    let activeEditor = activeCodeEditors.find(editor => editor.codeArea.id === currentTab.dataset.tab.slice(0, -4));
+    if (activeEditor) {
+        // Save and run the code in the active editor
+        activeEditor.saveCode();
+        runProgram();
+    }
+    
 });
 
 stopProgramButton.addEventListener("click", function () {
+    
     pauseProgram();
 });
 
 restartProgramButton.addEventListener("click", function () {
-    saveMainLoop();
-    saveInitialization();
-    restartProgram();
+    let activeEditor = activeCodeEditors.find(editor => editor.codeArea.id === currentTab.dataset.tab.slice(0, -4));
+    if (activeEditor) {
+        // Save and run the code in the active editor
+        activeEditor.saveCode();
+        restartProgram();
+    }
 });
 
 continueProgramButton.addEventListener("click", function () {
-    saveMainLoop();
-    saveInitialization();
-    continueProgram();
+    let activeEditor = activeCodeEditors.find(editor => editor.codeArea.id === currentTab.dataset.tab.slice(0, -4));
+    if (activeEditor) {
+        // Save and run the code in the active editor
+        activeEditor.saveCode();
+        continueProgram();
+    }
 });
 
 
