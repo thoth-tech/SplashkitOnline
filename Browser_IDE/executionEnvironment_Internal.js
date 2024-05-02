@@ -51,6 +51,14 @@ moduleEvents.addEventListener("onRuntimeInitialized", function() {
         return new Promise((re) => setTimeout(re, milliseconds));
     }
 
+    window.userInputResolve = null;
+    window.read_line = function() {
+        console.log("read_line is waiting for user input...");
+        return new Promise(resolve => {
+            window.userInputResolve = resolve;
+        });
+    };
+
     // In case function overloads are disabled
     if (window.refresh_screen_with_target_fps != undefined){
         let original_refresh_screen_with_target_fps = refresh_screen_with_target_fps;

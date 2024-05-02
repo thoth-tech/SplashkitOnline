@@ -473,3 +473,31 @@ li.CodeMirror-hint-active {
   flex: 1 1 auto;
   padding: var(--bs-modal-padding);
 }
+
+#output {
+  background-color: #2e2e2e;
+  color: #dcdcdc; 
+  border: none;
+  padding: 15px; 
+  border-radius: 8px; 
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1); 
+  font-size: 16px; 
+  overflow-y: auto; 
+  max-height: 300px; 
+}
+
+#output::-webkit-scrollbar {
+  width: 5px;
+}
+
+#output::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+#output::-webkit-scrollbar-thumb {
+  background: #888;
+}
+
+#output::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
