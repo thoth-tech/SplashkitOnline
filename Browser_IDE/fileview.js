@@ -13,7 +13,7 @@ myTreeView.addEventListener("nodeMoveRequest", function(e){
 
 myTreeView.addEventListener("nodeDoubleClick", function(e){
     if (e.FS.includes("persistent"))
-        FSviewFile(e.path,"text/plain");
+        FSviewFile(e.path);
 });
 
 myTreeView.addEventListener("folderUploadRequest", function(e){
