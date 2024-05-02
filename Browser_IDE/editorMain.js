@@ -1,29 +1,22 @@
 "use strict";
 
 // ------ Setup UI ------
-let activeCodeEditors = [];
 
-function addNewEditor(filename, codeAreaId) {
-    // Create a new CodeEditor instance
-    let newEditor = new CodeEditor(filename, codeAreaId);
-    activeCodeEditors.push(newEditor);
-    newEditor.display.wrapper.classList.add("sk-contents");
-    // Create a new tab
-    let newTab = document.createElement('li');
-    newTab.dataset.tab = codeAreaId + '_tab';
-    newTab.textContent = filename;
-    document.getElementById('codeViewTabs').appendChild(newTab);
-
-    // Create a new textarea
-    let newTextArea = document.createElement('textarea');
-    newTextArea.type = 'text';
-    newTextArea.id = codeAreaId;
-    newTextArea.ariaLabel = 'editor';
-    newTextArea.style.flexGrow = '1';
-    document.getElementById('codeEditorContainer').appendChild(newTextArea);
+let editors = []
+function addNewEditor(editorele) {
+    let newEditor = new CodeEditor(editorele);
+    editors.push(newEditor.editorout);
+    return newEditor;
 }
-addNewEditor('GeneralCode.js', 'editorInit');
-addNewEditor('MainCode.js', 'editorMainLoop');
+let editorinitelement = document.getElementById("editorInit");
+let editorMainLoopelement = document.getElementById("editorMainLoop");
+
+let editorInit = addNewEditor(editorinitelement).editorout;
+editorInit.display.wrapper.classList.add("sk-contents");
+
+let editorMainLoop = addNewEditor(editorMainLoopelement).editorout;
+editorMainLoop.display.wrapper.classList.add("sk-contents");
+
 
 
 let updateCodeButton = document.getElementById("runInit");
@@ -129,7 +122,7 @@ async function newProject(){
     disableCodeExecution();
     storedProject.detachFromProject();
     canMirror = false;
-    executionEnviroment.resetEnvironment();
+    await executionEnviroment.resetEnvironment();
     await storedProject.deleteProject("Untitled");
     haveMirrored = false;
     await storedProject.attachToProject("Untitled");
@@ -145,7 +138,11 @@ executionEnviroment.addEventListener("initialized", function() {
     MirrorToExecutionEnvironment();
 });
 
-
+storedProject.addEventListener("attached", async function() {
+    MirrorToExecutionEnvironment();
+    loadInitialization();
+    loadMainLoop();
+});
 
 async function MirrorToExecutionEnvironment(){
     if (!haveMirrored && canMirror){
@@ -174,7 +171,6 @@ async function MirrorToExecutionEnvironment(){
 
 
 
-
 // ------ Code Execution + Saving ------
 // TODO: Generalize to multiple code files better.
 // There is currently a lot of repetition (for instance, runInitialization/runMainLoop, saveInitialization/saveMainLoop, etc)
@@ -193,36 +189,65 @@ function disableCodeExecution(){
 }
 function enableCodeExecution(){
     allowExecution = true;
-    updateButton
-    s();
+    updateButtons();
 }
 
-updateCodeButton.addEventListener("click", function () {
-    // Get the currently active editor
-    let activeEditor = activeCodeEditors.find(editor => editor.codeArea.id === currentTab.dataset.tab.slice(0, -4));
-    if (activeEditor) {
-        // Save and run the code in the active editor
-        activeEditor.saveCode();
-        activeEditor.runCode();
-    }
-});
 
-function runAllCodeBlocks() {
-    let codeBlocks = activeCodeEditors.map(editor => {
-        return {name: editor.filename, code: editor.editor.getValue()};
+// Functions to run the code blocks
+function runInitialization(){
+    clearErrorLines();
+
+    executionEnviroment.runCodeBlock("GeneralCode", editorInit.getValue());
+}
+
+function runMainLoop(){
+    clearErrorLines();
+
+    executionEnviroment.runCodeBlock("MainCode", editorMainLoop.getValue());
+}
+
+function runAllCodeBlocks(){
+    executionEnviroment.runCodeBlocks([
+        {name: "GeneralCode", code: editorInit.getValue()},
+        {name: "MainCode", code: editorMainLoop.getValue()}
+    ]);
+}
+
+// Functions to save/load the code blocks
+async function saveInitialization(){
+    await storedProject.access(async function(project){
+        await project.mkdir(codePath);
+        await project.writeFile(initCodePath, editorInit.getValue());
     });
-    executionEnviroment.runCodeBlocks(codeBlocks);
+}
+async function saveMainLoop(){
+    await storedProject.access(async function(project){
+        await project.mkdir(codePath);
+        await project.writeFile(mainLoopCodePath, editorMainLoop.getValue());
+    });
 }
 
+async function loadInitialization(){
+    let newVal = await fileAsString(await storedProject.access(function(project){
+        return project.readFile(initCodePath);
+    }));
+    if (newVal != editorInit.getValue())
+        editorInit.setValue(newVal);
+}
+async function loadMainLoop(){
+    let newVal = await fileAsString(await storedProject.access(function(project){
+        return project.readFile(mainLoopCodePath);
+    }));
+    if (newVal != editorMainLoop.getValue())
+        editorMainLoop.setValue(newVal);
+}
 
 storedProject.addEventListener('onWriteToFile', function(e) {
-    MirrorToExecutionEnvironment();
-    let activeEditor = activeCodeEditors.find(editor => editor.filename === e.path);
-    if (activeEditor) {
-        activeEditor.loadCode();
-    }
+    if (e.path == initCodePath)
+        loadInitialization();
+    else if (e.path == mainLoopCodePath)
+        loadMainLoop();
 });
-
 
 
 // Functions to run/pause/continue/stop/restart the program itself
@@ -289,38 +314,41 @@ function updateButtons(){
 updateButtons();
 
 
+// Add events for the code blocks
+updateCodeButton.addEventListener("click", function () {
+    // Hack to make this work until this code gets generalized
+    if (currentTab.contents.dataset.file == "codeblock_init.js") {
+        saveInitialization();
+        runInitialization();
+    }
+    if (currentTab.contents.dataset.file == "codeblock_mainloop.js") {
+        saveMainLoop();
+        runMainLoop();
+    }
+});
+
+
 // Add events for the main program buttons
 runProgramButton.addEventListener("click", function () {
-    let activeEditor = activeCodeEditors.find(editor => editor.codeArea.id === currentTab.dataset.tab.slice(0, -4));
-    if (activeEditor) {
-        // Save and run the code in the active editor
-        activeEditor.saveCode();
-        runProgram();
-    }
-    
+    saveMainLoop();
+    saveInitialization();
+    runProgram();
 });
 
 stopProgramButton.addEventListener("click", function () {
-    
     pauseProgram();
 });
 
 restartProgramButton.addEventListener("click", function () {
-    let activeEditor = activeCodeEditors.find(editor => editor.codeArea.id === currentTab.dataset.tab.slice(0, -4));
-    if (activeEditor) {
-        // Save and run the code in the active editor
-        activeEditor.saveCode();
-        restartProgram();
-    }
+    saveMainLoop();
+    saveInitialization();
+    restartProgram();
 });
 
 continueProgramButton.addEventListener("click", function () {
-    let activeEditor = activeCodeEditors.find(editor => editor.codeArea.id === currentTab.dataset.tab.slice(0, -4));
-    if (activeEditor) {
-        // Save and run the code in the active editor
-        activeEditor.saveCode();
-        continueProgram();
-    }
+    saveMainLoop();
+    saveInitialization();
+    continueProgram();
 });
 
 
@@ -425,14 +453,15 @@ function downloadFileGeneric(content, filename, mime) {
         URL.revokeObjectURL(a.href);
     }, 2000);
 }
-async function FSviewFile(filename, mime) {
-    mime = mime || "application/octet-stream";
+async function FSviewFile(filename) {
 
     let content = await storedProject.access((project)=>project.readFile(filename));
+    let mimeType = mime.getType(filename) || 'application/octet-stream';
+    let blob = new Blob([content], {type: mimeType});
 
-    let url = URL.createObjectURL(new Blob([content], {type: mime}));
+    let url = URL.createObjectURL(blob);
 
-    window.open(url+"#"+filename);
+    window.open(url+"#"+filename, '_blank');
     setTimeout(() => {
         URL.revokeObjectURL(url);
     }, 2000);
@@ -565,4 +594,30 @@ window.addEventListener("visibilitychange", function(){
 storedProject.addEventListener("timeConflict", async function() {
     if (!userHasIgnoredProjectConflict)
         projectConflictModal.show();
+});
+
+
+window.addEventListener("needConfirmation", async function(ev){
+    let confirmLabel = ev.confirmLabel || "Confirm";
+    let cancelLabel = ev.cancelLabel || "Cancel";
+    
+    let confirmationModal = createModal(
+        "confirmationModal",
+        ev.shortMessage,
+        ev.longMessage,
+        {label: cancelLabel, callback: ()=>{
+            ev.oncancel();
+            confirmationModal.hide();
+        }},
+        {label: confirmLabel, callback: ()=>{
+            ev.onconfirm();
+            confirmationModal.hide();
+        }}
+    );
+    confirmationModal.show();
+
+    let confirmationModalEl = document.getElementById("confirmationModal");
+    confirmationModalEl.addEventListener("hidden.bs.modal", function(innerEv){
+        confirmationModalEl.dispose();
+    });
 });

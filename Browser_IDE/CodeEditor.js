@@ -1,8 +1,6 @@
 class CodeEditor {
-    constructor(filename, codeAreaId) {
-        this.filename = filename;
-        this.codeArea = document.getElementById(codeAreaId);
-        this.editor = this.setupCodeArea(codeArea);
+    constructor(input) {
+        this.editorout =   this.setupCodeArea(input);
     }
 
     setupCodeArea(element){
