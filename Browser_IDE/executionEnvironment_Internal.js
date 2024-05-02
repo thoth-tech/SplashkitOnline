@@ -21,6 +21,9 @@ function findAsyncFunctionConstructorLineOffset(){
     return newlineCount;
 }
 
+function clearTerminal() {
+    document.getElementById('output').value = '';
+}
 
 let isInitialized = false;
 
