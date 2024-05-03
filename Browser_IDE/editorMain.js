@@ -534,11 +534,10 @@ function downloadFileGeneric(content, filename, mime) {
         URL.revokeObjectURL(a.href);
     }, 2000);
 }
-async function FSviewFile(filename, mime) {
-    mime = mime || "application/octet-stream";
+async function FSviewFile(filename) {
 
     let content = undefined;
-    
+
     try {
         content = await storedProject.access((project)=>project.readFile(filename));
     } catch(err){
@@ -549,9 +548,12 @@ async function FSviewFile(filename, mime) {
         return;
     }
 
-    let url = URL.createObjectURL(new Blob([content], {type: mime}));
+    let mimeType = mime.getType(filename) || 'application/octet-stream';
+    let blob = new Blob([content], {type: mimeType});
 
-    window.open(url+"#"+filename);
+    let url = URL.createObjectURL(blob);
+
+    window.open(url+"#"+filename, '_blank');
     setTimeout(() => {
         URL.revokeObjectURL(url);
     }, 2000);
