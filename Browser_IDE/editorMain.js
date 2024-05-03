@@ -195,65 +195,6 @@ function enableCodeExecution(){
     updateButtons();
 }
 
-/* 
-// Functions to run the code blocks
-function runInitialization(){
-    clearErrorLines();
-
-    executionEnviroment.runCodeBlock("GeneralCode", editorInit.getValue());
-}
-
-function runMainLoop(){
-    clearErrorLines();
-
-    executionEnviroment.runCodeBlock("MainCode", editorMainLoop.getValue());
-}
-
-function runAllCodeBlocks(){
-    executionEnviroment.runCodeBlocks([
-        {name: "GeneralCode", code: editorInit.getValue()},
-        {name: "MainCode", code: editorMainLoop.getValue()}
-    ]);
-}
-
-// Functions to save/load the code blocks
-async function saveInitialization(){
-    await storedProject.access(async function(project){
-        await project.mkdir(codePath);
-        await project.writeFile(initCodePath, editorInit.getValue());
-    });
-}
-async function saveMainLoop(){
-    await storedProject.access(async function(project){
-        await project.mkdir(codePath);
-        await project.writeFile(mainLoopCodePath, editorMainLoop.getValue());
-    });
-}
-
-async function loadInitialization(){
-    let newVal = await fileAsString(await storedProject.access(function(project){
-        return project.readFile(initCodePath);
-    }));
-    if (newVal != editorInit.getValue())
-        editorInit.setValue(newVal);
-}
-async function loadMainLoop(){
-    let newVal = await fileAsString(await storedProject.access(function(project){
-        return project.readFile(mainLoopCodePath);
-    }));
-    if (newVal != editorMainLoop.getValue())
-        editorMainLoop.setValue(newVal);
-}
-
-storedProject.addEventListener('onWriteToFile', function(e) {
-    if (e.path == initCodePath)
-        loadInitialization();
-    else if (e.path == mainLoopCodePath)
-        loadMainLoop();
-});
-
- */
-
 
 function runAllCodeBlocks(){
     editorInitcl.runCode(editors);
@@ -333,27 +274,6 @@ function updateButtons(){
 updateButtons();
 
 
-/* // Add events for the code blocks
-updateCodeButton.addEventListener("click", function () {
-    // Hack to make this work until this code gets generalized
-    if (currentTab.contents.dataset.file == "codeblock_init.js") {
-        saveInitialization();
-        runInitialization();
-    }
-    if (currentTab.contents.dataset.file == "codeblock_mainloop.js") {
-        saveMainLoop();
-        runMainLoop();
-    }
-});
-
-
-// Add events for the main program buttons
-runProgramButton.addEventListener("click", function () {
-    saveMainLoop();
-    saveInitialization();
-    runProgram();
-});
- */
 
 
 // Add events for the code blocks
@@ -379,19 +299,7 @@ runProgramButton.addEventListener("click", function () {
 stopProgramButton.addEventListener("click", function () {
     pauseProgram();
 }); 
-/* 
-restartProgramButton.addEventListener("click", function () {
-    saveMainLoop();
-    saveInitialization();
-    restartProgram();
-});
 
-continueProgramButton.addEventListener("click", function () {
-    saveMainLoop();
-    saveInitialization();
-    continueProgram();
-});
- */
 
 restartProgramButton.addEventListener("click", function () {
     editorInitcl.saveCode(codePath,initCodePath);
