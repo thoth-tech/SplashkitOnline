@@ -307,7 +307,7 @@ continueProgramButton.addEventListener("click", function () {
     continueProgram();
 });
 
-//moved fileAsString() into class
+
 
 // ------ Project Zipping/Unzipping Functions ------
 async function projectFromZip(file){
@@ -391,8 +391,8 @@ function downloadFileGeneric(content, filename, mime) {
 }
 async function FSviewFile(filename, mime) {
     mime = mime || "application/octet-stream";
+    
     let content = await storedProject.access((project)=>project.readFile(filename));
-   
 
     let url = URL.createObjectURL(new Blob([content], {type: mime}));
 
@@ -530,4 +530,3 @@ storedProject.addEventListener("timeConflict", async function() {
     if (!userHasIgnoredProjectConflict)
         projectConflictModal.show();
 });
-
