@@ -238,7 +238,7 @@ async function restartProgram(){
 
     if (executionEnviroment.executionStatus != ExecutionStatus.Unstarted)
         await executionEnviroment.stopProgram(); // Make sure we wait for it to stop via await.
-        executionEnviroment.cleanEnvironment();
+    executionEnviroment.cleanEnvironment();
 
     // The syntax checking cannot run inside an async function,
     // so just runAllCodeBlocks (which does syntax checking)
