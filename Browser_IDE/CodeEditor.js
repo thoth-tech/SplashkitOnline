@@ -1,6 +1,10 @@
 class CodeEditor {
-    constructor(input) {
-        this.editorout =   this.setupCodeArea(input);
+    constructor(filename,codearea,executionEnvironment, storedProject) {
+        this.filename = filename;
+        this.editorout =   this.setupCodeArea(codearea);
+        this.executionEnvironment = executionEnvironment;
+        this.storedProject = storedProject;
+
     }
 
     setupCodeArea(element){
@@ -28,30 +32,62 @@ class CodeEditor {
         return editor;
     }
 
-    runCode() {
-        clearErrorLines();
-        executionEnviroment.runCodeBlock(this.filename, this.editor.getValue());
-    }
-    
-
-    async saveCode() {
-        let codePath = '/path/to/code'; // Update this to  actual path
-        let filePath = `${codePath}/${this.filename}`;
-        await storedProject.access(async function(project){
-            await project.mkdir(codePath);
-            await project.writeFile(filePath, this.editor.getValue());
+    // Utility function for saving/loading the code blocks
+    async  fileAsString(buffer){
+        return new Promise((resolve,error) => {
+            //_arrayBufferToString from https://stackoverflow.com/a/14078925
+            // Thanks Will Scott!
+            function _arrayBufferToString(buffer) {
+                var bb = new Blob([new Uint8Array(buffer)]);
+                var f = new FileReader();
+                f.onload = function(e) {
+                    resolve(e.target.result);
+                };
+                f.readAsText(bb);
+            }
+            if (typeof buffer === 'string' || buffer instanceof String)
+                resolve(buffer);
+            else
+                return _arrayBufferToString(buffer);
         });
     }
 
-    async loadCode() {
-        let codePath = '/path/to/code'; // Update this to actual path
-        let filePath = `${codePath}/${this.filename}`;
-        let newVal = await fileAsString(await storedProject.access(function(project){
+    clearErrorLines(editors){
+        for (let editor of editors){
+            for (var i = 0; i < editor.lineCount(); i++) {
+                editor.removeLineClass(i, "wrap", "error-line");
+            }
+        }
+    }
+    
+
+    runCode(editors) {
+        this.clearErrorLines(editors);
+        let code = this.editorout.getValue();
+        this.executionEnvironment.runCodeBlock(this.filename, code);
+    }
+    
+
+    async saveCode(codePath,filePath) {
+        let code = this.editorout.getValue();
+        await this.storedProject.access(async function(project){
+            await project.mkdir(codePath);
+            await project.writeFile(codefilePath, code);
+        });
+    }
+
+    
+    async loadCode(filePath) {
+        let code = this.editorout.getValue();
+        let newVal = await this.fileAsString(await this.storedProject.access((project) => {
             return project.readFile(filePath);
         }));
-        if (newVal != this.editor.getValue())
-            this.editor.setValue(newVal);
+        if (newVal != code)
+            this.editorout.setValue(newVal);
     }
+    
+    
+    
 }
     
 

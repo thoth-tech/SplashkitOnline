@@ -1,20 +1,48 @@
 "use strict";
+// ------ Setup Project and Execution Environment ------
+let executionEnviroment = new ExecutionEnvironment(document.getElementById("ExecutionEnvironment"));
+let storedProject = new IDBStoredProject(makeNewProject);
+storedProject.attachToProject("Untitled");
+
+let haveMirrored = false;
+let canMirror = false;
+
+
+async function newProject(){
+    // Guard against re-entry on double click
+    if (makingNewProject)
+        return;
+    makingNewProject = true;
+
+    disableCodeExecution();
+    storedProject.detachFromProject();
+    canMirror = false;
+    await executionEnviroment.resetEnvironment();
+    await storedProject.deleteProject("Untitled");
+    haveMirrored = false;
+    await storedProject.attachToProject("Untitled");
+
+    makingNewProject = false;
+}
+
 
 // ------ Setup UI ------
 
 let editors = []
-function addNewEditor(editorele) {
-    let newEditor = new CodeEditor(editorele);
+function addNewEditor(filename,codearea,ExecutionEnvironment, StoredProject) {
+    let newEditor = new CodeEditor(filename,codearea,ExecutionEnvironment, StoredProject);
     editors.push(newEditor.editorout);
     return newEditor;
 }
 let editorinitelement = document.getElementById("editorInit");
 let editorMainLoopelement = document.getElementById("editorMainLoop");
 
-let editorInit = addNewEditor(editorinitelement).editorout;
+let editorInitcl = addNewEditor("GeneralCode", editorinitelement, executionEnviroment, storedProject);
+let editorInit = editorInitcl.editorout;
 editorInit.display.wrapper.classList.add("sk-contents");
 
-let editorMainLoop = addNewEditor(editorMainLoopelement).editorout;
+let editorMainLoopcl = addNewEditor("MainCode", editorMainLoopelement, executionEnviroment, storedProject);
+let editorMainLoop = editorMainLoopcl.editorout;
 editorMainLoop.display.wrapper.classList.add("sk-contents");
 
 
@@ -22,7 +50,7 @@ editorMainLoop.display.wrapper.classList.add("sk-contents");
 let updateCodeButton = document.getElementById("runInit");
 
 let runProgramButton = document.getElementById("runProgram");
-let restartProgramButton = document.getElementById("restartProgram");
+let restartProgramButton = document.getElementById("restartProgram"); 
 let stopProgramButton = document.getElementById("stopProgram");
 let continueProgramButton = document.getElementById("continueProgram");
 
@@ -104,31 +132,7 @@ for (let i = 0; i < tabElems.length; i++) {
 
 SwitchToTabs(tabs[0].contents.id);
 
-// ------ Setup Project and Execution Environment ------
-let executionEnviroment = new ExecutionEnvironment(document.getElementById("ExecutionEnvironment"));
-let storedProject = new IDBStoredProject(makeNewProject);
-storedProject.attachToProject("Untitled");
 
-let haveMirrored = false;
-let canMirror = false;
-
-let makingNewProject = false;
-async function newProject(){
-    // Guard against re-entry on double click
-    if (makingNewProject)
-        return;
-    makingNewProject = true;
-
-    disableCodeExecution();
-    storedProject.detachFromProject();
-    canMirror = false;
-    await executionEnviroment.resetEnvironment();
-    await storedProject.deleteProject("Untitled");
-    haveMirrored = false;
-    await storedProject.attachToProject("Untitled");
-
-    makingNewProject = false;
-}
 
 
 
@@ -138,10 +142,12 @@ executionEnviroment.addEventListener("initialized", function() {
     MirrorToExecutionEnvironment();
 });
 
+
 storedProject.addEventListener("attached", async function() {
     MirrorToExecutionEnvironment();
-    loadInitialization();
-    loadMainLoop();
+    editorInitcl.loadCode(initCodePath);
+    editorMainLoopcl.loadCode(mainLoopCodePath);
+
 });
 
 async function MirrorToExecutionEnvironment(){
@@ -192,7 +198,7 @@ function enableCodeExecution(){
     updateButtons();
 }
 
-
+/* 
 // Functions to run the code blocks
 function runInitialization(){
     clearErrorLines();
@@ -249,6 +255,22 @@ storedProject.addEventListener('onWriteToFile', function(e) {
         loadMainLoop();
 });
 
+ */
+
+
+function runAllCodeBlocks(){
+    editorInitcl.runCode(editors);
+    editorMainLoopcl.runCode(editors);
+}
+
+storedProject.addEventListener('onWriteToFile', function(e) {
+    if (e.path == initCodePath)
+        editorInitcl.loadCode(initCodePath);
+    else if (e.path == mainLoopCodePath)
+        editorMainLoopcl.loadCode(mainLoopCodePath);
+});
+
+
 
 // Functions to run/pause/continue/stop/restart the program itself
 function runProgram(){
@@ -278,7 +300,7 @@ async function restartProgram(){
 
     if (executionEnviroment.executionStatus != ExecutionStatus.Unstarted)
         await executionEnviroment.stopProgram(); // Make sure we wait for it to stop via await.
-    executionEnviroment.cleanEnvironment();
+        executionEnviroment.cleanEnvironment();
 
     // The syntax checking cannot run inside an async function,
     // so just runAllCodeBlocks (which does syntax checking)
@@ -314,7 +336,7 @@ function updateButtons(){
 updateButtons();
 
 
-// Add events for the code blocks
+/* // Add events for the code blocks
 updateCodeButton.addEventListener("click", function () {
     // Hack to make this work until this code gets generalized
     if (currentTab.contents.dataset.file == "codeblock_init.js") {
@@ -334,11 +356,33 @@ runProgramButton.addEventListener("click", function () {
     saveInitialization();
     runProgram();
 });
+ */
+
+
+// Add events for the code blocks
+updateCodeButton.addEventListener("click", function () {
+    if (currentTab.contents.dataset.file == "codeblock_init.js") {
+        editorInitcl.saveCode(codePath,initCodePath);
+        editorInitcl.runCode(editors);
+    }
+    if (currentTab.contents.dataset.file == "codeblock_mainloop.js") {
+        editorMainLoopcl.saveCode(codePath,mainLoopCodePath);
+        editorMainLoopcl.runCode(editors);
+    }
+});
+
+
+// Add events for the main program buttons
+runProgramButton.addEventListener("click", function () {
+    editorInitcl.saveCode(codePath,initCodePath);
+    editorMainLoopcl.saveCode(codePath,mainLoopCodePath);
+    runProgram();
+});
 
 stopProgramButton.addEventListener("click", function () {
     pauseProgram();
-});
-
+}); 
+/* 
 restartProgramButton.addEventListener("click", function () {
     saveMainLoop();
     saveInitialization();
@@ -350,28 +394,22 @@ continueProgramButton.addEventListener("click", function () {
     saveInitialization();
     continueProgram();
 });
+ */
+
+restartProgramButton.addEventListener("click", function () {
+    editorInitcl.saveCode(codePath,initCodePath);
+    editorMainLoopcl.saveCode(codePath,mainLoopCodePath);
+    restartProgram();
+});
+
+continueProgramButton.addEventListener("click", function () {
+    editorInitcl.saveCode(codePath,initCodePath);
+    editorMainLoopcl.saveCode(codePath,mainLoopCodePath);
+    continueProgram();
+});
 
 
-// Utility function for saving/loading the code blocks
-async function fileAsString(buffer){
-    return new Promise((resolve,error) => {
-        //_arrayBufferToString from https://stackoverflow.com/a/14078925
-        // Thanks Will Scott!
-        function _arrayBufferToString(buffer) {
-            var bb = new Blob([new Uint8Array(buffer)]);
-            var f = new FileReader();
-            f.onload = function(e) {
-                resolve(e.target.result);
-            };
-            f.readAsText(bb);
-        }
-        if (typeof buffer === 'string' || buffer instanceof String)
-            resolve(buffer);
-        else
-            return _arrayBufferToString(buffer);
-    });
-}
-
+//moved fileAsString() into class
 
 // ------ Project Zipping/Unzipping Functions ------
 async function projectFromZip(file){
@@ -416,6 +454,9 @@ async function projectToZip(){
     await addFolderToZip(tree, "/",zip);
     return zip.generateAsync({type:"blob"});
 }
+
+
+   
 
 
 // ------ File System Upload/Download Functions ------
