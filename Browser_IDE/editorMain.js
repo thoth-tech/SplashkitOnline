@@ -3,11 +3,8 @@
 let executionEnviroment = new ExecutionEnvironment(document.getElementById("ExecutionEnvironment"));
 let storedProject = new IDBStoredProject(makeNewProject);
 storedProject.attachToProject("Untitled");
-
 let haveMirrored = false;
 let canMirror = false;
-
-
 async function newProject(){
     // Guard against re-entry on double click
     if (makingNewProject)
