@@ -43,7 +43,6 @@ let editorMainLoop = editorMainLoopcl.editorout;
 editorMainLoop.display.wrapper.classList.add("sk-contents");
 
 
-
 let updateCodeButton = document.getElementById("runInit");
 
 let runProgramButton = document.getElementById("runProgram");
@@ -139,12 +138,10 @@ executionEnviroment.addEventListener("initialized", function() {
     MirrorToExecutionEnvironment();
 });
 
-
 storedProject.addEventListener("attached", async function() {
     MirrorToExecutionEnvironment();
     editorInitcl.loadCode(initCodePath);
     editorMainLoopcl.loadCode(mainLoopCodePath);
-
 });
 
 async function MirrorToExecutionEnvironment(){
@@ -207,7 +204,6 @@ storedProject.addEventListener('onWriteToFile', function(e) {
     else if (e.path == mainLoopCodePath)
         editorMainLoopcl.loadCode(mainLoopCodePath);
 });
-
 
 
 // Functions to run/pause/continue/stop/restart the program itself
@@ -274,8 +270,6 @@ function updateButtons(){
 updateButtons();
 
 
-
-
 // Add events for the code blocks
 updateCodeButton.addEventListener("click", function () {
     if (currentTab.contents.dataset.file == "codeblock_init.js") {
@@ -312,7 +306,6 @@ continueProgramButton.addEventListener("click", function () {
     editorMainLoopcl.saveCode(codePath,mainLoopCodePath);
     continueProgram();
 });
-
 
 //moved fileAsString() into class
 
@@ -361,9 +354,6 @@ async function projectToZip(){
 }
 
 
-   
-
-
 // ------ File System Upload/Download Functions ------
 let reader = null;
 function uploadFileFromInput(){
@@ -399,15 +389,14 @@ function downloadFileGeneric(content, filename, mime) {
         URL.revokeObjectURL(a.href);
     }, 2000);
 }
-async function FSviewFile(filename) {
-
+async function FSviewFile(filename, mime) {
+    mime = mime || "application/octet-stream";
     let content = await storedProject.access((project)=>project.readFile(filename));
-    let mimeType = mime.getType(filename) || 'application/octet-stream';
-    let blob = new Blob([content], {type: mimeType});
+   
 
-    let url = URL.createObjectURL(blob);
+    let url = URL.createObjectURL(new Blob([content], {type: mime}));
 
-    window.open(url+"#"+filename, '_blank');
+    window.open(url+"#"+filename);
     setTimeout(() => {
         URL.revokeObjectURL(url);
     }, 2000);
@@ -542,28 +531,3 @@ storedProject.addEventListener("timeConflict", async function() {
         projectConflictModal.show();
 });
 
-
-window.addEventListener("needConfirmation", async function(ev){
-    let confirmLabel = ev.confirmLabel || "Confirm";
-    let cancelLabel = ev.cancelLabel || "Cancel";
-    
-    let confirmationModal = createModal(
-        "confirmationModal",
-        ev.shortMessage,
-        ev.longMessage,
-        {label: cancelLabel, callback: ()=>{
-            ev.oncancel();
-            confirmationModal.hide();
-        }},
-        {label: confirmLabel, callback: ()=>{
-            ev.onconfirm();
-            confirmationModal.hide();
-        }}
-    );
-    confirmationModal.show();
-
-    let confirmationModalEl = document.getElementById("confirmationModal");
-    confirmationModalEl.addEventListener("hidden.bs.modal", function(innerEv){
-        confirmationModalEl.dispose();
-    });
-});
