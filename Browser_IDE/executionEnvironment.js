@@ -1,5 +1,39 @@
 "use strict";
 
+// Temporary callbacks for inter-window messaging
+// Consider a better place to put this.
+
+let __tempCallbacks = new Map();
+let __nextTempCallbackID = 0; // I *believe* a global counter like this is safe.
+
+function registerTempCallback(callbackFn){
+    let callbackID = __nextTempCallbackID++;
+    __tempCallbacks[callbackID] = callbackFn;
+    return callbackID;
+}
+
+async function executeTempCallback(callbackID, error){
+    try {
+        await __tempCallbacks[callbackID](error);
+    } catch(e){
+        throw e;
+    } finally {
+        __tempCallbacks.delete(callbackID);
+    }
+}
+
+async function postMessageFallible(oWindow, message){
+    return new Promise((resolve, reject) => {
+        let _message = structuredClone(message);
+        _message.callbackID = registerTempCallback((error) => {
+            if(error !== undefined) reject(error);
+            else resolve();
+        });
+
+        oWindow.postMessage(_message, "*");
+    });
+}
+
 const ExecutionStatus = {
   Unstarted: 'Unstarted',
   Running: 'Running',
@@ -31,6 +65,9 @@ class ExecutionEnvironment extends EventTarget{
                 ev.line = data.line;
                 ev.block = data.block;
                 EE.dispatchEvent(ev);
+            }
+            else if (data.type == "callback"){
+                executeTempCallback(data.callbackID, data.error);
             }
             else if (data.type == "programStarted"){
                 EE.hasRunOnce = true;
@@ -174,25 +211,25 @@ class ExecutionEnvironment extends EventTarget{
     }
 
     // --- File System Functions ---
-    mkdir(path){
-        this.iFrame.contentWindow.postMessage({
+    async mkdir(path){
+        await postMessageFallible(this.iFrame.contentWindow, {
             type: "mkdir",
             path: path,
-        }, "*");
+        });
     }
-    writeFile(path, data){
-        this.iFrame.contentWindow.postMessage({
+    async writeFile(path, data){
+        await postMessageFallible(this.iFrame.contentWindow, {
             type: "writeFile",
             path: path,
             data: data,
-        }, "*");
+        });
     }
-    rename(oldPath, newPath){
-        this.iFrame.contentWindow.postMessage({
+    async rename(oldPath, newPath){
+        await postMessageFallible(this.iFrame.contentWindow, {
             type: "rename",
             oldPath: oldPath,
             newPath: newPath,
-        }, "*");
+        });
     }
     unlink(path){
         this.iFrame.contentWindow.postMessage({
