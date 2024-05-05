@@ -338,6 +338,10 @@ class TreeView extends EventTarget{
         });
     }
 
+    /** 
+     * Represents a directory which is still yet to be named by the user and created.
+     * There should only exist one at a time.
+     * */
     makeTentativeDirectoryNode(){
         let tentative_dir_node = document.createElement("div");
         tentative_dir_node.classList.add("node", "directory");
@@ -362,6 +366,11 @@ class TreeView extends EventTarget{
                 let newDirPath = boundTree.getFullPath(tentative_dir_node.parentElement.parentElement) + "/" + tentative_dir_node_text_area.value;
                 let existingNode = boundTree.getNodeFromPath(newDirPath);
                 if(existingNode != null) return;
+                // TODO: Provide better feedback to the user.
+                // We can't simply show a modal, 
+                // as then the input element would lose focus.
+                // Perhaps we could mirror VS Code's UX here,
+                // where the conflict is shown even before enter is pressed.
 
                 let ev = new Event("folderCreateRequest");
                 ev.treeView = boundTree;
