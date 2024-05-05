@@ -40,13 +40,18 @@ h3 {
 
 /* SplashKit Online */
 button {
-    margin: 0px 3px;
+    margin: 0px 5px;
     border-radius: 3px;
     border: 0;
-    background-color: transparent;
-    color: inherit;
+    background-color: #404040;
+    color: white;
     cursor: pointer;
-    padding: 5px 10px;
+    padding: 0px 10px;    
+    border-radius: 5px;    
+    margin-top: 6px;
+    margin-bottom: -3px;
+    cursor: pointer;
+    transition: background-color 0.3s;    
 }
 
 button:disabled {
@@ -100,6 +105,7 @@ button:hover {
 .sk-header img {
   width: 2em;
   height: 2em;
+  margin-top: 14px;
   margin-right: 10px;
 }
 
@@ -148,29 +154,22 @@ button:hover {
     display: none;
 }
 
-.sk-menu li button,
-.sk-tabs li button,
-.flex-column button {
-  background-color: #404040;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  padding: 0px 10px;
-  margin: 0 5px;
-  margin-bottom: 5px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
 .sk-menu li button:hover,
 .sk-tabs li button:hover,
 .flex-column button:hover {
-  background-color: #555;
+    background-color: #555;
+}
+
+.sk-tabs li[data-tab]::after {
+    content: "\25BC";
+    margin-left: 5px;
+    visibility: hidden;  
+    display: inline-block; 
+  
 }
 
 .sk-tabs li[data-tab]:hover::after {
-  content: "\25BC";
-  margin-left: 5px;
+    visibility: visible;
 }
 
 .sk-contents {
@@ -195,15 +194,20 @@ textarea {
 }
 
 .sk-main-columns {
-    display: flex;
-    flex-direction: row;
-    flex-grow: 1;
+  display: flex;
+  flex-direction: row;
+  flex-grow: 1;
+  overflow: hidden;
 }
+
+
 
 .sk-column {
     display: flex;
     flex-direction: column;
     flex-grow: 1;
+    width: 100%; 
+    margin-bottom: 20px; 
 }
 
 .gutter {
@@ -352,12 +356,8 @@ li.CodeMirror-hint-active {
   padding: 10px;
 }
 
-/* New changes for scrollbar in FILES explorer section */
 
-.sk-column#fileViewContainer {
-  max-height: calc(100vh - 3em); 
-  overflow: auto; 
-}
+/* New changes for scrollbar in FILES explorer section */
 
 #fileViewContainer .sk-contents-focusable {
   height: calc(100% - 50px); 
@@ -367,10 +367,11 @@ li.CodeMirror-hint-active {
   max-width: 100%; 
 }
 
-
 #fileView > * {
-  display: inline-block; 
-  vertical-align: top; 
+
+  overflow: auto;
+  flex-basis: 0;
+  flex-grow: 1;
 }
 
 
@@ -543,25 +544,24 @@ li.CodeMirror-hint-active {
 
 /* Modal UI changes */
 
-#projectConflictModal .sk-header {
+.modal .sk-header {
   padding: 1.5em 1em; 
   display: flex; 
   align-items: center; 
 }
 
-#projectConflictModal .modal-body {
+.modal .modal-body {
   border-top: 1px solid white;
   border-bottom: 1px solid white; 
 }
 
-#projectConflictModal .sk-modal-footer {
+.modal .sk-modal-footer {
   padding: 2.5em 1em; 
   border-top: 1px solid white;
   display: flex; 
   align-items: center; 
   justify-content: flex-end; 
 }
-
 
 .btn {
   font-size: 1rem; 
@@ -582,10 +582,6 @@ li.CodeMirror-hint-active {
   color: white; 
 }
 
-.btn-secondary:hover, .btn-secondary:focus {
-  background-color: #5a6268; 
-}
-
 
 .btn-success {
   background-color: #28a745; 
@@ -597,15 +593,12 @@ li.CodeMirror-hint-active {
 }
 
 /* Canvas scaling fix */
-#ExecutionEnvironment canvas {
-  max-width: 100%;
-  height: auto;
-  width: auto; 
+
+#canvas {
+  max-width: 100% !important;
+  height: auto !important;
+  width: auto !important;
 }
 
-@media screen and (max-width: 768px) {
-  .sk-main-columns {
-    flex-direction: column;
-  }
-}
+
 
