@@ -1,9 +1,11 @@
 class CodeEditor {
-    constructor(filename,codearea,executionEnvironment, storedProject) {
+    constructor(filename,codeblock_name,eleID,executionEnvironment, storedProject,filePath) {
         this.filename = filename;
-        this.editorout =   this.setupCodeArea(codearea);
+        this.codeblock_name = codeblock_name;
+        this.editorout =   this.setupCodeArea(eleID);
         this.executionEnvironment = executionEnvironment;
         this.storedProject = storedProject;
+        this.filePath = filePath;
 
     }
 
@@ -64,23 +66,23 @@ class CodeEditor {
     runCode(editors) {
         this.clearErrorLines(editors);
         let code = this.editorout.getValue();
-        this.executionEnvironment.runCodeBlock(this.filename, code);
+        this.executionEnvironment.runCodeBlock(this.codeblock_name, code);
     }
     
 
-    async saveCode(codePath,filePath) {
+    async saveCode(codePath) {
         let code = this.editorout.getValue();
         await this.storedProject.access(async function(project){
             await project.mkdir(codePath);
-            await project.writeFile(filePath, code);
+            await project.writeFile(this.filePath, code);
         });
     }
 
     
-    async loadCode(filePath) {
+    async loadCode() {
         let code = this.editorout.getValue();
         let newVal = await this.fileAsString(await this.storedProject.access((project) => {
-            return project.readFile(filePath);
+            return project.readFile(this.filePath);
         }));
         if (newVal != code)
             this.editorout.setValue(newVal);
