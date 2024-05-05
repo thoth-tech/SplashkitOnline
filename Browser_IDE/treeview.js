@@ -354,6 +354,9 @@ class TreeView extends EventTarget{
         tentative_dir_node_text_area.classList.add("sk-input");
         tentative_dir_node_text_area.placeholder = "Folder name...";
 
+        tentative_dir_node_label.appendChild(tentative_dir_node_text_area);
+        tentative_dir_node.appendChild(tentative_dir_node_label);
+
         tentative_dir_node_text_area.addEventListener("focusout", async (e) => {
             tentative_dir_node.remove();
         });
@@ -381,9 +384,6 @@ class TreeView extends EventTarget{
                 tentative_dir_node_text_area.blur(); // unfocus to remove
             }
         });
-
-        tentative_dir_node_label.appendChild(tentative_dir_node_text_area);
-        tentative_dir_node.appendChild(tentative_dir_node_label);
 
         tentative_dir_node.addEventListener("click", async (e) => {
             e.stopPropagation();
