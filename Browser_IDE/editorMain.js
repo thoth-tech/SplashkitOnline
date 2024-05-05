@@ -14,15 +14,15 @@ function addNewEditor(filename, codeblock_name,eleID,ExecutionEnvironment, Store
     editorsMap[filename] = newEditorcl; // Assign newEditorcl to the key 'filename' in editorMap
     editorsMap[filePath] = newEditorcl;// Assign newEditorcl to the key 'filePath' in editorMap
     newEditor.display.wrapper.classList.add("sk-contents");
-    return [newEditorcl,newEditor];
+    return newEditorcl;
 }
 
 
-let [editorInitcl,editorInit] = addNewEditor("codeblock_init.js","GeneralCode", "editorInit", executionEnviroment, storedProject,initCodePath);
+let editorInitcl = addNewEditor("codeblock_init.js","GeneralCode", "editorInit", executionEnviroment, storedProject,initCodePath);
 
 
 
-let[editorMainLoopcl,editorMainLoop] = addNewEditor("codeblock_mainloop.js","MainCode", "editorMainLoop", executionEnviroment, storedProject,mainLoopCodePath);
+let editorMainLoopcl = addNewEditor("codeblock_mainloop.js","MainCode", "editorMainLoop", executionEnviroment, storedProject,mainLoopCodePath);
 
 
 
@@ -554,7 +554,7 @@ executionEnviroment.addEventListener("programStopped", function(e){
 
 // Also highlight errors when they come
 executionEnviroment.addEventListener("error", function(e){
-    let editor = (e.block=="GeneralCode"?editorInit:editorMainLoop);
+    let editor = (e.block=="GeneralCode"?editorInitcl.editorout:editorMainLoopcl.editor);
     if (e.line != null){
         if (editor.lineCount() < e.line)
             e.line = editor.lineCount();
