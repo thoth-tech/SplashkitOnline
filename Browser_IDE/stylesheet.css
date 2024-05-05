@@ -220,10 +220,12 @@ textarea {
     flex-direction: row !important;
 	padding: 0px 20px 0px 0px;
 	margin-left: 6px;
+	color: red;
 }
 .node-conflict-text{
 	flex: 1;
 	padding: 0px 0px 0px 3px;
+	text-wrap: nowrap;
 }
 
 .directory-contents{

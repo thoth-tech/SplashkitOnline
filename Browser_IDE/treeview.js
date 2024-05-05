@@ -385,6 +385,11 @@ class TreeView extends EventTarget{
         });
 
         tentative_dir_node_text_area.addEventListener("keydown", async (e) => {
+            if(e.key == "Escape"){
+                tentative_dir_node_text_area.blur();
+                return;
+            }
+
             if(e.key == "Enter"){
                 e.preventDefault();
 
