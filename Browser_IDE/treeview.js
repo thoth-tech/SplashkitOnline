@@ -406,6 +406,12 @@ class TreeView extends EventTarget{
                 ev.treeView = boundTree;
                 ev.path = newDirPath;
                 ev.FS = boundTree.nodeGetFS(tentative_dir_node.parentElement.parentElement);
+                ev.onerror = (err) => {
+                    let errEv = new Event("filesystemError");
+                    errEv.shortMessage = "Folder creation failed";
+                    errEv.longMessage = "An error occured and the folder could not be created.\n\nReason:\n" + err;
+                    window.dispatchEvent(errEv);
+                };
                 boundTree.dispatchEvent(ev);
 
                 tentative_dir_node_text_area.blur(); // unfocus to remove
