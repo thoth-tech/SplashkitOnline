@@ -352,7 +352,8 @@ class TreeView extends EventTarget{
         let tentative_dir_node_text_area = document.createElement("input");
         tentative_dir_node_text_area.type = "text";
         tentative_dir_node_text_area.classList.add("node-tentative-label", "sk-input");
-        tentative_dir_node_text_area.placeholder = "Folder name...";
+        tentative_dir_node_text_area.placeholder = "";
+        tentative_dir_node_text_area.size = 5;
 
         let tentative_dir_node_conflict = document.createElement("div");
         tentative_dir_node_conflict.classList.add("node-conflict", "bi-exclamation-octagon");
@@ -372,6 +373,10 @@ class TreeView extends EventTarget{
         });
 
         let boundTree = this;
+
+        tentative_dir_node_text_area.addEventListener("input", async (e) => {
+            tentative_dir_node_text_area.size = Math.max(5, tentative_dir_node_text_area.value.length);
+        });
 
         tentative_dir_node_text_area.addEventListener("keyup", async (e) => {
             let newDirPath = boundTree.getFullPath(tentative_dir_node.parentElement.parentElement) + "/" + tentative_dir_node_text_area.value;
