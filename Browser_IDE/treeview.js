@@ -363,7 +363,11 @@ class TreeView extends EventTarget{
                 let existingNode = boundTree.getNodeFromPath(newDirPath);
                 if(existingNode != null) return;
 
-                // TODO: Create folder in FS
+                let ev = new Event("folderCreateRequest");
+                ev.treeView = boundTree;
+                ev.path = newDirPath;
+                ev.FS = boundTree.nodeGetFS(tentative_dir_node.parentElement.parentElement);
+                boundTree.dispatchEvent(ev);
 
                 tentative_dir_node_text_area.blur(); // unfocus to remove
             }
