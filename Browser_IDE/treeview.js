@@ -354,7 +354,13 @@ class TreeView extends EventTarget{
         tentative_dir_node_text_area.classList.add("sk-input");
         tentative_dir_node_text_area.placeholder = "Folder name...";
 
+        let tentative_dir_node_conflict = document.createElement("div");
+        tentative_dir_node_conflict.classList.add("node-conflict", "bi-exclamation-octagon");
+        tentative_dir_node_conflict.style.display = "none";
+        tentative_dir_node_conflict.innerHTML = "Name conflict";
+
         tentative_dir_node_label.appendChild(tentative_dir_node_text_area);
+        tentative_dir_node_label.appendChild(tentative_dir_node_conflict);
         tentative_dir_node.appendChild(tentative_dir_node_label);
 
         tentative_dir_node_text_area.addEventListener("focusout", async (e) => {
@@ -362,6 +368,18 @@ class TreeView extends EventTarget{
         });
 
         let boundTree = this;
+
+        tentative_dir_node_text_area.addEventListener("keyup", async (e) => {
+            let newDirPath = boundTree.getFullPath(tentative_dir_node.parentElement.parentElement) + "/" + tentative_dir_node_text_area.value;
+            let existingNode = boundTree.getNodeFromPath(newDirPath);
+
+            if(existingNode != null){
+                tentative_dir_node_conflict.style.display = "initial";
+            } else {
+                tentative_dir_node_conflict.style.display = "none";
+            }
+        });
+
         tentative_dir_node_text_area.addEventListener("keydown", async (e) => {
             if(e.key == "Enter"){
                 e.preventDefault();
@@ -369,11 +387,6 @@ class TreeView extends EventTarget{
                 let newDirPath = boundTree.getFullPath(tentative_dir_node.parentElement.parentElement) + "/" + tentative_dir_node_text_area.value;
                 let existingNode = boundTree.getNodeFromPath(newDirPath);
                 if(existingNode != null) return;
-                // TODO: Provide better feedback to the user.
-                // We can't simply show a modal, 
-                // as then the input element would lose focus.
-                // Perhaps we could mirror VS Code's UX here,
-                // where the conflict is shown even before enter is pressed.
 
                 let ev = new Event("folderCreateRequest");
                 ev.treeView = boundTree;
