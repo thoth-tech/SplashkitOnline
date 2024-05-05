@@ -10,8 +10,9 @@
 }
 body {
   line-height: 1.5;
-  -webkit-font-smoothing: antialiased;
+  -webkit-font-smoothing: antialiased;  
 }
+
 img, picture, video, canvas, svg {
   display: block;
   max-width: 100%;
@@ -22,6 +23,7 @@ input, button, textarea, select {
 p, h1, h2, h3, h4, h5, h6 {
   overflow-wrap: break-word;
 }
+
 #root, #__next {
   isolation: isolate;
 }
@@ -38,13 +40,20 @@ h3 {
 
 /* SplashKit Online */
 button {
-    margin: 0px 3px;
+    margin: 0px 5px;
     border-radius: 3px;
     border: 0;
-    background-color: transparent;
-    color: inherit;
+    background-color: #404040;
+    color: white;
     cursor: pointer;
+    padding: 0px 10px;    
+    border-radius: 5px;    
+    margin-top: 6px;
+    margin-bottom: -3px;
+    cursor: pointer;
+    transition: background-color 0.3s;    
 }
+
 button:disabled {
     color: #AAA;
 }
@@ -78,11 +87,26 @@ button:hover {
     margin: 0px;
     padding: 0px 10px 0px 0px;
     justify-content: space-between;
-    height: 2em;
-    line-height: 2em;
+    height: 3em;
+    line-height: 3em;
 }
+
 .sk-header-indent {
     padding-left: 1em;
+}
+
+.sk-header sk-header-indent{
+  position: fixed;
+  width: 100%; 
+  top: 0; 
+  z-index: 1000; 
+}
+
+.sk-header img {
+  width: 2em;
+  height: 2em;
+  margin-top: 14px;
+  margin-right: 10px;
 }
 
 .sk-menu {
@@ -130,6 +154,24 @@ button:hover {
     display: none;
 }
 
+.sk-menu li button:hover,
+.sk-tabs li button:hover,
+.flex-column button:hover {
+    background-color: #555;
+}
+
+.sk-tabs li[data-tab]::after {
+    content: "\25BC";
+    margin-left: 5px;
+    visibility: hidden;  
+    display: inline-block; 
+  
+}
+
+.sk-tabs li[data-tab]:hover::after {
+    visibility: visible;
+}
+
 .sk-contents {
     background-color: #1f1f1f;
     box-shadow: 0 0 0 1px #404040;
@@ -152,15 +194,20 @@ textarea {
 }
 
 .sk-main-columns {
-    display: flex;
-    flex-direction: row;
-    flex-grow: 1;
+  display: flex;
+  flex-direction: row;
+  flex-grow: 1;
+  overflow: hidden;
 }
+
+
 
 .sk-column {
     display: flex;
     flex-direction: column;
     flex-grow: 1;
+    width: 100%; 
+    margin-bottom: 20px; 
 }
 
 .gutter {
@@ -318,9 +365,29 @@ li.CodeMirror-hint-active {
     color: white;
 }
 
+#fileViewContainer,
+#codeViewContainer,
+#runtimeContainer {
+  padding: 10px;
+}
 
 
+/* New changes for scrollbar in FILES explorer section */
 
+#fileViewContainer .sk-contents-focusable {
+  height: calc(100% - 50px); 
+  overflow-y: auto;
+  overflow-x: auto;  
+  width: 100%; 
+  max-width: 100%; 
+}
+
+#fileView > * {
+
+  overflow: auto;
+  flex-basis: 0;
+  flex-grow: 1;
+}
 
 
 /* Leftover stuff from bootstrap */
@@ -356,6 +423,7 @@ li.CodeMirror-hint-active {
 
 .btn-close-white {
   filter: invert(1) grayscale(100%) brightness(200%);
+  margin-top: 6px;
 }
 
 .modal {
@@ -375,7 +443,7 @@ li.CodeMirror-hint-active {
   --bs-modal-header-padding: 1rem 1rem;
   --bs-modal-header-border-color: var(--bs-border-color);
   --bs-modal-header-border-width: 1px;
-  --bs-modal-title-line-height: 1.5;
+  --bs-modal-title-line-height: 1.5rem;
   --bs-modal-footer-gap: 0.5rem;
   --bs-modal-footer-bg: ;
   --bs-modal-footer-border-color: var(--bs-border-color);
@@ -443,8 +511,8 @@ li.CodeMirror-hint-active {
   background-color: var(--bs-modal-bg);
   background-clip: padding-box;
   border: var(--bs-modal-border-width) solid var(--bs-modal-border-color);
-  border-radius: var(--bs-modal-border-radius);
   outline: 0;
+  border-radius: 0.5rem;
 }
 
 .modal-backdrop {
@@ -464,11 +532,11 @@ li.CodeMirror-hint-active {
 }
 
 .modal-header {
+  
   display: flex;
   flex-shrink: 0;
   align-items: center;
   justify-content: space-between;
-  padding: var(--bs-modal-header-padding);
   border-bottom: var(--bs-modal-header-border-width) solid var(--bs-modal-header-border-color);
   border-top-left-radius: var(--bs-modal-inner-border-radius);
   border-top-right-radius: var(--bs-modal-inner-border-radius);
@@ -488,3 +556,64 @@ li.CodeMirror-hint-active {
   flex: 1 1 auto;
   padding: var(--bs-modal-padding);
 }
+
+/* Modal UI changes */
+
+.modal .sk-header {
+  padding: 1.5em 1em; 
+  display: flex; 
+  align-items: center; 
+}
+
+.modal .modal-body {
+  border-top: 1px solid white;
+  border-bottom: 1px solid white; 
+}
+
+.modal .sk-modal-footer {
+  padding: 2.5em 1em; 
+  border-top: 1px solid white;
+  display: flex; 
+  align-items: center; 
+  justify-content: flex-end; 
+}
+
+.btn {
+  font-size: 1rem; 
+  padding: 0.4em 0.8em; 
+  border-radius: 0.25rem; 
+  margin-right: 0.5rem; 
+  margin-top: 0.5rem; 
+  transition: background-color 0.3s, box-shadow 0.3s; 
+}
+
+.btn:last-child {
+  margin-right: 0;
+}
+
+
+.btn-secondary {
+  background-color: #6c757d; 
+  color: white; 
+}
+
+
+.btn-success {
+  background-color: #28a745; 
+  color: white; 
+}
+
+.btn-success:hover, .btn-success:focus {
+  background-color: #218838; 
+}
+
+/* Canvas scaling fix */
+
+#canvas {
+  max-width: 100% !important;
+  height: auto !important;
+  width: auto !important;
+}
+
+
+
