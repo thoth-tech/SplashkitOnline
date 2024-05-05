@@ -351,14 +351,18 @@ class TreeView extends EventTarget{
 
         let tentative_dir_node_text_area = document.createElement("input");
         tentative_dir_node_text_area.type = "text";
-        tentative_dir_node_text_area.classList.add("sk-input");
+        tentative_dir_node_text_area.classList.add("node-tentative-label", "sk-input");
         tentative_dir_node_text_area.placeholder = "Folder name...";
 
         let tentative_dir_node_conflict = document.createElement("div");
         tentative_dir_node_conflict.classList.add("node-conflict", "bi-exclamation-octagon");
         tentative_dir_node_conflict.style.display = "none";
-        tentative_dir_node_conflict.innerHTML = "Name conflict";
 
+        let tentative_dir_node_conflict_text = document.createElement("div");
+        tentative_dir_node_conflict_text.classList.add("node-conflict-text");
+        tentative_dir_node_conflict_text.innerHTML = "Name conflict";
+
+        tentative_dir_node_conflict.appendChild(tentative_dir_node_conflict_text);
         tentative_dir_node_label.appendChild(tentative_dir_node_text_area);
         tentative_dir_node_label.appendChild(tentative_dir_node_conflict);
         tentative_dir_node.appendChild(tentative_dir_node_label);
@@ -374,7 +378,7 @@ class TreeView extends EventTarget{
             let existingNode = boundTree.getNodeFromPath(newDirPath);
 
             if(existingNode != null){
-                tentative_dir_node_conflict.style.display = "initial";
+                tentative_dir_node_conflict.style.display = "inherit";
             } else {
                 tentative_dir_node_conflict.style.display = "none";
             }
