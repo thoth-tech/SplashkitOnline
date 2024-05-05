@@ -338,6 +338,48 @@ class TreeView extends EventTarget{
         });
     }
 
+    makeTentativeDirectoryNode(){
+        let tentative_dir_node = document.createElement("div");
+        tentative_dir_node.classList.add("node", "directory");
+
+        let tentative_dir_node_label = document.createElement("div");
+        tentative_dir_node_label.classList.add("node-label", "bi-folder2-open");
+
+        let tentative_dir_node_text_area = document.createElement("input");
+        tentative_dir_node_text_area.type = "text";
+        tentative_dir_node_text_area.classList.add("sk-input");
+        tentative_dir_node_text_area.placeholder = "Folder name...";
+
+        tentative_dir_node_text_area.addEventListener("focusout", async (e) => {
+            tentative_dir_node.remove();
+        });
+
+        let boundTree = this;
+        tentative_dir_node_text_area.addEventListener("keydown", async (e) => {
+            if(e.key == "Enter"){
+                e.preventDefault();
+
+                let newDirPath = boundTree.getFullPath(tentative_dir_node.parentElement.parentElement) + "/" + tentative_dir_node_text_area.value;
+                let existingNode = boundTree.getNodeFromPath(newDirPath);
+                if(existingNode != null) return;
+
+                // TODO: Create folder in FS
+
+                tentative_dir_node_text_area.blur(); // unfocus to remove
+            }
+        });
+
+        tentative_dir_node_label.appendChild(tentative_dir_node_text_area);
+        tentative_dir_node.appendChild(tentative_dir_node_label);
+
+        tentative_dir_node.addEventListener("click", async (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+        });
+
+        return tentative_dir_node;
+    }
+
     makeDirectoryNode(label){
         let dir_node = document.createElement("div");
         dir_node.classList.add("node");
@@ -424,7 +466,9 @@ class TreeView extends EventTarget{
         });
 
         dir_node_add_folder_button.addEventListener("click", async (e) => {
-            // TODO
+            let tentativeNode = this.makeTentativeDirectoryNode();
+            this.getDirectoryContents(dir_node).appendChild(tentativeNode);
+            tentativeNode.querySelector("input").focus();
             e.stopPropagation();
         });
 
