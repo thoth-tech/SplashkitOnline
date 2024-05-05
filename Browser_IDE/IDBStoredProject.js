@@ -235,47 +235,41 @@ class __IDBStoredProjectRW{
         });
     }
 
-    async rmdir(path, recursive = false){
+    async unlink(path) {
         let IDBSP = this;
-        await this.doTransaction("files", "readwrite", async function(t, files){
-
-            let deleteRecursive = async function(t, files, nodeId, nodePath){
-                let childNodes = await IDBSP.getChildNodes(t, files, nodeId);
-                for(let childNode of childNodes){
-                    if(childNode == null)
-                        continue;
-
-                    if(childNode.type == "FILE"){
-                        await IDBSP.deleteNode(t, files, childNode.nodeId);
-
-                        let ev = new Event("onDeletePath");
-                        ev.path = nodePath+"/"+childNode.name;
-                        IDBSP.owner.dispatchEvent(ev);
-                    }
-                    if(childNode.type == "DIR"){
-                        await deleteRecursive(t, files, childNode.nodeId, nodePath+"/"+childNode.name);
-                    }
+        return this.doTransaction("files", "readwrite", async function (t, files) {
+            let node = await IDBSP.getNodeFromPath(t, files, path);
+            if (node != null) {
+                // Test if path is a file, and if so delete it from the store
+                if ((await IDBSP.getNode(t, files, node)).type === "FILE") {
+                    let request = files.delete(node);
+                    request.onsuccess = function () {
+                        console.log(`File at ${path} deleted successfully.`);
+                    };
+                    request.onerror = function () {
+                        console.error(`Error deleting file at ${path}: ${request.error}`);
+                    };
                 }
-
-                await IDBSP.deleteNode(t, files, nodeId);
-
-                let ev = new Event("onDeletePath");
-                ev.path = nodePath;
-                IDBSP.owner.dispatchEvent(ev);
             }
+        });
+    }
 
-            let nodeId = await IDBSP.getNodeFromPath(t, files, path);
-            if (nodeId == null)
-                return;
-
-            if(recursive){
-                deleteRecursive(t, files, nodeId, path);
-            } else {
-                await IDBSP.deleteNode(t, files, nodeId);
-            
-                let ev = new Event("onDeletePath");
-                ev.path = path;
-                IDBSP.owner.dispatchEvent(ev);
+    async rmdir(path) {
+        let IDBSP = this;
+        return this.doTransaction("files", "readwrite", async function (t, files) {
+            let node = await IDBSP.getNodeFromPath(t, files, path);
+            if (node != null) {
+                let children = await IDBSP.getChildNodes(t, files, node); // Get all children
+                // If no children, then delete
+                if (children.length === 0) {
+                    let request = files.delete(node);
+                    request.onsuccess = function () {
+                        console.log(`Directory at ${path} deleted successfully.`);
+                    };
+                    request.onerror = function () {
+                        console.error(`Error deleting directory at ${path}: ${request.error}`);
+                    };
+                }
             }
         });
     }
