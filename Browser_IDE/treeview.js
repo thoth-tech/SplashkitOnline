@@ -338,6 +338,94 @@ class TreeView extends EventTarget{
         });
     }
 
+    /** 
+     * Represents a directory which is still yet to be named by the user and created.
+     * There should only exist one at a time.
+     * */
+    makeTentativeDirectoryNode(){
+        let tentative_dir_node = document.createElement("div");
+        tentative_dir_node.classList.add("node", "directory");
+
+        let tentative_dir_node_label = document.createElement("div");
+        tentative_dir_node_label.classList.add("node-label", "bi-folder2-open");
+
+        let tentative_dir_node_text_area = document.createElement("input");
+        tentative_dir_node_text_area.type = "text";
+        tentative_dir_node_text_area.classList.add("node-tentative-label", "sk-input");
+        tentative_dir_node_text_area.placeholder = "";
+        tentative_dir_node_text_area.size = 5;
+
+        let tentative_dir_node_conflict = document.createElement("div");
+        tentative_dir_node_conflict.classList.add("node-conflict", "bi-exclamation-octagon");
+        tentative_dir_node_conflict.style.display = "none";
+
+        let tentative_dir_node_conflict_text = document.createElement("div");
+        tentative_dir_node_conflict_text.classList.add("node-conflict-text");
+        tentative_dir_node_conflict_text.innerHTML = "Name conflict";
+
+        tentative_dir_node_conflict.appendChild(tentative_dir_node_conflict_text);
+        tentative_dir_node_label.appendChild(tentative_dir_node_text_area);
+        tentative_dir_node_label.appendChild(tentative_dir_node_conflict);
+        tentative_dir_node.appendChild(tentative_dir_node_label);
+
+        tentative_dir_node_text_area.addEventListener("focusout", async (e) => {
+            tentative_dir_node.remove();
+        });
+
+        let boundTree = this;
+
+        tentative_dir_node_text_area.addEventListener("input", async (e) => {
+            tentative_dir_node_text_area.size = Math.max(5, tentative_dir_node_text_area.value.length);
+        });
+
+        tentative_dir_node_text_area.addEventListener("keyup", async (e) => {
+            let newDirPath = boundTree.getFullPath(tentative_dir_node.parentElement.parentElement) + "/" + tentative_dir_node_text_area.value;
+            let existingNode = boundTree.getNodeFromPath(newDirPath);
+
+            if(existingNode != null){
+                tentative_dir_node_conflict.style.display = "inherit";
+            } else {
+                tentative_dir_node_conflict.style.display = "none";
+            }
+        });
+
+        tentative_dir_node_text_area.addEventListener("keydown", async (e) => {
+            if(e.key == "Escape"){
+                tentative_dir_node_text_area.blur();
+                return;
+            }
+
+            if(e.key == "Enter"){
+                e.preventDefault();
+
+                let newDirPath = boundTree.getFullPath(tentative_dir_node.parentElement.parentElement) + "/" + tentative_dir_node_text_area.value;
+                let existingNode = boundTree.getNodeFromPath(newDirPath);
+                if(existingNode != null) return;
+
+                let ev = new Event("folderCreateRequest");
+                ev.treeView = boundTree;
+                ev.path = newDirPath;
+                ev.FS = boundTree.nodeGetFS(tentative_dir_node.parentElement.parentElement);
+                ev.onerror = (err) => {
+                    let errEv = new Event("filesystemError");
+                    errEv.shortMessage = "Folder creation failed";
+                    errEv.longMessage = "An error occured and the folder could not be created.\n\nReason:\n" + err;
+                    window.dispatchEvent(errEv);
+                };
+                boundTree.dispatchEvent(ev);
+
+                tentative_dir_node_text_area.blur(); // unfocus to remove
+            }
+        });
+
+        tentative_dir_node.addEventListener("click", async (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+        });
+
+        return tentative_dir_node;
+    }
+
     makeDirectoryNode(label){
         let dir_node = document.createElement("div");
         dir_node.classList.add("node");
@@ -362,6 +450,9 @@ class TreeView extends EventTarget{
             dir_node_delete_button.classList.add("bi-trash", "node-button");
         }
 
+        let dir_node_add_folder_button = document.createElement("button");
+        dir_node_add_folder_button.classList.add("bi-folder-plus", "node-button");
+
         let dir_node_label_text = document.createTextNode(label==""?"/":label);
 
         let dir_node_contents = document.createElement("div");
@@ -371,6 +462,7 @@ class TreeView extends EventTarget{
         dir_node_label_text_div.appendChild(dir_node_label_text);
         dir_node_label.appendChild(dir_node_label_text_div);
         dir_node_label.appendChild(dir_node_upload_file_button);
+        dir_node_label.appendChild(dir_node_add_folder_button);
 
         if(label != ""){
             dir_node_label.appendChild(dir_node_delete_button);
@@ -416,6 +508,13 @@ class TreeView extends EventTarget{
             ev.path = boundTree.getFullPath(dir_node);
             ev.FS = boundTree.nodeGetFS(dir_node);
             boundTree.dispatchEvent(ev);
+            e.stopPropagation();
+        });
+
+        dir_node_add_folder_button.addEventListener("click", async (e) => {
+            let tentativeNode = this.makeTentativeDirectoryNode();
+            this.getDirectoryContents(dir_node).appendChild(tentativeNode);
+            tentativeNode.querySelector("input").focus();
             e.stopPropagation();
         });
 

@@ -42,6 +42,20 @@ myTreeView.addEventListener("fileDeleteRequest", async function(e){
     }
 });
 
+myTreeView.addEventListener("folderCreateRequest", async (e) => {
+    try {
+        await unifiedFS.mkdir(
+            e.path,
+            e.FS.includes("transient"),
+            e.FS.includes("persistent")
+        );
+
+        if('onsuccess' in e) e.onsuccess();
+    } catch(err){
+        if('onerror' in e) e.onerror(err);
+    }
+});
+
 myTreeView.addEventListener("folderDeleteRequest", async function(e){
     try {
         await unifiedFS.rmdir(
