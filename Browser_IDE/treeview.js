@@ -362,6 +362,9 @@ class TreeView extends EventTarget{
             dir_node_delete_button.classList.add("bi-trash", "node-button");
         }
 
+        let dir_node_add_folder_button = document.createElement("button");
+        dir_node_add_folder_button.classList.add("bi-folder-plus", "node-button");
+
         let dir_node_label_text = document.createTextNode(label==""?"/":label);
 
         let dir_node_contents = document.createElement("div");
@@ -371,6 +374,7 @@ class TreeView extends EventTarget{
         dir_node_label_text_div.appendChild(dir_node_label_text);
         dir_node_label.appendChild(dir_node_label_text_div);
         dir_node_label.appendChild(dir_node_upload_file_button);
+        dir_node_label.appendChild(dir_node_add_folder_button);
 
         if(label != ""){
             dir_node_label.appendChild(dir_node_delete_button);
@@ -416,6 +420,11 @@ class TreeView extends EventTarget{
             ev.path = boundTree.getFullPath(dir_node);
             ev.FS = boundTree.nodeGetFS(dir_node);
             boundTree.dispatchEvent(ev);
+            e.stopPropagation();
+        });
+
+        dir_node_add_folder_button.addEventListener("click", async (e) => {
+            // TODO
             e.stopPropagation();
         });
 
