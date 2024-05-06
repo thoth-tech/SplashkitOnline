@@ -25,6 +25,61 @@ function clearTerminal() {
     document.getElementById('output').value = '';
 }
 
+moduleEvents.addEventListener("print", async function(ev) {
+	writeTerminal(ev.text);
+});
+
+let terminalElement = document.getElementById('output');
+let terminalHead = terminalElement.appendChild(document.createElement('span'));
+let terminalTop = terminalHead;
+if (terminalElement) terminalElement.value = ''; // clear browser cache
+function writeTerminal(text){
+	if (terminalElement) {
+		if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
+		
+		console.log(text);
+		
+		// These replacements are necessary if you render to raw HTML
+		text = text.replace(/&/g, "&amp;");
+		text = text.replace(/</g, "&lt;");
+		text = text.replace(/>/g, "&gt;");
+		text = text.replace('\n', '<br>', 'g');
+
+		let sections = text.split("\x1b[")
+							.filter(s => s)
+							.map(s => s.split("m"));
+		
+		for(let section of sections){
+			if(section.length == 1){
+				terminalHead.innerHTML += section[0];
+			} else {
+
+				let fmtCodes = section[0].split(";");
+
+				if(fmtCodes.includes("0")){
+					terminalHead = terminalTop;
+				} else {
+
+					let fmtClasses = fmtCodes.map(s => "sk-term-fmt-code" + s)
+											 .filter(s => !terminalHead.classList.contains(s));
+
+					if(fmtClasses.length > 0){
+						let newSpan = document.createElement("span");
+						newSpan.classList.add(fmtClasses);
+						terminalHead.appendChild(newSpan);
+						terminalHead = newSpan;
+					}
+				}
+
+				terminalHead.innerHTML += section[1];
+			}
+		}
+
+		terminalHead.innerHTML += "<br>";
+		terminalElement.scrollTop = terminalElement.scrollHeight; // focus on bottom
+	}
+}
+
 let isInitialized = false;
 
 moduleEvents.addEventListener("onRuntimeInitialized", function() {
