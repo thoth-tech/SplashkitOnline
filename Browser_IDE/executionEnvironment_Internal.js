@@ -496,3 +496,14 @@ moduleEvents.addEventListener("onRuntimeInitialized", function() {
 
     parent.postMessage({type:"initialized"},"*");
 });
+
+document.addEventListener('DOMContentLoaded', function() {
+    Split(['#canvasContainer', '#terminalOutputContainer'], {
+        direction: 'vertical',  
+        sizes: [75, 25],        
+        minSize: [100, 100],   
+        gutterSize: 5,          
+        gutterAlign: 'center',  
+        cursor: 'row-resize'    
+    });
+});

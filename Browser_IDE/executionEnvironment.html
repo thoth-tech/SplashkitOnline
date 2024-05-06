@@ -9,14 +9,15 @@
 
     <link rel="stylesheet" href="stylesheet.css">
     <script src="babel/babel.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/split.js@1.6.2"></script>
 </head>
 
 <body class="sk-body">
 	<div class="sk-column" style="max-height: 100%;">
-		<div class="sk-contents" style="flex-direction: row; max-height: 85%;">
+		<div id="canvasContainer" class="sk-contents" style="flex-direction: row; max-height: 85%;">
 			<canvas id="canvas" style="margin:auto; vertical-align:center; max-height: 100%; left:0px; right:0px; width:inherit; outline: none;" oncontextmenu="event.preventDefault()" tabindex=-1></canvas>
 		</div>
-		<div class="sk-header sk-header-indent">
+		<div id="terminalOutputContainer" class="sk-header sk-header-indent">
 			TERMINAL OUTPUT
 		</div>
 		<div class="sk-contents">
