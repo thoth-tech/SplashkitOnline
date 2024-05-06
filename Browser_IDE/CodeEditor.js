@@ -75,7 +75,8 @@ class CodeEditor {
         await this.storedProject.access(async function(project){
             await project.mkdir(codePath);
             await project.writeFile(this.filePath, code);
-        });
+            
+        }.bind(this));
     }
 
     
@@ -87,6 +88,15 @@ class CodeEditor {
         if (newVal != code)
             this.editorout.setValue(newVal);
     }
+    async loadCode() {
+        let code = this.editorout.getValue();
+        let newVal = await this.fileAsString(await this.storedProject.access(function(project) {
+            return project.readFile(this.filePath);
+        }.bind(this)));
+        if (newVal != code)
+            this.editorout.setValue(newVal);
+    }
+    
     
     
     

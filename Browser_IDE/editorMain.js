@@ -4,26 +4,31 @@ let storedProject = new IDBStoredProject(makeNewProject);
 // ------ Setup UI ------
 
 let editors = []
-let editorsMap={};
 let editorPathMap = {};
-function addNewEditor(filename, codeblock_name,eleID,ExecutionEnvironment, StoredProject,filePath  ) {
+function addNewEditor( codeblock_name,eleID,ExecutionEnvironment, StoredProject,filePath  ) {
+    let parts = filePath.split("/");
+    let filename = parts[parts.length - 1];
     let elementID = document.getElementById(eleID);
+    if (!elementID) {
+        // Create new element if it doesn't exist
+        elementID = document.createElement('div'); // Create a new div element
+        elementID.id = eleID; // Set the id of the new element
+        document.body.appendChild(elementID); // Append the new element to the body of the document
+    }
     let newEditorcl = new CodeEditor(filename,codeblock_name,elementID,ExecutionEnvironment, StoredProject,filePath);
     let newEditor = newEditorcl.editorout;
     editors.push(newEditor);
-    editorsMap[filename] = newEditorcl; // Assign newEditorcl to the key 'filename' in editorMap
-    editorsMap[filePath] = newEditorcl;// Assign newEditorcl to the key 'filePath' in editorMap
+    editorPathMap[filePath] = newEditorcl;// Assign newEditorcl to the key 'filePath' in editorMap
     newEditor.display.wrapper.classList.add("sk-contents");
     return newEditorcl;
 }
 
 
-let editorInitcl = addNewEditor("codeblock_init.js","GeneralCode", "editorInit", executionEnviroment, storedProject,initCodePath);
+let editorInitcl = addNewEditor("GeneralCode", "editorInit", executionEnviroment, storedProject,initCodePath);
 
 
 
-let editorMainLoopcl = addNewEditor("codeblock_mainloop.js","MainCode", "editorMainLoop", executionEnviroment, storedProject,mainLoopCodePath);
-
+let editorMainLoopcl = addNewEditor("MainCode", "editorMainLoop", executionEnviroment, storedProject,mainLoopCodePath);
 
 
 
@@ -217,17 +222,15 @@ function runAllCodeBlocks(){
 
 storedProject.addEventListener('onWriteToFile', function(e) {
     let filepath = e.path;
-    
     // Get the class instance from the map using the filename
     let editorClass = editorPathMap[filepath];
-    
     if (editorClass) {
       // If the class instance exists, call the saveCode method
       editorClass.loadCode(filepath);
       // If you also want to run the code, uncomment the next line
       // editorClass.runCode(editors);
     } else {
-      console.log(`No editor class found for filename: ${filepath}`);
+      console.log(`No editor class found for filepath: ${filepath}`);
     }
 });
 
@@ -297,32 +300,29 @@ updateButtons();
 
 // Add events for the code blocks
 updateCodeButton.addEventListener("click", function () {
-    let filename = currentTab.contents.dataset.file;
-    let editorClass = editorsMap[filename];
+    let filepath = currentTab.contents.dataset.file.path;
+    
+    let editorClass = editorPathMap[filepath];
     if (editorClass) {
-        // If the class instance exists, call the saveCode method
-        editorClass.saveCode(codePath);
-        editorInitcl.runCode(editors);
-        // If you also want to run the code, uncomment the next line
-        // editorClass.runCode(editors);
-      } else {
-        console.log(`No editor class found for filename: ${filename}`);
-      }
+      
+      editorClass.saveCode(codePath);
+      editorClass.runCode(editors);
+      
+    } else {
+      console.log(`No editor class found for filepath: ${filepath}`);
+    }
 });
 
 updateCodeButton.addEventListener("click", function () {
-    let filename = currentTab.contents.dataset.file;
+    let filepath = currentTab.contents.dataset.file.path;
     
-    // Get the class instance from the map using the filename
-    let editorClass = editorsMap[filename];
-    
+    let editorClass = editorPathMap[filepath];
     if (editorClass) {
-      // If the class instance exists, call the saveCode method
+      
       editorClass.saveCode(codePath);
-      // If you also want to run the code, uncomment the next line
-      // editorClass.runCode(editors);
+      
     } else {
-      console.log(`No editor class found for filename: ${filename}`);
+      console.log(`No editor class found for filepath: ${filepath}`);
     }
   });
 
