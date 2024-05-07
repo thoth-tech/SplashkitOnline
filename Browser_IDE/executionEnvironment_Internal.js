@@ -21,18 +21,22 @@ function findAsyncFunctionConstructorLineOffset(){
     return newlineCount;
 }
 
+let terminalElement = document.getElementById('output');
+let terminalHead = undefined;
+let terminalTop = undefined;
+
 function clearTerminal() {
-    document.getElementById('output').value = '';
+	terminalElement.innerHTML = "";
+    terminalHead = terminalElement.appendChild(document.createElement('span'));
+	terminalTop = terminalHead;
 }
+clearTerminal();
 
 moduleEvents.addEventListener("print", async function(ev) {
 	writeTerminal(ev.text);
 });
 
-let terminalElement = document.getElementById('output');
-let terminalHead = terminalElement.appendChild(document.createElement('span'));
-let terminalTop = terminalHead;
-if (terminalElement) terminalElement.value = ''; // clear browser cache
+
 function writeTerminal(text){
 	if (terminalElement) {
 		if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
