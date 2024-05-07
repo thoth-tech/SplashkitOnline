@@ -58,29 +58,24 @@ function writeTerminal(text){
 						   .map(s => [s[0], s.slice(1).join("m")]);
 
 		for(let section of sections){
-			if(section.length == 1){
-				terminalHead.innerHTML += section[0];
+			let fmtCodes = section[0].split(";");
+
+			if(fmtCodes.includes("0")){
+				terminalHead = terminalTop;
 			} else {
 
-				let fmtCodes = section[0].split(";");
+				let fmtClasses = fmtCodes.map(s => "sk-term-fmt-code" + s)
+											.filter(s => !terminalHead.classList.contains(s));
 
-				if(fmtCodes.includes("0")){
-					terminalHead = terminalTop;
-				} else {
-
-					let fmtClasses = fmtCodes.map(s => "sk-term-fmt-code" + s)
-											 .filter(s => !terminalHead.classList.contains(s));
-
-					if(fmtClasses.length > 0){
-						let newSpan = document.createElement("span");
-						newSpan.classList.add(...fmtClasses);
-						terminalHead.appendChild(newSpan);
-						terminalHead = newSpan;
-					}
+				if(fmtClasses.length > 0){
+					let newSpan = document.createElement("span");
+					newSpan.classList.add(...fmtClasses);
+					terminalHead.appendChild(newSpan);
+					terminalHead = newSpan;
 				}
-
-				terminalHead.innerHTML += section[1];
 			}
+
+			terminalHead.innerHTML += section[1];
 		}
 
 		terminalHead.innerHTML += "<br>";
