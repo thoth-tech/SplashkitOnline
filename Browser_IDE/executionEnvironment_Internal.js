@@ -54,8 +54,10 @@ function writeTerminal(text){
         terminalHead.innerHTML += sections[0];
         sections.splice(0, 1);
                             
-        sections = sections.map(s => s.split("m"))
-                           .map(s => [s[0], s.slice(1).join("m")]);
+        sections = sections.map(s => {
+            let i = s.indexOf("m");
+            return [s.substring(0, i), s.substring(i+1)]
+        });
 
         for(let section of sections){
             let fmtCodes = section[0].split(";");
