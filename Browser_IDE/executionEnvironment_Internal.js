@@ -75,7 +75,7 @@ function writeTerminal(text){
 
 					if(fmtClasses.length > 0){
 						let newSpan = document.createElement("span");
-						newSpan.classList.add(fmtClasses);
+						newSpan.classList.add(...fmtClasses);
 						terminalHead.appendChild(newSpan);
 						terminalHead = newSpan;
 					}
