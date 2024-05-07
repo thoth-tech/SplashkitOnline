@@ -59,6 +59,14 @@ class ExecutionEnvironment extends EventTarget{
             if (data.type == "initialized"){
                 EE.dispatchEvent(new Event("initialized"));
             }
+            else if (data.type == "onDownloadFail"){
+                let ev = new Event("onDownloadFail");
+                ev.name = data.name;
+                ev.url = data.url;
+                ev.status = data.status;
+                ev.statusText = data.statusText;
+                EE.dispatchEvent(ev);
+            }
             else if (data.type == "error"){
                 let ev = new Event("error");
                 ev.message = data.message;

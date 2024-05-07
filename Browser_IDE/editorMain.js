@@ -154,6 +154,19 @@ executionEnviroment.addEventListener("initialized", function() {
     canMirror = true;
     MirrorToExecutionEnvironment();
 });
+// File System, File System View Initialization
+executionEnviroment.addEventListener("onDownloadFail", function(data) {
+    displayEditorNotification("Failed to load critical part of IDE: "+data.name+". Click for more details.", NotificationIcons.ERROR, -1,
+         function() {
+            displayEditorNotification("If you are a <i>developer</i>, please ensure you have placed the file '"+data.url.slice(data.url.lastIndexOf("/")+1)+"' inside your /Browser_IDE/splashkit/ folder."+
+                "<hr/>Status: "+data.status+" "+data.statusText, NotificationIcons.ERROR, -1
+            );
+            displayEditorNotification("If you are a <i>user</i>, please report this issue on our <a href=\"https://github.com/thoth-tech/SplashkitOnline/\">GitHub page</a>!",
+                NotificationIcons.ERROR, -1
+            );
+        }
+    );
+});
 
 storedProject.addEventListener("attached", async function() {
     MirrorToExecutionEnvironment();
@@ -164,6 +177,8 @@ storedProject.addEventListener("attached", async function() {
 async function MirrorToExecutionEnvironment(){
     try {
         if (!haveMirrored && canMirror){
+            displayEditorNotification("Loading project files.", NotificationIcons.INFO);
+
             haveMirrored = true;
             let tree = await storedProject.access((project)=>project.getFileTree());
 
@@ -213,6 +228,8 @@ function disableCodeExecution(){
     updateButtons();
 }
 function enableCodeExecution(){
+    displayEditorNotification("IDE is ready to run projects.", NotificationIcons.SUCCESS);
+
     allowExecution = true;
     updateButtons();
 }
@@ -314,6 +331,8 @@ function runProgram(){
     clearErrorLines();
 
     runAllCodeBlocks();
+
+    displayEditorNotification("Running project!", NotificationIcons.SUCCESS);
 
     executionEnviroment.runProgram();
 }

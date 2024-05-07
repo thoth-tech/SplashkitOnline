@@ -53,6 +53,10 @@ button:hover {
     background-color: #404040;
 }
 
+a:visited {
+    color: #0A0;
+}
+
 .sk-body {
     position: relative;
     box-sizing: border-box;
