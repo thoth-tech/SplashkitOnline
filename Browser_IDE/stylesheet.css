@@ -180,6 +180,7 @@ textarea {
     right: 3em;
     left: 3em;
     bottom: 3em;
+    z-index: 10;
 }
 
 .sk-notification-body {
