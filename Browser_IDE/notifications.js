@@ -21,6 +21,7 @@ function displayEditorNotification(message, icon=NotificationIcons.NONE, timeout
     let notificationText = elem("div", { class: "sk-notification-body" }, [elemFromText(message)]);
 
     let notificationCloseButton = elem("button", { class: "bi bi-x-lg" });
+    let notificationCloseButtonWrapper = elem("div", {}, [notificationCloseButton]);
 
     let notification = elem("div", {
         class: "sk-contents sk-notification",
@@ -30,7 +31,7 @@ function displayEditorNotification(message, icon=NotificationIcons.NONE, timeout
     }, [
         notificationIcon,
         notificationText,
-        notificationCloseButton
+        notificationCloseButtonWrapper
     ]);
 
     // setup functions for interaction
