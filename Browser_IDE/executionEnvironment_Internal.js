@@ -237,7 +237,7 @@ function ReportError(block, message, line){
         block = block.slice(userCodeBlockIdentifier.length);
     }
 
-    document.getElementById("output").value += "("+block+") "+message+"\n";
+    writeTerminal("\x1b[0m\x1b[31m" + "(" + block + ") " + message + "\x1b[0m");
     parent.postMessage({
         type: "error",
         block: block,
