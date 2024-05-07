@@ -51,33 +51,42 @@ function writeTerminal(text){
 
         let sections = text.split("\x1b[");
 
+        // We can immediately insert all the text before the first control sequence,
+        // as no styling needs to be changed yet.
         terminalHead.innerHTML += sections[0];
         sections.splice(0, 1);
                             
         sections = sections.map(s => {
             let i = s.indexOf("m");
-            return [s.substring(0, i), s.substring(i+1)]
+
+            // Each section has the form: (format codes list, text)
+            return [s.substring(0, i).split(";"), s.substring(i+1)]
         });
 
         for(let section of sections){
-            let fmtCodes = section[0].split(";");
+            let fmtCodes = section[0];
+            let fmtText = section[1];
 
             if(fmtCodes.includes("0")){
+                // SGR code 0 resets all styling.
                 terminalHead = terminalTop;
             } else {
 
                 let fmtClasses = fmtCodes.map(s => "sk-term-fmt-code" + s)
-                                            .filter(s => !terminalHead.classList.contains(s));
+                                         .filter(s => !terminalHead.classList.contains(s));
+                // Only concern ourself with styles that aren't already applied.
 
                 if(fmtClasses.length > 0){
                     let newSpan = document.createElement("span");
                     newSpan.classList.add(...fmtClasses);
                     terminalHead.appendChild(newSpan);
                     terminalHead = newSpan;
+                    // Styling cascades, so we take advantage of this by creating
+                    // the new span inside the previous one.
                 }
             }
 
-            terminalHead.innerHTML += section[1];
+            terminalHead.innerHTML += fmtText;
         }
 
         terminalHead.innerHTML += "<br>";
