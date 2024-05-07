@@ -26,61 +26,61 @@ let terminalHead = undefined;
 let terminalTop = undefined;
 
 function clearTerminal() {
-	terminalElement.innerHTML = "";
+    terminalElement.innerHTML = "";
     terminalHead = terminalElement.appendChild(document.createElement('span'));
-	terminalTop = terminalHead;
+    terminalTop = terminalHead;
 }
 clearTerminal();
 
 moduleEvents.addEventListener("print", async function(ev) {
-	writeTerminal(ev.text);
+    writeTerminal(ev.text);
 });
 
 
 function writeTerminal(text){
-	if (terminalElement) {
-		if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
-		
-		console.log(text);
-		
-		// These replacements are necessary if you render to raw HTML
-		text = text.replace(/&/g, "&amp;");
-		text = text.replace(/</g, "&lt;");
-		text = text.replace(/>/g, "&gt;");
-		text = text.replace('\n', '<br>', 'g');
+    if (terminalElement) {
+        if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
+        
+        console.log(text);
+        
+        // These replacements are necessary if you render to raw HTML
+        text = text.replace(/&/g, "&amp;");
+        text = text.replace(/</g, "&lt;");
+        text = text.replace(/>/g, "&gt;");
+        text = text.replace('\n', '<br>', 'g');
 
-		let sections = text.split("\x1b[");
+        let sections = text.split("\x1b[");
 
-		terminalHead.innerHTML += sections[0];
-		sections.splice(0, 1);
-							
-		sections = sections.map(s => s.split("m"))
-						   .map(s => [s[0], s.slice(1).join("m")]);
+        terminalHead.innerHTML += sections[0];
+        sections.splice(0, 1);
+                            
+        sections = sections.map(s => s.split("m"))
+                           .map(s => [s[0], s.slice(1).join("m")]);
 
-		for(let section of sections){
-			let fmtCodes = section[0].split(";");
+        for(let section of sections){
+            let fmtCodes = section[0].split(";");
 
-			if(fmtCodes.includes("0")){
-				terminalHead = terminalTop;
-			} else {
+            if(fmtCodes.includes("0")){
+                terminalHead = terminalTop;
+            } else {
 
-				let fmtClasses = fmtCodes.map(s => "sk-term-fmt-code" + s)
-											.filter(s => !terminalHead.classList.contains(s));
+                let fmtClasses = fmtCodes.map(s => "sk-term-fmt-code" + s)
+                                            .filter(s => !terminalHead.classList.contains(s));
 
-				if(fmtClasses.length > 0){
-					let newSpan = document.createElement("span");
-					newSpan.classList.add(...fmtClasses);
-					terminalHead.appendChild(newSpan);
-					terminalHead = newSpan;
-				}
-			}
+                if(fmtClasses.length > 0){
+                    let newSpan = document.createElement("span");
+                    newSpan.classList.add(...fmtClasses);
+                    terminalHead.appendChild(newSpan);
+                    terminalHead = newSpan;
+                }
+            }
 
-			terminalHead.innerHTML += section[1];
-		}
+            terminalHead.innerHTML += section[1];
+        }
 
-		terminalHead.innerHTML += "<br>";
-		terminalElement.scrollTop = terminalElement.scrollHeight; // focus on bottom
-	}
+        terminalHead.innerHTML += "<br>";
+        terminalElement.scrollTop = terminalElement.scrollHeight; // focus on bottom
+    }
 }
 
 let isInitialized = false;
