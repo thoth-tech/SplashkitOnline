@@ -171,6 +171,31 @@ textarea {
 }
 
 
+.sk-notification-area {
+    position: absolute;
+    right: 3em;
+    left: 3em;
+    bottom: 3em;
+}
+
+.sk-notification-body {
+    margin: 0px 5em 0px 1.5em;
+    flex-grow: 1;
+}
+
+.sk-notification {
+    box-shadow: rgba(0,0,0,0.7) 4px 4px 10px 0px;
+    padding: 1em;
+    display: flex;
+    flex-direction: row;
+    width: 30em;
+    max-width: 100%;
+    margin-top: 1em;
+    transition: opacity 0.5s;
+    opacity: 1;
+    margin-left: auto;
+}
+
 
 .node{
     color:#f8f8f2;
