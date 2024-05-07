@@ -47,8 +47,14 @@ function writeTerminal(text){
 
 		let sections = text.split("\x1b[")
 							.filter(s => s)
-							.map(s => s.split("m"));
+							.map(s => s.split("m"))
+							.map(s => s.length > 1 ? 
+								[s[0], s.slice(1).join("m")] 
+								: s 
+							);
 		
+		console.log(sections);
+
 		for(let section of sections){
 			if(section.length == 1){
 				terminalHead.innerHTML += section[0];
