@@ -49,15 +49,13 @@ function writeTerminal(text){
 		text = text.replace(/>/g, "&gt;");
 		text = text.replace('\n', '<br>', 'g');
 
-		let sections = text.split("\x1b[")
-							.filter(s => s)
-							.map(s => s.split("m"))
-							.map(s => s.length > 1 ? 
-								[s[0], s.slice(1).join("m")] 
-								: s 
-							);
-		
-		console.log(sections);
+		let sections = text.split("\x1b[");
+
+		terminalHead.innerHTML += sections[0];
+		sections.splice(0, 1);
+							
+		sections = sections.map(s => s.split("m"))
+						   .map(s => [s[0], s.slice(1).join("m")]);
 
 		for(let section of sections){
 			if(section.length == 1){
