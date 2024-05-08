@@ -54,7 +54,7 @@ function writeTerminal(text){
         let sections = text.split("\x1b[");
 
         let newTerminalHead = document.createElement("div");
-        let curFmtClasses = terminalHead.lastChild.previousSibling.className.split(",").filter(s=>s);
+        let curFmtClasses = terminalHead.lastChild.previousSibling.className.split(/,| /).filter(s=>s);
 
         // We can immediately insert all the text before the first control sequence,
         // as no styling needs to be changed yet.
@@ -72,7 +72,7 @@ function writeTerminal(text){
             let fmtCodes = section[0];
             let fmtText = section[1];
 
-            curFmtClasses = newTerminalHead.lastChild.className.split(",").filter(s=>s);
+            curFmtClasses = newTerminalHead.lastChild.className.split(/,| /).filter(s=>s);
 
             if(fmtCodes.includes("0")){
                 // SGR code 0 resets all styling.
