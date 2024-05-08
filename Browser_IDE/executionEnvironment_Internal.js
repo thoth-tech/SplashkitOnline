@@ -398,7 +398,7 @@ window.addEventListener('message', function(m){
                 // If we got a syntax error from Babel, we know the browser can't return a more user friendly
                 // one since it didn't report one initially. So for now just report Unknown error.
                 // TODO: Report Babel's syntax error.
-                ReportError(userCodeBlockIdentifier+m.data.name, "Unknown syntax error.", null);
+                ReportError(userCodeBlockIdentifier+m.data.name, "Syntax error in code block: " + e.message, null);
             }
         }
     
@@ -425,57 +425,119 @@ window.addEventListener('message', function(m){
     
         // --- FS Handling ---
         if (m.data.type == "mkdir"){
-            FS.mkdir(m.data.path);
-        }
-    
-        if (m.data.type == "writeFile"){
-            FS.writeFile(m.data.path,m.data.data);
-        }
-    
-        if (m.data.type == "rename"){
-            FS.rename(m.data.oldPath,m.data.newPath);
-        }
-
-        if (m.data.type == "unlink"){
-            FS.unlink(m.data.path);
-        }
-        
-        if (m.data.type == "rmdir"){
-            if(m.data.recursive){
-                let deleteContentsRecursive = function(p){
-                    let entries = FS.readdir(p);
-                    for(let entry of entries){
-                        if(entry == "." || entry == "..")
-                            continue;
-                        // All directories contain a reference to themself
-                        // and to their parent directory. Ignore them.
-    
-                        let entryPath = p + "/" + entry;
-                        let entryStat = FS.stat(entryPath, false);
-    
-                        if(FS.isDir(entryStat.mode)){
-                            deleteContentsRecursive(entryPath);
-                            FS.rmdir(entryPath);
-                        } else if(FS.isFile(entryStat.mode)){
-                            FS.unlink(entryPath);
-                        }
-                        
-                    }
-                }
-                deleteContentsRecursive(m.data.path);
-                FS.rmdir(m.data.path);
-                // FS.rmdir expects the directory to be empty
-                // and will throw an error if it is not.
-            } else {
-                FS.rmdir(m.data.path);
+            try {
+                FS.mkdir(m.data.path);
+                parent.postMessage({
+                    type: "callback",
+                    callbackID: m.data.callbackID,
+                    error: undefined,
+                }, "*");
+            } catch (err) {
+                parent.postMessage({
+                    type: "callback",
+                    callbackID: m.data.callbackID,
+                    error: `Error creating directory '${m.data.path}': ${err.message}`,
+                }, "*");
             }
         }
     
-        if('callbackID' in m.data){
+        if (m.data.type == "writeFile"){
+            try {
+                FS.writeFile(m.data.path, m.data.data);
+                parent.postMessage({
+                    type: "callback",
+                    callbackID: m.data.callbackID,
+                    error: undefined,
+                }, "*");
+            } catch (err) {
+                parent.postMessage({
+                    type: "callback",
+                    callbackID: m.data.callbackID,
+                    error: `Error writing to file '${m.data.path}': ${err.message}`,
+                }, "*");
+            }
+        }
+    
+        if (m.data.type == "rename"){
+            try {
+                FS.rename(m.data.oldPath, m.data.newPath);
+                parent.postMessage({
+                    type: "callback",
+                    callbackID: m.data.callbackID,
+                    error: undefined,
+                }, "*");
+            } catch (err) {
+                parent.postMessage({
+                    type: "callback",
+                    callbackID: m.data.callbackID,
+                    error: `Error renaming from '${m.data.oldPath}' to '${m.data.newPath}': ${err.message}`,
+                }, "*");
+            }
+        }
+
+        if (m.data.type == "unlink"){
+            try {
+                FS.unlink(m.data.path);
+                parent.postMessage({
+                    type: "callback",
+                    callbackID: m.data.callbackID,
+                    error: undefined,
+                }, "*");
+            } catch (err) {
+                parent.postMessage({
+                    type: "callback",
+                    callbackID: m.data.callbackID,
+                    error: `Error deleting file '${m.data.path}': ${err.message}`,
+                }, "*");
+            }
+        }
+        
+        if (m.data.type == "rmdir"){
+            try {
+                if(m.data.recursive){
+                    let deleteContentsRecursive = function(p){
+                        let entries = FS.readdir(p);
+                        for(let entry of entries){
+                            if(entry == "." || entry == "..")
+                                continue;
+                            // All directories contain a reference to themself
+                            // and to their parent directory. Ignore them.
+    
+                            let entryPath = p + "/" + entry;
+                            let entryStat = FS.stat(entryPath, false);
+    
+                            if(FS.isDir(entryStat.mode)){
+                                deleteContentsRecursive(entryPath);
+                                FS.rmdir(entryPath);
+                            } else if(FS.isFile(entryStat.mode)){
+                                FS.unlink(entryPath);
+                            }
+                        }
+                    }
+                    deleteContentsRecursive(m.data.path);
+                }
+                FS.rmdir(m.data.path);
+                // FS.rmdir expects the directory to be empty
+                // and will throw an error if it is not.
+                parent.postMessage({
+                    type: "callback",
+                    callbackID: m.data.callbackID,
+                    error: undefined,
+                }, "*");
+            } catch (err) {
+                parent.postMessage({
+                    type: "callback",
+                    callbackID: m.data.callbackID,
+                    error: `Error removing directory '${m.data.path}': ${err.message}`,
+                }, "*");
+            }
+        }
+    
+        if('callbackID' in m.data && !m.data.type.startsWith("callback")){
             parent.postMessage({
                 type: "callback",
                 callbackID: m.data.callbackID,
-                error: undefined,
+                error: "Operation completed without any error.",
             }, "*");
         }
     

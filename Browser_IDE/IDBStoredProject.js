@@ -148,67 +148,90 @@ class __IDBStoredProjectRW{
 
 
     // File System Related
-    async mkdir(path){
+    async mkdir(path) {
         let IDBSP = this;
-        let dirName = this.pathFileName(path);
-        await this.doTransaction("files", "readwrite", async function(t, files){
-            let parentNode = await IDBSP.getNodeFromPath(t, files, IDBSP.pathDirName(path));
-            if (parentNode != null && await IDBSP.getChildNodeWithName(t, files, parentNode, dirName) == null){
+        try {
+            await this.doTransaction("files", "readwrite", async function(t, files) {
+                let parentNode = await IDBSP.getNodeFromPath(t, files, IDBSP.pathDirName(path));
+                let dirName = IDBSP.pathFileName(path);
+                if (parentNode == null || await IDBSP.getChildNodeWithName(t, files, parentNode, dirName) != null)
+                    throw new Error("Directory already exists or invalid path");
+    
                 await IDBSP.makeNode(t, files, dirName, "DIR", null, parentNode);
                 let ev = new Event("onMakeDirectory");
                 ev.path = path;
                 IDBSP.owner.dispatchEvent(ev);
-            }
-        });
+            });
+        } catch (err) {
+            let ev = new CustomEvent("onMakeDirectoryFailed");
+            ev.path = path;
+            ev.error = err;
+            IDBSP.owner.dispatchEvent(ev);
+        }
     }
+    
 
     async writeFile(path, data){
         let IDBSP = this;
         let fileName = this.pathFileName(path);
-        await this.doTransaction("files", "readwrite", async function(t, files){
-            let parentNode = await IDBSP.getNodeFromPath(t, files, IDBSP.pathDirName(path));
-            if (parentNode != null){
-                let node = await IDBSP.getChildNodeWithName(t, files, parentNode, fileName);
-                if (node == null){
-                    await IDBSP.makeNode(t, files, fileName, "FILE", data, parentNode);
+        try {
+            await this.doTransaction("files", "readwrite", async function(t, files){
+                let parentNode = await IDBSP.getNodeFromPath(t, files, IDBSP.pathDirName(path));
+                if (parentNode != null){
+                    let node = await IDBSP.getChildNodeWithName(t, files, parentNode, fileName);
+                    if (node == null){
+                        await IDBSP.makeNode(t, files, fileName, "FILE", data, parentNode);
+                    }
+                    else{
+                        let nodeInt = await IDBSP.getNode(t, files, node);
+                        await IDBSP.replaceNode(t, files, nodeInt.nodeId, nodeInt.name, nodeInt.type, data, nodeInt.parent);
+                    }
+                    let ev = new Event("onWriteToFile");
+                    ev.path = path;
+                    IDBSP.owner.dispatchEvent(ev);
                 }
-                else{
-                    let nodeInt = await IDBSP.getNode(t, files, node);
-                    await IDBSP.replaceNode(t, files, nodeInt.nodeId, nodeInt.name, nodeInt.type, data, nodeInt.parent);
-                }
-                let ev = new Event("onOpenFile");
-                ev.path = path;
-                IDBSP.owner.dispatchEvent(ev);
-                ev = new Event("onWriteToFile");
-                ev.path = path;
-                IDBSP.owner.dispatchEvent(ev);
-            }
-        });
-    }
+            });
+        } catch (err) {
+            let ev = new CustomEvent("onWriteFileFailed");
+            ev.path = path;
+            ev.error = err;
+            IDBSP.owner.dispatchEvent(ev);
+        }
+    }    
 
     async rename(oldPath, newPath){
         let IDBSP = this;
         let oldPath_dir = this.pathDirName(oldPath);
         let newPath_dir = this.pathDirName(newPath);
         let newPath_name = this.pathFileName(newPath);
-        await this.doTransaction("files", "readwrite", async function(t, files){
-            let node = await IDBSP.getNodeFromPath(t, files, oldPath);
-            if (node != null){
-                let nodeInt = await IDBSP.getNode(t, files, node);
-                if (oldPath_dir != newPath_dir){
-                    let newPath_Node = await IDBSP.getNodeFromPath(t, files, newPath_dir);
-                    if (newPath_Node == null)
-                        return;
-                    nodeInt.parent = newPath_Node;
+        try {
+            await this.doTransaction("files", "readwrite", async function(t, files){
+                let node = await IDBSP.getNodeFromPath(t, files, oldPath);
+                if (node != null){
+                    let nodeInt = await IDBSP.getNode(t, files, node);
+                    if (oldPath_dir != newPath_dir){
+                        let newPath_Node = await IDBSP.getNodeFromPath(t, files, newPath_dir);
+                        if (newPath_Node == null)
+                            throw new Error("New path does not exist");
+                        nodeInt.parent = newPath_Node;
+                    }
+                    await IDBSP.replaceNode(t, files, nodeInt.nodeId, newPath_name, nodeInt.type, nodeInt.data, nodeInt.parent);
+                } else {
+                    throw new Error("Old path does not exist");
                 }
-                await IDBSP.replaceNode(t, files, nodeInt.nodeId, newPath_name, nodeInt.type, nodeInt.data, nodeInt.parent);
-                let ev = new Event("onMovePath");
-                ev.oldPath = oldPath;
-                ev.newPath = newPath;
-                IDBSP.owner.dispatchEvent(ev);
-            }
-        });
-    }
+            });
+            let ev = new Event("onMovePath");
+            ev.oldPath = oldPath;
+            ev.newPath = newPath;
+            IDBSP.owner.dispatchEvent(ev);
+        } catch (err) {
+            let ev = new CustomEvent("onRenameFailed");
+            ev.oldPath = oldPath;
+            ev.newPath = newPath;
+            ev.error = err;
+            IDBSP.owner.dispatchEvent(ev);
+        }
+    }    
 
     async readFile(path){
         let IDBSP = this;
@@ -220,64 +243,66 @@ class __IDBStoredProjectRW{
         });
     }
 
-    async unlink(path){
+    async unlink(path) {
         let IDBSP = this;
-        await this.doTransaction("files", "readwrite", async function(t, files){
-            let nodeId = await IDBSP.getNodeFromPath(t, files, path);
-            if (nodeId == null)
-                return;
-
-            await IDBSP.deleteNode(t, files, nodeId);
-            
+        try {
+            await this.doTransaction("files", "readwrite", async function(t, files) {
+                let nodeId = await IDBSP.getNodeFromPath(t, files, path);
+                if (nodeId == null)
+                    throw new Error("File not found");
+    
+                await IDBSP.deleteNode(t, files, nodeId);
+            });
             let ev = new Event("onDeletePath");
             ev.path = path;
             IDBSP.owner.dispatchEvent(ev);
-        });
+        } catch (err) {
+            let ev = new CustomEvent("onDeleteFileFailed");
+            ev.path = path;
+            ev.error = err;
+            IDBSP.owner.dispatchEvent(ev);
+        }
     }
+    
 
-    async rmdir(path, recursive = false){
+    async rmdir(path, recursive = false) {
         let IDBSP = this;
-        await this.doTransaction("files", "readwrite", async function(t, files){
-
-            let deleteRecursive = async function(t, files, nodeId, nodePath){
-                let childNodes = await IDBSP.getChildNodes(t, files, nodeId);
-                for(let childNode of childNodes){
-                    if(childNode == null)
-                        continue;
-
-                    if(childNode.type == "FILE"){
-                        await IDBSP.deleteNode(t, files, childNode.nodeId);
-
-                        let ev = new Event("onDeletePath");
-                        ev.path = nodePath+"/"+childNode.name;
-                        IDBSP.owner.dispatchEvent(ev);
-                    }
-                    if(childNode.type == "DIR"){
-                        await deleteRecursive(t, files, childNode.nodeId, nodePath+"/"+childNode.name);
-                    }
+        try {
+            await this.doTransaction("files", "readwrite", async function(t, files) {
+                let nodeId = await IDBSP.getNodeFromPath(t, files, path);
+                if (nodeId == null)
+                    throw new Error("Directory not found");
+    
+                if (recursive) {
+                    await IDBSP.deleteRecursive(t, files, nodeId, path);
+                } else {
+                    await IDBSP.deleteNode(t, files, nodeId);
                 }
-
-                await IDBSP.deleteNode(t, files, nodeId);
-
-                let ev = new Event("onDeletePath");
-                ev.path = nodePath;
-                IDBSP.owner.dispatchEvent(ev);
+            });
+            let ev = new Event("onDeletePath");
+            ev.path = path;
+            IDBSP.owner.dispatchEvent(ev);
+        } catch (err) {
+            let ev = new CustomEvent("onDeleteDirectoryFailed");
+            ev.path = path;
+            ev.error = err;
+            IDBSP.owner.dispatchEvent(ev);
+        }
+    }
+    
+    async deleteRecursive(t, files, nodeId, nodePath) {
+        let IDBSP = this;
+        let childNodes = await IDBSP.getChildNodes(t, files, nodeId);
+        for (let childNode of childNodes) {
+            let childPath = nodePath + "/" + childNode.name;
+            if (childNode.type === "DIR") {
+                await IDBSP.deleteRecursive(t, files, childNode.nodeId, childPath);
             }
-
-            let nodeId = await IDBSP.getNodeFromPath(t, files, path);
-            if (nodeId == null)
-                return;
-
-            if(recursive){
-                deleteRecursive(t, files, nodeId, path);
-            } else {
-                await IDBSP.deleteNode(t, files, nodeId);
-            
-                let ev = new Event("onDeletePath");
-                ev.path = path;
-                IDBSP.owner.dispatchEvent(ev);
-            }
-        });
+            await IDBSP.deleteNode(t, files, childNode.nodeId);
+            let ev = new Event("onDeletePath");
+            ev.path = childPath;
+            IDBSP.owner.dispatchEvent(ev);
+        }
     }
    
     getAllFilesRaw(){
