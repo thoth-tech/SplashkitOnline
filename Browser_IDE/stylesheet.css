@@ -493,10 +493,6 @@ li.CodeMirror-hint-active {
     display: none;
 }
 
-#output span {
-    display: contents;
-}
-
 .sk-term-fmt-code1 {font-weight: bold;}
 .sk-term-fmt-code3 {font-style: italic;}
 .sk-term-fmt-code4 {text-decoration: underline;}
