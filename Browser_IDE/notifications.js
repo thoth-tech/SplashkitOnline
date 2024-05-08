@@ -34,16 +34,23 @@ function displayEditorNotification(message, icon=NotificationIcons.NONE, timeout
         notificationCloseButtonWrapper
     ]);
 
+    let timeoutID = null;
+
     // setup functions for interaction
     let deleteNotification = function (){
         notification.style.pointerEvents = "none";
-        notification.style.opacity = 0;
+        // fadeout to _almost_ fully transparent,
+        // to avoid frames where it's invisible
+        // yet still taking space
+        notification.style.opacity = 0.02;
 
-        clearTimeout(timeoutFunc);
+        clearTimeout(timeoutID);
 
-        setTimeout(function(){
-            notificationsArea.removeChild(notification);
-        }, 400 /*synchronized to end just before css transition*/);
+        // once the fadeout ends, remove the element
+        notification.addEventListener('transitionend', function(event){
+            if (event.propertyName == 'opacity')
+                notificationsArea.removeChild(notification);
+        });
     }
 
     let timeoutFunc = function() {
@@ -65,7 +72,7 @@ function displayEditorNotification(message, icon=NotificationIcons.NONE, timeout
 
     // add it to the page
     if (timeout > 0)
-        setTimeout(timeoutFunc, timeout * 1000);
+        timeoutID = setTimeout(timeoutFunc, timeout * 1000);
     notificationsArea.appendChild(notification);
 
     return notification;

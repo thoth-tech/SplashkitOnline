@@ -196,7 +196,7 @@ textarea {
     width: 30em;
     max-width: 100%;
     margin-top: 1em;
-    transition: opacity 0.5s;
+    transition: opacity 0.4s;
     opacity: 1;
     margin-left: auto;
 }
