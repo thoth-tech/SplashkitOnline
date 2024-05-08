@@ -23,12 +23,11 @@ function findAsyncFunctionConstructorLineOffset(){
 
 let terminalElement = document.getElementById('output');
 let terminalHead = undefined;
-let terminalTop = undefined;
 
 function clearTerminal() {
     terminalElement.innerHTML = "";
-    terminalHead = terminalElement.appendChild(document.createElement('span'));
-    terminalTop = terminalHead;
+    terminalElement.insertAdjacentHTML('beforeend', "<div><span></span><br></div>");
+    terminalHead = terminalElement.lastChild;
 }
 clearTerminal();
 
@@ -36,12 +35,15 @@ moduleEvents.addEventListener("print", async function(ev) {
     writeTerminal(ev.text);
 });
 
+function writeTerminalSpan(head, text, classList){
+    let el = head.appendChild(document.createElement('span'));
+    el.classList.add(...classList);
+    el.innerHTML = text;
+}
 
 function writeTerminal(text){
     if (terminalElement) {
         if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
-        
-        console.log(text);
         
         // These replacements are necessary if you render to raw HTML
         text = text.replace(/&/g, "&amp;");
@@ -51,9 +53,12 @@ function writeTerminal(text){
 
         let sections = text.split("\x1b[");
 
+        let newTerminalHead = document.createElement("div");
+        let curFmtClasses = terminalHead.lastChild.previousSibling.className.split(",").filter(s=>s);
+
         // We can immediately insert all the text before the first control sequence,
         // as no styling needs to be changed yet.
-        terminalHead.innerHTML += sections[0];
+        writeTerminalSpan(newTerminalHead, sections[0], curFmtClasses);
         sections.splice(0, 1);
                             
         sections = sections.map(s => {
@@ -67,29 +72,25 @@ function writeTerminal(text){
             let fmtCodes = section[0];
             let fmtText = section[1];
 
+            curFmtClasses = newTerminalHead.lastChild.className.split(",").filter(s=>s);
+
             if(fmtCodes.includes("0")){
                 // SGR code 0 resets all styling.
-                terminalHead = terminalTop;
-            } else {
-
-                let fmtClasses = fmtCodes.map(s => "sk-term-fmt-code" + s)
-                                         .filter(s => !terminalHead.classList.contains(s));
-                // Only concern ourself with styles that aren't already applied.
-
-                if(fmtClasses.length > 0){
-                    let newSpan = document.createElement("span");
-                    newSpan.classList.add(...fmtClasses);
-                    terminalHead.appendChild(newSpan);
-                    terminalHead = newSpan;
-                    // Styling cascades, so we take advantage of this by creating
-                    // the new span inside the previous one.
-                }
+                curFmtClasses = [];
             }
 
-            terminalHead.innerHTML += fmtText;
+            let fmtClasses = fmtCodes.map(s => "sk-term-fmt-code" + s);
+            fmtClasses = fmtClasses.filter(s => !curFmtClasses.includes(s));
+            // Only concern ourself with styles that aren't already applied.
+
+            writeTerminalSpan(newTerminalHead, fmtText, fmtClasses);
         }
 
-        terminalHead.innerHTML += "<br>";
+        newTerminalHead.appendChild(document.createElement("br"));
+
+        terminalHead = newTerminalHead;
+        terminalElement.appendChild(newTerminalHead);
+
         terminalElement.scrollTop = terminalElement.scrollHeight; // focus on bottom
     }
 }

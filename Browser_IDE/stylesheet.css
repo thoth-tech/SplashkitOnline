@@ -489,6 +489,13 @@ li.CodeMirror-hint-active {
   padding: var(--bs-modal-padding);
 }
 
+#output > div:first-child {
+    display: none;
+}
+
+#output span {
+    display: contents;
+}
 
 .sk-term-fmt-code1 {font-weight: bold;}
 .sk-term-fmt-code3 {font-style: italic;}
