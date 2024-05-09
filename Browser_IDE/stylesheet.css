@@ -520,3 +520,24 @@ li.CodeMirror-hint-active {
   flex: 1 1 auto;
   padding: var(--bs-modal-padding);
 }
+
+#output > div:first-child {
+    display: none;
+}
+
+.sk-term-fmt-code1 {font-weight: bold;}
+.sk-term-fmt-code3 {font-style: italic;}
+.sk-term-fmt-code4 {text-decoration: underline;}
+.sk-term-fmt-code9 {text-decoration: line-through;}
+.sk-term-fmt-code21, .sk-term-fmt-code22 {font-weight: normal;}
+.sk-term-fmt-code23 {font-style: normal;}
+.sk-term-fmt-code24, .sk-term-fmt-code29 {text-decoration: none;}
+
+.sk-term-fmt-code30, .sk-term-fmt-code90 {color: black;}
+.sk-term-fmt-code31, .sk-term-fmt-code91 {color: red;}
+.sk-term-fmt-code32, .sk-term-fmt-code92 {color: lime;}
+.sk-term-fmt-code33, .sk-term-fmt-code93 {color: yellow;}
+.sk-term-fmt-code34, .sk-term-fmt-code94 {color: blue;}
+.sk-term-fmt-code35, .sk-term-fmt-code95 {color: magenta;}
+.sk-term-fmt-code36, .sk-term-fmt-code96 {color: cyan;}
+.sk-term-fmt-code37, .sk-term-fmt-code97 {color: white;}

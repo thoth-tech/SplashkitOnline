@@ -4,23 +4,11 @@ var Module = {
     onRuntimeInitialized: (function() {
         moduleEvents.dispatchEvent(new Event("onRuntimeInitialized"));
     }),
-    print: (function() {
-        let element = document.getElementById('output');
-        if (element) element.value = ''; // clear browser cache
-        return function(text) {
-            if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
-            // These replacements are necessary if you render to raw HTML
-            //text = text.replace(/&/g, "&amp;");
-            //text = text.replace(/</g, "&lt;");
-            //text = text.replace(/>/g, "&gt;");
-            //text = text.replace('\n', '<br>', 'g');
-            console.log(text);
-            if (element) {
-                element.value += text + "\n";
-                element.scrollTop = element.scrollHeight; // focus on bottom
-            }
-        };
-    })(),
+    print: (function(text){
+        let ev = new Event("print");
+        ev.text = text;
+        window.dispatchEvent(ev);
+    }),
     canvas: (() => {
         let canvas = document.getElementById('canvas');
 
@@ -41,9 +29,7 @@ var Module = {
 };
 
 
-document.getElementById("canvas").addEventListener("click", async function () {
-    document.getElementById("canvas").focus();
-});
+
 
 
 

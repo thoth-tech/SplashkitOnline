@@ -21,10 +21,6 @@ function findAsyncFunctionConstructorLineOffset(){
     return newlineCount;
 }
 
-function clearTerminal() {
-    document.getElementById('output').value = '';
-}
-
 let isInitialized = false;
 
 moduleEvents.addEventListener("onRuntimeInitialized", function() {
@@ -154,28 +150,7 @@ moduleEvents.addEventListener("onRuntimeInitialized", function() {
     isInitialized = true;
 });
 
-// Convenience function for reporting errors, printing them to the terminal
-// and also sending a message to the main window.
-function ReportError(block, message, line){
-    if (line != null)
-        message = "Error on line "+line+": "+message;
 
-    if (!block.startsWith(userCodeBlockIdentifier)){
-        message = "Please file a bug report and send us the following info!\n    Error in file: "+block+"\n    "+message;
-        block = "Internal Error";
-    }
-    else{
-        block = block.slice(userCodeBlockIdentifier.length);
-    }
-
-    document.getElementById("output").value += "("+block+") "+message+"\n";
-    parent.postMessage({
-        type: "error",
-        block: block,
-        message: message,
-        line: line
-    },"*");
-}
 
 // ------ Code Running ------
 let finishResetNextRun = false;

@@ -21,7 +21,7 @@
 			<button id="clearButton" class="btn btn-outline-secondary btn-sm ms-2" onclick="clearTerminal()">Clear</button>
 		</div>
 		<div class="sk-contents">
-			<textarea id="output" class="sk-contents sk-contents-darker" readonly style="border:0; padding-left:1em; resize: none;"></textarea>
+			<div id="output" class="sk-contents sk-contents-darker" style="overflow-y: scroll; height:200px; border:0; padding-left:1em; resize: none;"></div>
 		</div>
 	</div>
 </body>
@@ -31,4 +31,5 @@
 <script src="fsevents.js"></script>
 <script src="executionEnvironment_CodeProcessor.js"></script>
 <script src="executionEnvironment_Internal.js"></script>
+<script src="executionEnvironment_Page.js"></script>
 </html>
