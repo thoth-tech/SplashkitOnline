@@ -316,48 +316,63 @@ class __IDBStoredProjectRW{
     // "Private" Methods
 
     // Transactions Wrappers - to make them promises
-    doTransaction(store, state, func)
+    async doTransaction(store, state, func)
     {
-        return new Promise((resolve, reject) => {
+        return await (new Promise(async (resolve, reject) => {
             let transaction = this.db.transaction(store, state);
             let files = transaction.objectStore(store);
-            let result = func(transaction, files);
+            let result = undefined;
+
+            try {
+                result = await func(transaction, files);
+            } catch(err){
+                reject(err);
+                return;
+            }
 
             transaction.onerror = function(){console.log("error");transaction.abort(); reject(transaction.error);};
             transaction.oncomplete = function(){resolve(result);};
-        });
+        }));
     }
-    request(transaction, func)
+    async request(transaction, func)
     {
-        return new Promise((resolve, reject) => {
-            let result = func();
-            result.onerror = function(){console.log("error");transaction.abort(); reject(result.error);};
-            result.onsuccess = function(){
-            resolve(result.result);};
-        });
+        return await (new Promise((resolve, reject) => {
+            let result = undefined;
+            
+            try {
+                result = func();
+            } catch(err){
+                reject(err);
+                return;
+            }
+
+            transaction.onerror = function(){console.log("error");transaction.abort(); reject(transaction.error);};
+            result.onsuccess = function(){resolve(result.result);};
+        }));
     }
 
     // Basic Node Handling
-    makeNode(transaction, files, name, type, data, parent){
+    async makeNode(transaction, files, name, type, data, parent){
         this.performedWrite = true;
-        return this.request(transaction, function(){
+        return await this.request(transaction, function(){
             return files.add({name:name, type:type, data:data, parent:parent});
         });
     }
-    replaceNode(transaction, files, nodeId, name, type, data, parent){
+    async replaceNode(transaction, files, nodeId, name, type, data, parent){
         this.performedWrite = true;
-        return this.request(transaction, function(){
+        return await this.request(transaction, function(){
             return files.put({nodeId:nodeId, name:name, type:type, data:data, parent:parent});
         });
     }
-    deleteNode(transaction, files, nodeId){
+    async deleteNode(transaction, files, nodeId){
         this.performedWrite = true;
-        return this.request(transaction, function(){
+        return await this.request(transaction, function(){
+            throw new Error("test deleteNode fail");
             return files.delete(nodeId);
         });
     }
-    getNode(transaction, files, nodeId){
-        return this.request(transaction, function(){
+    async getNode(transaction, files, nodeId){
+        return await this.request(transaction, function(){
             return files.get(nodeId);
         });
     }
