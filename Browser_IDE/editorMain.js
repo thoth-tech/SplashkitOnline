@@ -138,7 +138,7 @@ async function newProject(){
     disableCodeExecution();
     storedProject.detachFromProject();
     canMirror = false;
-    executionEnviroment.resetEnvironment();
+    await executionEnviroment.resetEnvironment();
     await storedProject.deleteProject("Untitled");
     haveMirrored = false;
     await storedProject.attachToProject("Untitled");
@@ -488,9 +488,10 @@ async function FSdownloadFile(filename, mime) {
 }
 
 
-async function downloadProject(){
-    downloadFileGeneric(await projectToZip(), "project.zip");
+async function downloadProject(projectName){
+    downloadFileGeneric(await projectToZip(), projectName + ".zip");
 }
+
 
 
 
@@ -503,7 +504,7 @@ async function uploadProjectFromInput(){
     projectFromZip(file);
 }
 document.getElementById("DownloadProject").addEventListener("click", async function (e) {
-    downloadProject();
+    downloadProject('MyProject');
     e.stopPropagation();
 });
 document.getElementById("UploadProject").addEventListener("click", function (e) {
