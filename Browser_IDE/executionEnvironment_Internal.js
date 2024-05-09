@@ -503,6 +503,14 @@ function postFSEvent(data){
     parent.postMessage({type:"FS", message:data},"*");
 }
 
+moduleEvents.addEventListener("onDownloadFail", function(e) {
+    parent.postMessage({type: "onDownloadFail", name: e.downloadName,
+                                                url: e.info.responseURL,
+                                                status: e.info.status,
+                                                statusText: e.info.statusText
+    }, "*");
+});
+
 moduleEvents.addEventListener("onRuntimeInitialized", function() {
     // Attach to file system callbacks
     FSEvents.addEventListener('onMovePath', function(e) {

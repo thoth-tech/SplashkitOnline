@@ -53,6 +53,10 @@ button:hover {
     background-color: #404040;
 }
 
+a:visited {
+    color: #0A0;
+}
+
 .sk-body {
     position: relative;
     box-sizing: border-box;
@@ -170,6 +174,34 @@ textarea {
     z-index:100;
 }
 
+
+.sk-notification-area {
+    position: absolute;
+    right: 3em;
+    left: 3em;
+    bottom: 3em;
+    z-index: 10;
+    pointer-events: none;
+}
+
+.sk-notification-body {
+    margin: 0px 5em 0px 1.5em;
+    flex-grow: 1;
+}
+
+.sk-notification {
+    box-shadow: rgba(0,0,0,0.7) 4px 4px 10px 0px;
+    padding: 1em;
+    display: flex;
+    flex-direction: row;
+    width: 30em;
+    max-width: 100%;
+    margin-top: 1em;
+    transition: opacity 0.4s;
+    opacity: 1;
+    margin-left: auto;
+    pointer-events: all;
+}
 
 
 .node{
