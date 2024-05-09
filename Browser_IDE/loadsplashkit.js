@@ -7,7 +7,7 @@ var Module = {
     print: (function(text){
         let ev = new Event("print");
         ev.text = text;
-        moduleEvents.dispatchEvent(ev);
+        window.dispatchEvent(ev);
     }),
     canvas: (() => {
         let canvas = document.getElementById('canvas');
@@ -29,9 +29,7 @@ var Module = {
 };
 
 
-document.getElementById("canvas").addEventListener("click", async function () {
-    document.getElementById("canvas").focus();
-});
+
 
 
 
