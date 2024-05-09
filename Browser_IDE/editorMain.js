@@ -9,12 +9,7 @@ function addNewEditor( codeblock_name,eleID,ExecutionEnvironment, StoredProject,
     let parts = filePath.split("/");
     let filename = parts[parts.length - 1];
     let elementID = document.getElementById(eleID);
-    if (!elementID) {
-        // Create new element if it doesn't exist
-        elementID = document.createElement('div'); // Create a new div element
-        elementID.id = eleID; // Set the id of the new element
-        document.body.appendChild(elementID); // Append the new element to the body of the document
-    }
+     
     let newEditorcl = new CodeEditor(filename,codeblock_name,elementID,ExecutionEnvironment, StoredProject,filePath);
     let newEditor = newEditorcl.editorout;
     editors.push(newEditor);
