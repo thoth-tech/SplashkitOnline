@@ -316,9 +316,9 @@ class __IDBStoredProjectRW{
     // "Private" Methods
 
     // Transactions Wrappers - to make them promises
-    async doTransaction(store, state, func)
+    doTransaction(store, state, func)
     {
-        return await (new Promise(async (resolve, reject) => {
+        return new Promise(async (resolve, reject) => {
             let transaction = this.db.transaction(store, state);
             let files = transaction.objectStore(store);
             let result = undefined;
@@ -332,11 +332,11 @@ class __IDBStoredProjectRW{
 
             transaction.onerror = function(){console.log("error");transaction.abort(); reject(transaction.error);};
             transaction.oncomplete = function(){resolve(result);};
-        }));
+        });
     }
-    async request(transaction, func)
+    request(transaction, func)
     {
-        return await (new Promise((resolve, reject) => {
+        return new Promise((resolve, reject) => {
             let result = undefined;
             
             try {
@@ -348,7 +348,7 @@ class __IDBStoredProjectRW{
 
             result.onerror = function(){console.log("error");transaction.abort(); reject(transaction.error);};
             result.onsuccess = function(){resolve(result.result);};
-        }));
+        });
     }
 
     // Basic Node Handling
