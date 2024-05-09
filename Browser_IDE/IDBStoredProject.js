@@ -367,7 +367,6 @@ class __IDBStoredProjectRW{
     async deleteNode(transaction, files, nodeId){
         this.performedWrite = true;
         return await this.request(transaction, function(){
-            throw new Error("test deleteNode fail");
             return files.delete(nodeId);
         });
     }
