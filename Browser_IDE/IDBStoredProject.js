@@ -346,7 +346,7 @@ class __IDBStoredProjectRW{
                 return;
             }
 
-            result.onerror = function(){console.log("error");transaction.abort(); reject(transaction.error);};
+            result.onerror = function(){console.log("error");transaction.abort(); reject(result.error);};
             result.onsuccess = function(){resolve(result.result);};
         });
     }
