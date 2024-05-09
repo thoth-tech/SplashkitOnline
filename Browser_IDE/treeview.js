@@ -530,6 +530,12 @@ class TreeView extends EventTarget{
                     deleteEv.treeView = boundTree;
                     deleteEv.path = boundTree.getFullPath(dir_node);
                     deleteEv.FS = boundTree.nodeGetFS(dir_node);
+                    deleteEv.onerror = (err)=>{
+                        let errEv = new Event("filesystemError");
+                        errEv.shortMessage = "Folder deletion failed";
+                        errEv.longMessage = "An error occured and the folder could not be deleted.\n\nReason:\n" + err;
+                        window.dispatchEvent(errEv);
+                    }
                     boundTree.dispatchEvent(deleteEv);
                 };
                 window.dispatchEvent(confirmEv);
@@ -591,6 +597,12 @@ class TreeView extends EventTarget{
                 deleteEv.treeView = boundTree;
                 deleteEv.path = boundTree.getFullPath(file_node_label);
                 deleteEv.FS = boundTree.nodeGetFS(file_node_label);
+                deleteEv.onerror = (err)=>{
+                    let errEv = new Event("filesystemError");
+                    errEv.shortMessage = "File deletion failed";
+                    errEv.longMessage = "An error occured and the file could not be deleted.\n\nReason:\n" + err;
+                    window.dispatchEvent(errEv);
+                }
                 boundTree.dispatchEvent(deleteEv);
             };
             window.dispatchEvent(confirmEv);
