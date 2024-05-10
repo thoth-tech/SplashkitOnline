@@ -1,39 +1,5 @@
 "use strict";
 
-// Temporary callbacks for inter-window messaging
-// Consider a better place to put this.
-
-let __tempCallbacks = new Map();
-let __nextTempCallbackID = 0; // I *believe* a global counter like this is safe.
-
-function registerTempCallback(callbackFn){
-    let callbackID = __nextTempCallbackID++;
-    __tempCallbacks[callbackID] = callbackFn;
-    return callbackID;
-}
-
-async function executeTempCallback(callbackID, error){
-    try {
-        await __tempCallbacks[callbackID](error);
-    } catch(e){
-        throw e;
-    } finally {
-        __tempCallbacks.delete(callbackID);
-    }
-}
-
-async function postMessageFallible(oWindow, message){
-    return new Promise((resolve, reject) => {
-        let _message = structuredClone(message);
-        _message.callbackID = registerTempCallback((error) => {
-            if(error !== undefined) reject(error);
-            else resolve();
-        });
-
-        oWindow.postMessage(_message, "*");
-    });
-}
-
 const ExecutionStatus = {
   Unstarted: 'Unstarted',
   Running: 'Running',
@@ -42,11 +8,13 @@ const ExecutionStatus = {
 
 class ExecutionEnvironment extends EventTarget{
 
-    constructor(container) {
+    constructor(container, language) {
         super();
 
+        this.language = language;
         this.container = container;
-        this.iFrame = this._constructiFrame(container);
+        this.iFrame = this._constructiFrame(container, language);
+
         let EE = this;
 
         this.hasRunOnce = false;
@@ -58,6 +26,14 @@ class ExecutionEnvironment extends EventTarget{
 
             if (data.type == "initialized"){
                 EE.dispatchEvent(new Event("initialized"));
+            } else if (data.type == "languageLoaderReady"){
+                EE.dispatchEvent(new Event("languageLoaderReady"));
+            }
+            else if (data.type == "executionEnvironmentGetFilesystemRequest"){
+                EE.dispatchEvent(new Event("getFilesystemRequest"));
+            }
+            else if (data.type == "executionEnvironmentReloadRequest"){
+                EE.resetEnvironment();
             }
             else if (data.type == "onDownloadFail"){
                 let ev = new Event("onDownloadFail");
@@ -65,6 +41,11 @@ class ExecutionEnvironment extends EventTarget{
                 ev.url = data.url;
                 ev.status = data.status;
                 ev.statusText = data.statusText;
+                EE.dispatchEvent(ev);
+            }
+            else if (data.type == "onCriticalInitializationFail"){
+                let ev = new Event("onCriticalInitializationFail");
+                ev.message = data.message
                 EE.dispatchEvent(ev);
             }
             else if (data.type == "error"){
@@ -75,7 +56,7 @@ class ExecutionEnvironment extends EventTarget{
                 EE.dispatchEvent(ev);
             }
             else if (data.type == "callback"){
-                executeTempCallback(data.callbackID, data.error);
+                executeTempCallback(data);
             }
             else if (data.type == "programStarted"){
                 EE.hasRunOnce = true;
@@ -132,29 +113,19 @@ class ExecutionEnvironment extends EventTarget{
     // Public Facing Methods
 
     // --- Code Execution Functions ---
-    // Code blocks can be run, that declare variables, functions, classes, etc.
-    // The program itself can then be run - this will call main().
-    // Code blocks can then be updated while the program ("main()") is running.
-    runCodeBlocks(blocks){
-        for (let block of blocks){
-            this.runCodeBlock(block.name, block.code);
-        }
-    }
 
-    runCodeBlock(block, source){
-        // Syntax check code - will throw if fails.
-        this._syntaxCheckCode(block, source);
-
+    hotReloadFile(block, source){
         this.iFrame.contentWindow.postMessage({
-            type: "RunCodeBlock",
+            type: "HotReloadFile",
             name: block,
             code: source,
         }, "*");
     }
 
-    runProgram(){
+    runProgram(program){
         this.iFrame.contentWindow.postMessage({
             type: "RunProgram",
+            program: program,
         }, "*");
     }
 
@@ -190,7 +161,7 @@ class ExecutionEnvironment extends EventTarget{
     // --- Environment Functions ---
 
     // Completely destroys and recreates the environment.
-    resetEnvironment(){
+    resetEnvironment(language=null){
         return new Promise((resolve,reject) => {
 
             this.iFrame.remove();
@@ -198,14 +169,20 @@ class ExecutionEnvironment extends EventTarget{
             let f = function(ev){this.removeEventListener("initialized", f);resolve();}
             this.addEventListener("initialized", f);
 
-            this.iFrame = this._constructiFrame(this.container);
+            if (language)
+                this.language = language;
+
+            this.iFrame = this._constructiFrame(this.container, this.language);
+
+            if (this.executionStatus != ExecutionStatus.Unstarted){
+                let ev = new Event("programStopped");
+                this.dispatchEvent(ev);
+            }
 
             this.executionStatus = ExecutionStatus.Unstarted;
             this.hasRunOnce = false;
 
-            let ev = new Event("programStopped");
-            this.dispatchEvent(ev);
-            setTimeout(function(){reject();}, 20000)
+            setTimeout(function(){reject();}, 20000);
         });
     }
 
@@ -253,89 +230,56 @@ class ExecutionEnvironment extends EventTarget{
         }, "*");
     }
 
-
-
-    // "Private" Methods
-
-    // The only cross browser way to syntax check the user's function
-    // and get a line number is to use window.onerror. Unfortunately,
-    // due to the sandboxed nature of the iFrame, the resulting information
-    // just becomes "Syntax error", with line/column as 0s. So we syntax
-    // check _outside_ the iFrame first.
-    // Once the code is running (inside the iFrame), the stack traces
-    // become more useful and can all be handled in there. It's only
-    // the syntax check that runs outside here, so this should be
-    // safe from a security point of view.
-
-    // Note: This function can only be called inside non-async functions!
-    // If called inside an async function, syntax errors will not propogate
-    // to the window.onerror handler.
-
-    _syntaxCheckCode(block, source){
-
-        let errorFunction = (errorEvent) => {
-            const {lineno, colno, message} = errorEvent;
-            errorEvent.preventDefault();
-
-            this.iFrame.contentWindow.postMessage({
-                type: "ReportError",
-                block: block,
-                line: lineno - userCodeStartLineOffset,
-                message: message,
-            }, "*");
-
-            window.removeEventListener('error', errorFunction);
-        }
-
-        window.addEventListener('error', errorFunction);
-
-        // Syntax check by creating a function based on the user's code
-        // Don't execute it here!
-        Object.getPrototypeOf(async function() {}).constructor(
-        "\"use strict\";"+source
-        );
-
-        // If there is a syntax error, this will not be reached
-        // So make sure we remove it in the `errorFunction`
-        // above too.
-        window.removeEventListener('error', errorFunction);
+    initializeFilesystem(folders, files){
+        this.iFrame.contentWindow.postMessage({
+            type: "initializeFilesystem",
+            folders: folders,
+            files: files,
+        }, "*");
     }
 
-    _constructiFrame(container){
+	reportError(file, lineNumber, message, formatted=false) {
+		this.iFrame.contentWindow.postMessage({
+			type: "ReportError",
+			block: file,
+			line: lineNumber,
+			message: message,
+			formatted: formatted,
+		}, "*");
+	}
+	writeToTerminal(message) {
+		this.iFrame.contentWindow.postMessage({
+			type: "WriteToTerminal",
+			message: message,
+		}, "*");
+	}
+
+    _constructiFrame(container, language){
 
         var iframe = document.createElement('iframe');
         iframe.id="iframetest";
-        iframe.sandbox = 'allow-scripts allow-modals';
+        if (language.needsSandbox)
+            iframe.sandbox = 'allow-scripts allow-modals';
 
         container.appendChild(iframe);
         iframe.src="executionEnvironment.html";
+
         iframe.style = "display: flex;flex: 1;/*! flex-grow: 1; */width: 100%;height: 100%;";
         iframe.focus();
+
+        let f = function(ev){
+            this.removeEventListener("languageLoaderReady", f);
+
+            // language must have a name, and a list of scripts to prepare itself
+            this.iFrame.contentWindow.postMessage({
+                type: "InitializeLanguage",
+                languageName: language.name,
+                runtimeFiles: language.runtimeFiles,
+            }, "*");
+        }
+        this.addEventListener("languageLoaderReady", f);
+
         return iframe;
     }
 
-}
-
-// Note: Brought across from executionEnvironment_Internal.js
-// I don't like the duplication, but unsure how to avoid it without
-// placing this single function inside another script file.
-
-let userCodeStartLineOffset = findAsyncFunctionConstructorLineOffset();
-
-// In Firefox at least, the AsyncFunction constructor appends two lines of code to
-// the start of the function.
-// So we'll detect where a dummy identifier inserted on the first line of the code
-//  is located (*/SK_ID*/), and update userCodeStartLineOffsets.
-// Could just set it to 2, but unsure if this is browser/source dependent or not.
-function findAsyncFunctionConstructorLineOffset(){
-    let identifier = "/*SK_ID*/";
-    let blockFunction = Object.getPrototypeOf(async function() {}).constructor(
-        "\"use strict\";"+identifier+"\n;"
-    );
-    let functionCode = blockFunction.toString();
-    let codeUntilIdentifier = functionCode.slice(0, functionCode.indexOf(identifier));
-    let newlines = codeUntilIdentifier.match(/\n/g);
-    let newlineCount = ((newlines==null)?0:newlines.length);
-
-    return newlineCount;
 }

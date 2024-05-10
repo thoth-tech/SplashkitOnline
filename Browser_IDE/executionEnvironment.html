@@ -8,7 +8,6 @@
     <title>SplashKit Runtime</title>
 
     <link rel="stylesheet" href="stylesheet.css">
-    <script src="babel/babel.js"></script>
 </head>
 
 <body class="sk-body">
@@ -21,15 +20,10 @@
 			<button id="clearButton" class="btn btn-outline-secondary btn-sm ms-2" onclick="clearTerminal()">Clear</button>
 		</div>
 		<div class="sk-contents">
-			<div id="output" class="sk-contents sk-contents-darker" style="overflow-y: scroll; height:200px; border:0; padding-left:1em; resize: none;"></div>
+			<div id="output" class="sk-contents sk-contents-darker sk-terminal"></div>
 		</div>
 	</div>
 </body>
 
-<script src="moduleEventTarget.js"></script>
-<script src="loadsplashkit.js"></script>
-<script src="fsevents.js"></script>
-<script src="executionEnvironment_CodeProcessor.js"></script>
-<script src="executionEnvironment_Internal.js"></script>
-<script src="executionEnvironment_Page.js"></script>
+<script src="runtimes/ExecutionEnvironmentInternalLoader.js"></script>
 </html>
