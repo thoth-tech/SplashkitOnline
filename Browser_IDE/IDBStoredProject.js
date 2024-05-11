@@ -30,6 +30,15 @@ class IDBStoredProject extends EventTarget{
 
         this.projectID = _projectID;
 
+		let _project = await this.storage.access(async (s) => {
+			return await s.getProject(_projectID);
+		});
+		if(!_project){
+			this.storage.access(async (s) => {
+				await s.createProject("New Project", _projectID);
+			})
+		}
+
         // Force an init by performing an empty DB operation
         await this.access(function(){});
 
@@ -138,6 +147,13 @@ class __IDBStoredProjectRW{
             this.db.close();
         this.db = null;
     }
+
+	async renameProject(newProjectName){
+		let IDBSP = this;
+		IDBSP.owner.storage.access(async (s) => {
+			await s.renameProject(IDBSP.owner.projectID, newProjectName);
+		});
+	}
 
     async getLastWriteTime(){
         let IDBSP = this;

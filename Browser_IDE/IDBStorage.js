@@ -187,6 +187,18 @@ class __IDBStorageRW{
         });
     }
 
+	async getProject(projectID){
+		let IDBS = this;
+		let project = await IDBS.doTransaction("userProjects", "readwrite", async (t, s) => {
+            let _project = await IDBS.request(t, async () => {
+                return s.get(projectID);
+            });
+            return _project;
+        });
+
+		return project;
+	}
+
     async createProject(projectName, projectID = null){
         projectID = projectID || Date.now(); // TODO: Generate IDs properly
 
@@ -211,6 +223,35 @@ class __IDBStorageRW{
 
         return projectID;
     }
+
+	async renameProject(projectID, newProjectName){
+		let IDBS = this;
+
+		let project = await IDBS.doTransaction("userProjects", "readwrite", async (t, s) => {
+            let _project = await IDBS.request(t, async () => {
+                return s.get(projectID);
+            });
+
+            await IDBS.request(t, () => {
+                return s.delete(projectID);
+            });
+
+            return _project;
+        });
+
+		await IDBS.doTransaction("userProjectMap", "readwrite", async (t, s) => {
+			await IDBS.request(t, async () => {
+				return s.delete(project.name);
+			});
+            await IDBS.request(t, async () => {
+                return s.put({
+                    name: newProjectName, 
+                    id: projectID
+                });
+            });
+        });
+        this.performedWrite = true;
+	}
 
     async deleteProject(projectID){
         let IDBS = this;
