@@ -50,12 +50,19 @@ class ExecutionEnvironmentInternalCXX extends ExecutionEnvironmentInternal{
         return super(listenOn);
     }
     async pauseProgram(){
+        clearInterval(this.keepAliveID);
+
         sendWorkerCommand("pause", {});
     }
     async continueProgram(){
         sendWorkerCommand("continue", {});
+
+        clearInterval(this.keepAliveID);
+        this.keepAliveID = setInterval(this.sendKeepAliveSignal, 500);
     }
     async stopProgram(){
+        clearInterval(this.keepAliveID);
+
         let boundThis = this;
         if (worker != null) {
             await new Promise((resolve,reject) => {
@@ -75,7 +82,14 @@ class ExecutionEnvironmentInternalCXX extends ExecutionEnvironmentInternal{
     async runProgram(program){
         await this.stopProgram();
         await this.signalStarted();
+
+        clearInterval(this.keepAliveID);
+        this.keepAliveID = setInterval(this.sendKeepAliveSignal, 500);
+
         RunProgram(program);
+    }
+    sendKeepAliveSignal(){
+        sendWorkerCommand("keepAlive", {});
     }
     resetExecutionScope(){
         // nothing to do...

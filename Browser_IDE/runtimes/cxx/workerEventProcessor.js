@@ -1,6 +1,9 @@
 minimumEventsCheckInterval = 0; // set to 0, so we always fetch user events.
 let nextEventsCheckTime = 0;
 
+// disable keepAlive system until we receive first keepAlive signal
+let lastKeepAlive = -1;
+
 let terminated = false;
 
 function postCustomMessage(data) {
@@ -16,7 +19,10 @@ function handleEvent([event, args]){
             postCustomMessage({
                 type: "ProgramPaused"
             });
-            pauseLoop();
+            pauseLoop('continue');
+            break;
+        case "keepAlive":
+            lastKeepAlive = performance.now();
             break;
         case "EmEvent":
             switch (args.target) {
@@ -73,6 +79,7 @@ function __sko_process_events(){
         return;
 
     let now = performance.now();
+
     if (now >= nextEventsCheckTime){
         nextEventsCheckTime = now + minimumEventsCheckInterval;
 
@@ -89,15 +96,20 @@ function __sko_process_events(){
         skipNextCommands = false;
     }
 
+    // if keep alive is active and it's been a while since we got a signal...
+    if (lastKeepAlive > 0 && lastKeepAlive + 1000 < now) {
+        pauseLoop('keepAlive', false);
+    }
 }
 
 // a busy loop for when paused
-function pauseLoop() {
+function pauseLoop(waitOn, reportContinue=true) {
     let paused = true;
     while (paused) {
         let programEvents = fetchEvents();
         for (let i = 0; i < programEvents.length; i ++) {
-            if (programEvents[i][0] == 'continue') {
+            if (programEvents[i][0] == waitOn) {
+                lastKeepAlive = performance.now();
                 paused = false;
             }
         }
@@ -105,9 +117,11 @@ function pauseLoop() {
         // making the service worker delay its
         // response a bit when paused.
     }
-    postCustomMessage({
-        type: "ProgramContinued"
-    });
+
+    if (reportContinue)
+        postCustomMessage({
+            type: "ProgramContinued"
+        });
 }
 
 // setup user program exit event
