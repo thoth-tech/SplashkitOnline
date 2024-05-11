@@ -21,7 +21,7 @@ function displayEditorNotification(message, icon=NotificationIcons.NONE, timeout
         if (icon == NotificationIcons.CRITICAL_ERROR)
             timeout = -1; // show indefinitely if critical error
         else
-            timeout = 5; // show for 5 seconds if info/warning
+            timeout = 1.5; // show for 1.5 seconds if info/warning
     }
 
     // construct notification
