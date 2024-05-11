@@ -46,7 +46,7 @@ class IDBStoredProject extends EventTarget{
         this.dispatchEvent(new Event("attached"));
 
         await this.appStorage.access(async (s) => {
-            await s.updateLastOpenProject(_projectID);
+            await s.updateLastOpenProject(this.projectID);
         });
     }
 
