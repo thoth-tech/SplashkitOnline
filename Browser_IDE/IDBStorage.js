@@ -163,7 +163,7 @@ class __IDBStorageRW{
     }
 
     async createProject(projectName, projectID = null){
-        projectID = projectID || "0"; // TODO: Generate IDs properly
+        projectID = projectID || Date.now(); // TODO: Generate IDs properly
 
         let IDBS = this;
         await IDBS.doTransaction("userProjects", "readwrite", async (t, s) => {
