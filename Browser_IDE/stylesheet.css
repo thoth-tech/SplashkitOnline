@@ -209,9 +209,9 @@ textarea {
     border:0;
     padding-left:1em;
     resize: none;
-    font-family:monospace;
-    font-size:14px;
-    white-space: pre;
+    font-family:monospace, serif;
+    white-space: pre-wrap;
+    background-color: #161616;
 }
 
 
