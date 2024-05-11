@@ -131,9 +131,11 @@ let currentLanguage = SplashKitOnlineLanguageDefinitions[SKO.language].setups[0]
 initializeLanguageCompilerFiles(currentLanguage);
 
 let executionEnviroment = new ExecutionEnvironment(document.getElementById("ExecutionEnvironment"), currentLanguage);
-let storedProject = new IDBStoredProject(currentLanguage.getDefaultProject());
+let appStorage = new AppStorage();
+appStorage.attach();
+let storedProject = new IDBStoredProject(appStorage, currentLanguage.getDefaultProject());
 let unifiedFS = new UnifiedFS(storedProject, executionEnviroment);
-storedProject.attachToProject("Untitled");
+storedProject.attachToProject();
 
 let haveMirrored = false;
 let canMirror = false;
@@ -147,13 +149,19 @@ async function newProject(){
 
     prepareIDEForLoading();
 
+    let projectID = storedProject.projectID;
+
     disableCodeExecution();
     storedProject.detachFromProject();
     canMirror = false;
     await executionEnviroment.resetEnvironment();
-    await storedProject.deleteProject("Untitled");
+    await storedProject.deleteProject(projectID);
     haveMirrored = false;
-    await storedProject.attachToProject("Untitled");
+    await storedProject.attachToProject(projectID);
+
+    await storedProject.access(async (project) => {
+        await project.renameProject("New Project");
+    });
 
     makingNewProject = false;
 }
