@@ -122,14 +122,23 @@ SwitchToTabs(tabs[0].contents.id);
 
 // ------ Setup Project and Execution Environment ------
 
-if (SplashKitOnlineLanguageDefinitions[SKO.language] == undefined) {
-    displayEditorNotification("Unable to switch to language "+SKO.language+", defaulting to JavaScript.", NotificationIcons.ERROR);
-    SKO.language = "JavaScript";
-}
+// decide which language to use
+let currentLanguage = null;
+if (SKO.language in SplashKitOnlineLanguageAliasMap) {
+    currentLanguage = SplashKitOnlineLanguageAliasMap[SKO.language].setups[0];
+} else {
+    currentLanguage = SplashKitOnlineLanguageAliasMap["JavaScript"].setups[0];
 
-let currentLanguage = SplashKitOnlineLanguageDefinitions[SKO.language].setups[0];
+    displayEditorNotification("Unable to switch to language "+SKO.language+", defaulting to JavaScript.", NotificationIcons.ERROR, -1);
+    displayEditorNotification("Available languages are: <br/><ul>"+
+        SplashKitOnlineLanguageDefinitions.map(val => `<li>${val.name}</li>`).join("")+
+        "</ul>", NotificationIcons.ERROR, -1
+    );
+}
+// initialize language
 initializeLanguageCompilerFiles(currentLanguage);
 
+// initialize execution environment and project storage objects
 let executionEnviroment = new ExecutionEnvironment(document.getElementById("ExecutionEnvironment"), currentLanguage);
 let appStorage = new AppStorage();
 appStorage.attach();
