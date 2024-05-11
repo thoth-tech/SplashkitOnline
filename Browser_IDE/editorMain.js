@@ -138,7 +138,7 @@ async function newProject(){
         return;
     makingNewProject = true;
 
-	let projectID = storedProject.projectID;
+    let projectID = storedProject.projectID;
 
     disableCodeExecution();
     storedProject.detachFromProject();

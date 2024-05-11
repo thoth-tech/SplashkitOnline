@@ -4,7 +4,7 @@
 class IDBStoredProject extends EventTarget{
     constructor(storage, initializer) {
         super();
-		this.storage = storage;
+        this.storage = storage;
         this.initializer = initializer;
         this.projectID = null;
         this.lastKnownWriteTime = 0;
@@ -14,24 +14,24 @@ class IDBStoredProject extends EventTarget{
 
     // Project Related
     async attachToProject(_projectID){
-		if(!_projectID){ // attach to last opened project
-			let lastOpenProjectID = await this.storage.access(async (s)=>{
-				return await s.getLastOpenProject();
-			})
+        if(!_projectID){ // attach to last opened project
+            let lastOpenProjectID = await this.storage.access(async (s)=>{
+                return await s.getLastOpenProject();
+            })
 
-			_projectID = lastOpenProjectID || "0";
-		}
+            _projectID = lastOpenProjectID || "0";
+        }
         this.projectID = _projectID;
 
-		// check if project with this ID is listed in local interproject database
-		let _project = await this.storage.access(async (s) => {
-			return await s.getProject(_projectID);
-		});
-		if(!_project){ // project not listed
-			await this.storage.access(async (s) => {
-				await s.createProject("untitled", _projectID);
-			})
-		}
+        // check if project with this ID is listed in local interproject database
+        let _project = await this.storage.access(async (s) => {
+            return await s.getProject(_projectID);
+        });
+        if(!_project){ // project not listed
+            await this.storage.access(async (s) => {
+                await s.createProject("untitled", _projectID);
+            })
+        }
 
         // Force an init by performing an empty DB operation
         await this.access(function(){});
@@ -41,9 +41,9 @@ class IDBStoredProject extends EventTarget{
 
         this.dispatchEvent(new Event("attached"));
 
-		await this.storage.access(async (s) => {
-			await s.updateLastOpenProject(_projectID);
-		});
+        await this.storage.access(async (s) => {
+            await s.updateLastOpenProject(_projectID);
+        });
     }
 
     async access(func){
@@ -84,11 +84,11 @@ class IDBStoredProject extends EventTarget{
             res.onsuccess = function(){resolve();};
         }));
 
-		await this.storage.access(async (s) => {
-			await s.updateLastOpenProject(_projectID);
-		});
+        await this.storage.access(async (s) => {
+            await s.updateLastOpenProject(_projectID);
+        });
 
-		this.detachFromProject();
+        this.detachFromProject();
     }
 };
 
@@ -147,12 +147,12 @@ class __IDBStoredProjectRW{
         this.db = null;
     }
 
-	async renameProject(newProjectName){
-		let IDBSP = this;
-		IDBSP.owner.storage.access(async (s) => {
-			await s.renameProject(IDBSP.owner.projectID, newProjectName);
-		});
-	}
+    async renameProject(newProjectName){
+        let IDBSP = this;
+        IDBSP.owner.storage.access(async (s) => {
+            await s.renameProject(IDBSP.owner.projectID, newProjectName);
+        });
+    }
 
     async getLastWriteTime(){
         let IDBSP = this;

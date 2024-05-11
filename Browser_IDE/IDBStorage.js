@@ -25,7 +25,7 @@ class IDBStorage extends EventTarget{
         try{
             await RW.openDB();
             let res = await func(RW);
-			return res;
+            return res;
         }
         catch(err){
             throw err;
@@ -40,7 +40,7 @@ class __IDBStorageRW{
     constructor(IDBS) {
         this.owner = IDBS;
         this.db = null;
-		this.doInitialization = false;
+        this.doInitialization = false;
         this.performedWrite = false;
     }
 
@@ -56,8 +56,8 @@ class __IDBStorageRW{
                 IDBS.db = req.result;
                 IDBS.db.createObjectStore("app", {keyPath: "category"});
                 
-				let userProjectsStore = IDBS.db.createObjectStore("userProjects", {keyPath: "id"});
-				userProjectsStore.createIndex("name", "name", {unique: true});
+                let userProjectsStore = IDBS.db.createObjectStore("userProjects", {keyPath: "id"});
+                userProjectsStore.createIndex("name", "name", {unique: true});
 
                 if (e.oldVersion == 0)
                     IDBS.doInitialization = true;
@@ -89,7 +89,7 @@ class __IDBStorageRW{
 
     doTransaction(store, state, func)
     {
-		let IDBS = this;
+        let IDBS = this;
         return new Promise(async (resolve, reject) => {
             let transaction = IDBS.db.transaction(store, state);
             let files = transaction.objectStore(store);
@@ -99,18 +99,18 @@ class __IDBStorageRW{
                 result = await func(transaction, files);
             } catch(err){
                 reject(err);
-				return;
+                return;
             }
 
             transaction.onerror = function(){
-				console.log("error");
-				transaction.abort(); 
-				reject(transaction.error);
-			};
+                console.log("error");
+                transaction.abort(); 
+                reject(transaction.error);
+            };
             
-			transaction.oncomplete = function(){
-				resolve(result);
-			};
+            transaction.oncomplete = function(){
+                resolve(result);
+            };
         });
     }
 
@@ -127,14 +127,14 @@ class __IDBStorageRW{
             }
 
             result.onerror = function(){
-				console.log("error");
-				transaction.abort(); 
-				reject(result.error);
-			};
+                console.log("error");
+                transaction.abort(); 
+                reject(result.error);
+            };
 
             result.onsuccess = function(){
-				resolve(result.result);
-			};
+                resolve(result.result);
+            };
         });
     }
 
@@ -159,14 +159,15 @@ class __IDBStorageRW{
         await IDBS.doTransaction("app", "readwrite", async (t, s) => {
             await IDBS.request(t, async () => {
                 return s.put({
-					category: "lastWriteTime", 
-					time: time
-				});
+                    category: "lastWriteTime", 
+                    time: time
+                });
             });
         });
+        this.performedWrite = true;
     }
 
-	async getLastOpenProject(){
+    async getLastOpenProject(){
         let IDBS = this;
         return await IDBS.doTransaction("app", "readwrite", async (t, s) => {
             let res =  await IDBS.request(t, async () => {
@@ -184,24 +185,25 @@ class __IDBStorageRW{
         await IDBS.doTransaction("app", "readwrite", async (t, s) => {
             await IDBS.request(t, async () => {
                 return s.put({
-					category: "lastOpenProject", 
-					projectID: projectID
-				});
+                    category: "lastOpenProject", 
+                    projectID: projectID
+                });
             });
         });
+        this.performedWrite = true;
     }
 
-	async getProject(projectID){
-		let IDBS = this;
-		let project = await IDBS.doTransaction("userProjects", "readwrite", async (t, s) => {
+    async getProject(projectID){
+        let IDBS = this;
+        let project = await IDBS.doTransaction("userProjects", "readwrite", async (t, s) => {
             let _project = await IDBS.request(t, async () => {
                 return s.get(projectID);
             });
             return _project;
         });
 
-		return project;
-	}
+        return project;
+    }
 
     async createProject(projectName, projectID = null){
         projectID = projectID || Date.now(); // TODO?: Generate IDs properly
@@ -220,19 +222,19 @@ class __IDBStorageRW{
         return projectID;
     }
 
-	async renameProject(projectID, newProjectName){
-		let IDBS = this;
+    async renameProject(projectID, newProjectName){
+        let IDBS = this;
 
-		await IDBS.doTransaction("userProjects", "readwrite", async (t, s) => {
+        await IDBS.doTransaction("userProjects", "readwrite", async (t, s) => {
             await IDBS.request(t, async () => {
                 return s.put({
-					id: projectID,
+                    id: projectID,
                     name: newProjectName
                 });
             });
         });
         this.performedWrite = true;
-	}
+    }
 
     async deleteProject(projectID){
         let IDBS = this;
@@ -246,18 +248,18 @@ class __IDBStorageRW{
 }
 
 async function Test_IDBStorage(){
-	let IDBS = new IDBStorage();
+    let IDBS = new IDBStorage();
 
-	await IDBS.attach();
+    await IDBS.attach();
 
-	let projectID = await IDBS.access(async (storage)=>{
-		try { 
-			await storage.deleteProject("test");
-		} catch(err){}
-		return await storage.createProject("New Project", "test");
-	});
+    let projectID = await IDBS.access(async (storage)=>{
+        try { 
+            await storage.deleteProject("test");
+        } catch(err){}
+        return await storage.createProject("New Project", "test");
+    });
 
-	console.log("projectID = " + projectID);
+    console.log("projectID = " + projectID);
 
-	await IDBS.detach();
+    await IDBS.detach();
 }
