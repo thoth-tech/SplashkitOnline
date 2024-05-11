@@ -125,7 +125,7 @@ let executionEnviroment = new ExecutionEnvironment(document.getElementById("Exec
 let storage = new IDBStorage();
 let storedProject = new IDBStoredProject(storage, makeNewProject);
 let unifiedFS = new UnifiedFS(storedProject, executionEnviroment);
-storedProject.attachToProject("0");
+storedProject.attachToProject();
 
 let haveMirrored = false;
 let canMirror = false;

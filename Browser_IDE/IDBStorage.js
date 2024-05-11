@@ -162,6 +162,31 @@ class __IDBStorageRW{
         });
     }
 
+	async getLastOpenProject(){
+        let IDBS = this;
+        return await IDBS.doTransaction("app", "readwrite", async (t, s) => {
+            let res =  await IDBS.request(t, async () => {
+                return s.get("lastOpenProject");
+            });
+            if (res == undefined || res == null)
+                return undefined;
+            else
+                return res.projectID;
+        });
+    }
+
+    async updateLastOpenProject(projectID){
+        let IDBS = this;
+        await IDBS.doTransaction("app", "readwrite", async (t, s) => {
+            await IDBS.request(t, async () => {
+                return s.put({
+					category: "lastOpenProject", 
+					projectID: projectID
+				});
+            });
+        });
+    }
+
     async createProject(projectName, projectID = null){
         projectID = projectID || Date.now(); // TODO: Generate IDs properly
 

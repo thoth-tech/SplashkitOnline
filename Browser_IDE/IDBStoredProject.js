@@ -13,11 +13,21 @@ class IDBStoredProject extends EventTarget{
     // Public Facing Methods
 
 	async createProject(_projectName){
-		this.projectID = this.storage.createProject(_projectName);
+		this.projectID = this.storage.access(async (s) => {
+			return await s.createProject(_projectName);
+		});
 	}
 
     // Project Related
     async attachToProject(_projectID){
+		if(!_projectID){
+			let lastOpenProjectID = await this.storage.access(async (s)=>{
+				return await s.getLastOpenProject();
+			})
+
+			_projectID = lastOpenProjectID || "0";
+		}
+
         this.projectID = _projectID;
 
         // Force an init by performing an empty DB operation
@@ -27,6 +37,10 @@ class IDBStoredProject extends EventTarget{
         await this.checkForWriteConflicts();
 
         this.dispatchEvent(new Event("attached"));
+
+		this.storage.access(async (s) => {
+			await s.updateLastOpenProject(_projectID);
+		});
     }
 
     async access(func){
