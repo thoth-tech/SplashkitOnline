@@ -148,6 +148,10 @@ async function newProject(){
     haveMirrored = false;
     await storedProject.attachToProject(projectID);
 
+    await storedProject.access(async (project) => {
+        await project.renameProject("New Project");
+    });
+
     makingNewProject = false;
 }
 
