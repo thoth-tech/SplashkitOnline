@@ -2,9 +2,9 @@
 
 
 class IDBStoredProject extends EventTarget{
-    constructor(storage, initializer) {
+    constructor(appStorage, initializer) {
         super();
-        this.storage = storage;
+        this.appStorage = appStorage;
         this.initializer = initializer;
         this.projectID = null;
         this.lastKnownWriteTime = 0;
@@ -15,7 +15,7 @@ class IDBStoredProject extends EventTarget{
     // Project Related
     async attachToProject(_projectID){
         if(!_projectID){ // attach to last opened project
-            _projectID = await this.storage.access(async (s)=>{
+            _projectID = await this.appStorage.access(async (s)=>{
                 return await s.getLastOpenProject();
             })
         }
@@ -26,12 +26,12 @@ class IDBStoredProject extends EventTarget{
         // check if project with this ID is listed in local interproject database
         let _project = undefined;
         if(_projectID){
-            _project = await this.storage.access(async (s) => {
+            _project = await this.appStorage.access(async (s) => {
                 return await s.getProject(_projectID);
             });
         }
         if(!_project){ // project not listed
-            this.projectID = await this.storage.access(async (s) => {
+            this.projectID = await this.appStorage.access(async (s) => {
                 return await s.createProject("untitled", _projectID);
             });
         }
@@ -44,7 +44,7 @@ class IDBStoredProject extends EventTarget{
 
         this.dispatchEvent(new Event("attached"));
 
-        await this.storage.access(async (s) => {
+        await this.appStorage.access(async (s) => {
             await s.updateLastOpenProject(_projectID);
         });
     }
@@ -87,7 +87,7 @@ class IDBStoredProject extends EventTarget{
             res.onsuccess = function(){resolve();};
         }));
 
-        await this.storage.access(async (s) => {
+        await this.appStorage.access(async (s) => {
             await s.updateLastOpenProject(_projectID);
         });
 
@@ -152,7 +152,7 @@ class __IDBStoredProjectRW{
 
     async renameProject(newProjectName){
         let IDBSP = this;
-        await IDBSP.owner.storage.access(async (s) => {
+        await IDBSP.owner.appStorage.access(async (s) => {
             await s.renameProject(IDBSP.owner.projectID, newProjectName);
         });
     }

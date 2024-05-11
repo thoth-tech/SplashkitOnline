@@ -3,7 +3,7 @@
 /**
  * Storage for the SplashKitOnline web app, not specific to a particular project.
  */
-class IDBStorage extends EventTarget{
+class AppStorage extends EventTarget{
     constructor() {
         super();
         this.attached = false;
@@ -21,7 +21,7 @@ class IDBStorage extends EventTarget{
     }
 
     async access(func){
-        let RW = new __IDBStorageRW(this);
+        let RW = new __AppStorageRW(this);
         try{
             await RW.openDB();
             let res = await func(RW);
@@ -36,44 +36,44 @@ class IDBStorage extends EventTarget{
     }
 }
 
-class __IDBStorageRW{
-    constructor(IDBS) {
-        this.owner = IDBS;
+class __AppStorageRW{
+    constructor(AS) {
+        this.owner = AS;
         this.db = null;
         this.doInitialization = false;
         this.performedWrite = false;
     }
 
     openDB(){
-        let IDBS = this;
+        let AS = this;
         return new Promise((resolve, reject)=>{
-            if (IDBS.db != null)
+            if (AS.db != null)
                 reject();
 
             let req = indexedDB.open("SplashKitOnline", 1);
 
             req.onupgradeneeded = async (e) => {
-                IDBS.db = req.result;
-                IDBS.db.createObjectStore("app", {keyPath: "category"});
+                AS.db = req.result;
+                AS.db.createObjectStore("app", {keyPath: "category"});
                 
-                let userProjectsStore = IDBS.db.createObjectStore("userProjects", {keyPath: "id"});
+                let userProjectsStore = AS.db.createObjectStore("userProjects", {keyPath: "id"});
                 userProjectsStore.createIndex("name", "name", {unique: true});
 
                 if (e.oldVersion == 0)
-                    IDBS.doInitialization = true;
+                    AS.doInitialization = true;
             };
 
             req.onsuccess = async (e) => {
-                IDBS.db = req.result;
-                if (IDBS.doInitialization){
-                    await IDBS.updateLastWriteTime();
+                AS.db = req.result;
+                if (AS.doInitialization){
+                    await AS.updateLastWriteTime();
                 }
-                IDBS.doInitialization = false;
+                AS.doInitialization = false;
                 resolve();
             };
 
             req.onerror = async (e) => {
-                IDBS.owner.dispatchEvent(new Event("connectionFailed"));
+                AS.owner.dispatchEvent(new Event("connectionFailed"));
                 reject();
             };
         });
@@ -89,9 +89,9 @@ class __IDBStorageRW{
 
     doTransaction(store, state, func)
     {
-        let IDBS = this;
+        let AS = this;
         return new Promise(async (resolve, reject) => {
-            let transaction = IDBS.db.transaction(store, state);
+            let transaction = AS.db.transaction(store, state);
             let files = transaction.objectStore(store);
             let result = undefined;
 
@@ -139,9 +139,9 @@ class __IDBStorageRW{
     }
 
     async getLastWriteTime(){
-        let IDBS = this;
-        return await IDBS.doTransaction("app", "readwrite", async (t, s) => {
-            let lastTime =  await IDBS.request(t, async () => {
+        let AS = this;
+        return await AS.doTransaction("app", "readwrite", async (t, s) => {
+            let lastTime =  await AS.request(t, async () => {
                 return s.get("lastWriteTime");
             });
             if (lastTime == undefined || lastTime == null)
@@ -155,9 +155,9 @@ class __IDBStorageRW{
         if (time == null)
             time = Date.now();
 
-        let IDBS = this;
-        await IDBS.doTransaction("app", "readwrite", async (t, s) => {
-            await IDBS.request(t, async () => {
+        let AS = this;
+        await AS.doTransaction("app", "readwrite", async (t, s) => {
+            await AS.request(t, async () => {
                 return s.put({
                     category: "lastWriteTime", 
                     time: time
@@ -168,9 +168,9 @@ class __IDBStorageRW{
     }
 
     async getLastOpenProject(){
-        let IDBS = this;
-        return await IDBS.doTransaction("app", "readwrite", async (t, s) => {
-            let res =  await IDBS.request(t, async () => {
+        let AS = this;
+        return await AS.doTransaction("app", "readwrite", async (t, s) => {
+            let res =  await AS.request(t, async () => {
                 return s.get("lastOpenProject");
             });
             if (res == undefined || res == null)
@@ -181,9 +181,9 @@ class __IDBStorageRW{
     }
 
     async updateLastOpenProject(projectID){
-        let IDBS = this;
-        await IDBS.doTransaction("app", "readwrite", async (t, s) => {
-            await IDBS.request(t, async () => {
+        let AS = this;
+        await AS.doTransaction("app", "readwrite", async (t, s) => {
+            await AS.request(t, async () => {
                 return s.put({
                     category: "lastOpenProject", 
                     projectID: projectID
@@ -194,9 +194,9 @@ class __IDBStorageRW{
     }
 
     async getProject(projectID){
-        let IDBS = this;
-        let project = await IDBS.doTransaction("userProjects", "readwrite", async (t, s) => {
-            let _project = await IDBS.request(t, async () => {
+        let AS = this;
+        let project = await AS.doTransaction("userProjects", "readwrite", async (t, s) => {
+            let _project = await AS.request(t, async () => {
                 return s.get(projectID);
             });
             return _project;
@@ -208,9 +208,9 @@ class __IDBStorageRW{
     async createProject(projectName, projectID = null){
         projectID = projectID || Date.now().toString(); // TODO?: Generate IDs properly
 
-        let IDBS = this;
-        await IDBS.doTransaction("userProjects", "readwrite", async (t, s) => {
-            await IDBS.request(t, async () => {
+        let AS = this;
+        await AS.doTransaction("userProjects", "readwrite", async (t, s) => {
+            await AS.request(t, async () => {
                 return s.put({
                     id: projectID, 
                     name: projectName
@@ -223,10 +223,10 @@ class __IDBStorageRW{
     }
 
     async renameProject(projectID, newProjectName){
-        let IDBS = this;
+        let AS = this;
 
-        await IDBS.doTransaction("userProjects", "readwrite", async (t, s) => {
-            await IDBS.request(t, async () => {
+        await AS.doTransaction("userProjects", "readwrite", async (t, s) => {
+            await AS.request(t, async () => {
                 return s.put({
                     id: projectID,
                     name: newProjectName
@@ -237,9 +237,9 @@ class __IDBStorageRW{
     }
 
     async deleteProject(projectID){
-        let IDBS = this;
-        await IDBS.doTransaction("userProjects", "readwrite", async (t, s) => {
-            await IDBS.request(t, () => {
+        let AS = this;
+        await AS.doTransaction("userProjects", "readwrite", async (t, s) => {
+            await AS.request(t, () => {
                 return s.delete(projectID);
             });
         });
@@ -247,12 +247,12 @@ class __IDBStorageRW{
     }
 }
 
-async function Test_IDBStorage(){
-    let IDBS = new IDBStorage();
+async function Test_AppStorage(){
+    let AS = new AppStorage();
 
-    await IDBS.attach();
+    await AS.attach();
 
-    let projectID = await IDBS.access(async (storage)=>{
+    let projectID = await AS.access(async (storage)=>{
         try { 
             await storage.deleteProject("test");
         } catch(err){}
@@ -261,5 +261,5 @@ async function Test_IDBStorage(){
 
     console.log("projectID = " + projectID);
 
-    await IDBS.detach();
+    await AS.detach();
 }
