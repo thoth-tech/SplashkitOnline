@@ -5,15 +5,15 @@ class IDBStoredProject extends EventTarget{
     constructor(initializer) {
         super();
         this.initializer = initializer;
-        this.projectName = null;
+        this.projectID = null;
         this.lastKnownWriteTime = 0;
     }
 
     // Public Facing Methods
 
     // Project Related
-    async attachToProject(storeName){
-        this.projectName = storeName;
+    async attachToProject(_projectID){
+        this.projectID = _projectID;
 
         // Force an init by performing an empty DB operation
         await this.access(function(){});
@@ -39,7 +39,7 @@ class IDBStoredProject extends EventTarget{
     }
 
     async checkForWriteConflicts(){
-        if (this.projectName == null) return;
+        if (this.projectID == null) return;
 
         let storedTime = await this.access((project)=>project.getLastWriteTime());
         if (this.lastKnownWriteTime == 0){
@@ -50,14 +50,14 @@ class IDBStoredProject extends EventTarget{
     }
 
     detachFromProject(){
-        this.projectName = null;
+        this.projectID = null;
         this.lastKnownWriteTime = 0;
         this.dispatchEvent(new Event("detached"));
     }
 
-    deleteProject(storeName){
+    deleteProject(_projectID){
         return new Promise((resolve, reject) => {
-            let res = indexedDB.deleteDatabase(storeName);
+            let res = indexedDB.deleteDatabase("SplashKitOnlineProject_" + _projectID);
             res.onerror = function(){reject(res.error);};
             res.onsuccess = function(){resolve();};
         });
@@ -78,13 +78,13 @@ class __IDBStoredProjectRW{
         let IDBFS = this;
         return new Promise(function(resolve, reject){
 
-            if (IDBFS.owner.projectName == null)
+            if (IDBFS.owner.projectID == null)
                 return reject();
 
             if (IDBFS.db != null)
                 reject();
 
-            let openRequest = indexedDB.open(IDBFS.owner.projectName, 1);
+            let openRequest = indexedDB.open("SplashKitOnlineProject_" + IDBFS.owner.projectID, 1);
 
             openRequest.onupgradeneeded = function(ev) {
                 IDBFS.db = openRequest.result;

@@ -124,7 +124,7 @@ SwitchToTabs(tabs[0].contents.id);
 let executionEnviroment = new ExecutionEnvironment(document.getElementById("ExecutionEnvironment"));
 let storedProject = new IDBStoredProject(makeNewProject);
 let unifiedFS = new UnifiedFS(storedProject, executionEnviroment);
-storedProject.attachToProject("Untitled");
+storedProject.attachToProject("0");
 
 let haveMirrored = false;
 let canMirror = false;
@@ -140,9 +140,9 @@ async function newProject(){
     storedProject.detachFromProject();
     canMirror = false;
     await executionEnviroment.resetEnvironment();
-    await storedProject.deleteProject("Untitled");
+    await storedProject.deleteProject("0");
     haveMirrored = false;
-    await storedProject.attachToProject("Untitled");
+    await storedProject.attachToProject("0");
 
     makingNewProject = false;
 }
