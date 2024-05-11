@@ -122,7 +122,8 @@ SwitchToTabs(tabs[0].contents.id);
 
 // ------ Setup Project and Execution Environment ------
 let executionEnviroment = new ExecutionEnvironment(document.getElementById("ExecutionEnvironment"));
-let storedProject = new IDBStoredProject(makeNewProject);
+let storage = new IDBStorage();
+let storedProject = new IDBStoredProject(storage, makeNewProject);
 let unifiedFS = new UnifiedFS(storedProject, executionEnviroment);
 storedProject.attachToProject("0");
 

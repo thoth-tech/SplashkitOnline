@@ -2,8 +2,9 @@
 
 
 class IDBStoredProject extends EventTarget{
-    constructor(initializer) {
+    constructor(storage, initializer) {
         super();
+		this.storage = storage;
         this.initializer = initializer;
         this.projectID = null;
         this.lastKnownWriteTime = 0;
