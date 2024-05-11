@@ -15,22 +15,25 @@ class IDBStoredProject extends EventTarget{
     // Project Related
     async attachToProject(_projectID){
         if(!_projectID){ // attach to last opened project
-            let lastOpenProjectID = await this.storage.access(async (s)=>{
+            _projectID = await this.storage.access(async (s)=>{
                 return await s.getLastOpenProject();
             })
-
-            _projectID = lastOpenProjectID || "0";
         }
         this.projectID = _projectID;
 
+
+
         // check if project with this ID is listed in local interproject database
-        let _project = await this.storage.access(async (s) => {
-            return await s.getProject(_projectID);
-        });
+        let _project = undefined;
+        if(_projectID){
+            _project = await this.storage.access(async (s) => {
+                return await s.getProject(_projectID);
+            });
+        }
         if(!_project){ // project not listed
-            await this.storage.access(async (s) => {
-                await s.createProject("untitled", _projectID);
-            })
+            this.projectID = await this.storage.access(async (s) => {
+                return await s.createProject("untitled", _projectID);
+            });
         }
 
         // Force an init by performing an empty DB operation
