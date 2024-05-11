@@ -72,7 +72,7 @@ function displayEditorNotification(message, icon=NotificationIcons.NONE, timeout
         deleteNotification();
     });
 
-    notification.addEventListener("click", function(){
+    notification.addEventListener("click", function(event){
         event.stopPropagation();
         deleteNotification();
         if (callback != null)
