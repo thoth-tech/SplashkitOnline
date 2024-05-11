@@ -35,7 +35,7 @@ class IDBStoredProject extends EventTarget{
 		});
 		if(!_project){
 			this.storage.access(async (s) => {
-				await s.createProject("New Project", _projectID);
+				await s.createProject("untitled", _projectID);
 			})
 		}
 

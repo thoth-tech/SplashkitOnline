@@ -76,6 +76,7 @@ let initCodePath = "/code/codeblock_init.js";
 let mainLoopCodePath = "/code/codeblock_mainloop.js";
 let codePath = "/code";
 async function makeNewProject(storedProject){
+	await storedProject.renameProject("New Project");
     await storedProject.mkdir("/Resources");
     await storedProject.mkdir("/Resources/animations");
     await storedProject.mkdir("/Resources/bundles");
