@@ -497,14 +497,36 @@ moduleEvents.addEventListener("onRuntimeInitialized", function() {
     parent.postMessage({type:"initialized"},"*");
 });
 
+window.addEventListener('load', function() {
+    resizeCanvas(); 
+});
 
-document.addEventListener('DOMContentLoaded', function() {
-    Split(['#canvasContainer', '#terminalOutputContainer'], {
-        direction: 'vertical',  
-        sizes: [75, 25],        
-        minSize: [100, 100],   
-        gutterSize: 5,          
-        gutterAlign: 'center',  
-        cursor: 'row-resize'    
-    });
+function resizeCanvas() {
+    const container = document.getElementById('canvasContainer');
+    const maxWidth = container.clientWidth;
+    const maxHeight = container.clientHeight;
+    const aspectRatio = 4 / 3;
+    let newWidth = maxHeight * aspectRatio;
+    let newHeight = maxHeight;
+
+    
+    if (newWidth > maxWidth) {
+        newWidth = maxWidth;
+        newHeight = maxWidth / aspectRatio;
+    }
+    
+    const canvas = document.getElementById('canvas');
+    canvas.style.width = `${newWidth}px`;
+    canvas.style.height = `${newHeight}px`;
+    
+    canvas.style.left = `${(maxWidth - newWidth) / 2}px`;
+}
+
+Split(['#canvasContainer', '#terminalOutputContainer'], {
+    direction: 'vertical',
+    sizes: [75, 25],
+    minSize: [100, 100],
+    gutterSize: 5,
+    gutterAlign: 'center',
+    onDrag: resizeCanvas 
 });
