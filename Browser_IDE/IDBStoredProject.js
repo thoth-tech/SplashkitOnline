@@ -12,12 +12,6 @@ class IDBStoredProject extends EventTarget{
 
     // Public Facing Methods
 
-	async createProject(_projectName){
-		this.projectID = this.storage.access(async (s) => {
-			return await s.createProject(_projectName);
-		});
-	}
-
     // Project Related
     async attachToProject(_projectID){
 		if(!_projectID){
