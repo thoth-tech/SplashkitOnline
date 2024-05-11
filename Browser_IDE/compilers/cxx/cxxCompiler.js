@@ -66,7 +66,7 @@ displayEditorNotification("Preparing for C++ Compilation! This may take some tim
 
 // import the Clang backend (where all the real work happens), setup the compiler object, then register it.
 import('./cxxCompilerClangBackend.js').then(({ compileObject, linkObjects, setPrintFunction }) => {
-    registerCompiler("C++ Clang Compile", new CXXCompiler(compileObject, linkObjects, setPrintFunction));
+    registerCompiler("cxxCompiler", new CXXCompiler(compileObject, linkObjects, setPrintFunction));
 }).catch((err)=>{
     displayEditorNotification("Compiler had an internal error during initialization!</br>"+err.toString(), NotificationIcons.CRITICAL_ERROR, -1);
 });

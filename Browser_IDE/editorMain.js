@@ -177,7 +177,7 @@ async function newProject(){
 
 function prepareIDEForLoading(){
     let waitForCompilerReady = new Promise((resolve) => {
-        if (getCompiler(currentLanguage.compilerCommand))
+        if (getCompiler(currentLanguage.compilerName))
             resolve();
         registeredCompilersEvents.addEventListener("compilerReady", () => {
             resolve();
@@ -455,7 +455,7 @@ function asyncSleep(time=0) {
 }
 
 function getCurrentCompiler() {
-    let currentCompiler = getCompiler(currentLanguage.compilerCommand);
+    let currentCompiler = getCompiler(currentLanguage.compilerName);
 
     if (currentCompiler == null)
         displayEditorNotification("Failed to start compiler! Maybe it hasn't loaded yet, try again in a bit!", NotificationIcons.ERROR);

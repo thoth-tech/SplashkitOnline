@@ -98,7 +98,7 @@ class JavascriptPatcher extends Compiler{
     }
 }
 
-registerCompiler("JavaScript Patch", new JavascriptPatcher());
+registerCompiler("javascriptPatcher", new JavascriptPatcher());
 
 
 // Note: Brought across from executionEnvironment_Internal.js

@@ -13,7 +13,7 @@ function initializeLanguageCompilerFiles(language){
 }
 
 // Compiler registry
-// Compilers register themselves so they can be found via the "compilerCommand"
+// Compilers register themselves so they can be found via the "compilerName"
 // We also receive events once their ready, so we can update the UI and let the user know
 let registeredCompilers = new Map();
 let registeredCompilersEvents = new EventTarget();

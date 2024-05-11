@@ -32,7 +32,7 @@ let SplashKitOnlineLanguageDefinitions = [
             compilerFiles: [
                 "compilers/javascript/javascriptCompiler.js",
             ],
-            compilerCommand: "JavaScript Patch",
+            compilerName: "javascriptPatcher",
             supportHotReloading: true,
             getDefaultProject: ()=>{return makeNewProject_JavaScript;},
             persistentFilesystem: true,
@@ -58,7 +58,7 @@ let SplashKitOnlineLanguageDefinitions = [
             compilerFiles: [
                 "compilers/cxx/cxxCompiler.js",
             ],
-            compilerCommand: "C++ Clang Compile",
+            compilerName: "cxxCompiler",
             supportHotReloading: false,
             getDefaultProject: ()=>{return makeNewProject_CXX;},
             persistentFilesystem: false,
