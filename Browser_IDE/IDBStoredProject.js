@@ -1,5 +1,6 @@
 "use strict";
 
+const STORED_PROJECT_DB_PREFIX = "SplashKitOnlineProject_";
 
 class IDBStoredProject extends EventTarget{
     constructor(appStorage, initializer) {
@@ -82,7 +83,7 @@ class IDBStoredProject extends EventTarget{
 
     async deleteProject(_projectID){
         await (new Promise((resolve, reject) => {
-            let res = indexedDB.deleteDatabase("SplashKitOnlineProject_" + _projectID);
+            let res = indexedDB.deleteDatabase(STORED_PROJECT_DB_PREFIX + _projectID);
             res.onerror = function(){reject(res.error);};
             res.onsuccess = function(){resolve();};
         }));
@@ -114,7 +115,7 @@ class __IDBStoredProjectRW{
             if (IDBFS.db != null)
                 reject();
 
-            let openRequest = indexedDB.open("SplashKitOnlineProject_" + IDBFS.owner.projectID, 1);
+            let openRequest = indexedDB.open(STORED_PROJECT_DB_PREFIX + IDBFS.owner.projectID, 1);
 
             openRequest.onupgradeneeded = function(ev) {
                 IDBFS.db = openRequest.result;
