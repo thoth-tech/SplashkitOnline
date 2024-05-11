@@ -52,8 +52,9 @@ class __IDBStorageRW{
             req.onupgradeneeded = async (e) => {
                 IDBS.db = req.result;
                 IDBS.db.createObjectStore("app", {keyPath: "category"});
-                IDBS.db.createObjectStore("userProjects", {keyPath: "id"});
-                IDBS.db.createObjectStore("userProjectMap", {keyPath: "name"});
+                
+				let userProjectsStore = IDBS.db.createObjectStore("userProjects", {keyPath: "id"});
+				userProjectsStore.createIndex("name", "name", {unique: true});
 
                 if (e.oldVersion == 0)
                     IDBS.doInitialization = true;
@@ -211,14 +212,6 @@ class __IDBStorageRW{
                 });
             });
         });
-        await IDBS.doTransaction("userProjectMap", "readwrite", async (t, s) => {
-            await IDBS.request(t, async () => {
-                return s.put({
-                    name: projectName, 
-                    id: projectID
-                });
-            });
-        });
         this.performedWrite = true;
 
         return projectID;
@@ -227,26 +220,11 @@ class __IDBStorageRW{
 	async renameProject(projectID, newProjectName){
 		let IDBS = this;
 
-		let project = await IDBS.doTransaction("userProjects", "readwrite", async (t, s) => {
-            let _project = await IDBS.request(t, async () => {
-                return s.get(projectID);
-            });
-
-            await IDBS.request(t, () => {
-                return s.delete(projectID);
-            });
-
-            return _project;
-        });
-
-		await IDBS.doTransaction("userProjectMap", "readwrite", async (t, s) => {
-			await IDBS.request(t, async () => {
-				return s.delete(project.name);
-			});
+		await IDBS.doTransaction("userProjects", "readwrite", async (t, s) => {
             await IDBS.request(t, async () => {
                 return s.put({
-                    name: newProjectName, 
-                    id: projectID
+					id: projectID,
+                    name: newProjectName
                 });
             });
         });
@@ -255,20 +233,9 @@ class __IDBStorageRW{
 
     async deleteProject(projectID){
         let IDBS = this;
-        let project = await IDBS.doTransaction("userProjects", "readwrite", async (t, s) => {
-            let _project = await IDBS.request(t, async () => {
-                return s.get(projectID);
-            });
-
+        await IDBS.doTransaction("userProjects", "readwrite", async (t, s) => {
             await IDBS.request(t, () => {
                 return s.delete(projectID);
-            });
-
-            return _project;
-        });
-        await IDBS.doTransaction("userProjectMap", "readwrite", async (t, s) => {
-            await IDBS.request(t, async () => {
-                return s.delete(project.name);
             });
         });
         this.performedWrite = true;
