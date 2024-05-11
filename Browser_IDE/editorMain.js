@@ -138,13 +138,15 @@ async function newProject(){
         return;
     makingNewProject = true;
 
+	let projectID = storedProject.projectID;
+
     disableCodeExecution();
     storedProject.detachFromProject();
     canMirror = false;
     await executionEnviroment.resetEnvironment();
-    await storedProject.deleteProject("0");
+    await storedProject.deleteProject(projectID);
     haveMirrored = false;
-    await storedProject.attachToProject("0");
+    await storedProject.attachToProject(projectID);
 
     makingNewProject = false;
 }

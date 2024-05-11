@@ -1,5 +1,8 @@
 "use strict";
 
+/**
+ * Storage for the SplashKitOnline web app, not specific to a particular project.
+ */
 class IDBStorage extends EventTarget{
     constructor() {
         super();
@@ -201,7 +204,7 @@ class __IDBStorageRW{
 	}
 
     async createProject(projectName, projectID = null){
-        projectID = projectID || Date.now(); // TODO: Generate IDs properly
+        projectID = projectID || Date.now(); // TODO?: Generate IDs properly
 
         let IDBS = this;
         await IDBS.doTransaction("userProjects", "readwrite", async (t, s) => {
