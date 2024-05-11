@@ -77,13 +77,13 @@ function LoadSplashKitWASMDependency(pieceURL, pieceName, pieceIndex, pieceCount
 }
 
 // First, load the WebAssembly
-LoadSplashKitWASMDependency("splashkit/SplashKitBackendWASM.wasm", "SplashKit Library", 1, 2).then(function(e){
+LoadSplashKitWASMDependency("runtimes/javascript/bin/SplashKitBackendWASM.wasm", "SplashKit Library", 1, 2).then(function(e){
 
     // Pre-set the module's binary with our manually downloaded one
     Module.wasmBinary = e.response;
 
     // Next, load the Emscripten generated JS runtime
-    LoadSplashKitWASMDependency("splashkit/SplashKitBackendWASM.js", "Runtime", 2, 2).then(function(e){
+    LoadSplashKitWASMDependency("runtimes/javascript/bin/SplashKitBackendWASM.js", "Runtime", 2, 2).then(function(e){
 
         // Attach the downloaded script to the page
         var s = document.createElement("script");

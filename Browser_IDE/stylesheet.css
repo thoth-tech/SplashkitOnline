@@ -203,6 +203,17 @@ textarea {
     pointer-events: all;
 }
 
+.sk-terminal {
+    overflow-y: scroll;
+    height:200px;
+    border:0;
+    padding-left:1em;
+    resize: none;
+    font-family:monospace, serif;
+    white-space: pre-wrap;
+    background-color: #161616;
+}
+
 
 .node{
     color:#f8f8f2;

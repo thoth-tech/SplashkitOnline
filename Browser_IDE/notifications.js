@@ -2,10 +2,11 @@
 
 const NotificationIcons = Object.freeze({
   CONSTRUCTION:   { class: "bi-box-seam-fill", color: "#FFF" },
-  ERROR:  { class: "bi-exclamation-octagon", color: "#F00" },
+  CRITICAL_ERROR:  { class: "bi-exclamation-octagon", color: "#F00" },
+  ERROR:  { class: "bi-exclamation-triangle", color: "#F00" },
   WARNING: { class: "bi-exclamation-triangle", color: "#FA0" },
   SUCCESS: { class: "bi-patch-check", color: "#0F0" },
-  INFO: { class: "bi-exclamation-triangle", color: "#FFF" },
+  INFO: { class: "bi-exclamation-circle", color: "#FFF" },
   NONE: { class: "", color: "#FFF" }
 });
 
@@ -14,7 +15,15 @@ let notificationsArea = elem("div", { class: "sk-notification-area" });
 document.body.appendChild(notificationsArea);
 
 
-function displayEditorNotification(message, icon=NotificationIcons.NONE, timeout=5, callback=null){
+function displayEditorNotification(message, icon=NotificationIcons.NONE, timeout=null, callback=null){
+    // set default timeout (if necessary)
+    if (timeout == null){
+        if (icon == NotificationIcons.CRITICAL_ERROR)
+            timeout = -1; // show indefinitely if critical error
+        else
+            timeout = 1.5; // show for 1.5 seconds if info/warning
+    }
+
     // construct notification
     let notificationIcon = elem("span", { class: icon.class, style: {color: icon.color} });
 
@@ -63,7 +72,7 @@ function displayEditorNotification(message, icon=NotificationIcons.NONE, timeout
         deleteNotification();
     });
 
-    notification.addEventListener("click", function(){
+    notification.addEventListener("click", function(event){
         event.stopPropagation();
         deleteNotification();
         if (callback != null)

@@ -80,19 +80,30 @@ document.getElementById("canvas").addEventListener("click", async function () {
 
 // Convenience function for reporting errors, printing them to the terminal
 // and also sending a message to the main window.
-function ReportError(block, message, line){
-    if (line != null)
+function ReportError(block, message, line, formatted=false){
+    let outputMessage = message != "";
+
+    if (outputMessage && line != null)
         message = "Error on line "+line+": "+message;
 
-    if (!block.startsWith(userCodeBlockIdentifier)){
-        message = "Please file a bug report and send us the following info!\n    Error in file: "+block+"\n    "+message;
-        block = "Internal Error";
-    }
-    else{
-        block = block.slice(userCodeBlockIdentifier.length);
+    if (block != null && block != "" && block != "__USERCODE__null") {
+        if (!block.startsWith(userCodeBlockIdentifier)){
+            message = "Please file a bug report and send us the following info!\n    Error in file: "+block+"\n    "+message;
+            block = "Internal Error";
+        }
+        else{
+            block = block.slice(userCodeBlockIdentifier.length);
+        }
+        if (outputMessage)
+            message = "(" + block + ") " + message;
     }
 
-    writeTerminal("\x1b[0m\x1b[31m" + "(" + block + ") " + message + "\x1b[0m");
+    if (outputMessage && !formatted)
+        message = "\x1b[0m\x1b[31m" + message + "\x1b[0m";
+
+    if (outputMessage)
+        writeTerminal(message);
+
     parent.postMessage({
         type: "error",
         block: block,
