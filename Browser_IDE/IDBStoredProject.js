@@ -149,7 +149,7 @@ class __IDBStoredProjectRW{
 
     async renameProject(newProjectName){
         let IDBSP = this;
-        IDBSP.owner.storage.access(async (s) => {
+        await IDBSP.owner.storage.access(async (s) => {
             await s.renameProject(IDBSP.owner.projectID, newProjectName);
         });
     }
