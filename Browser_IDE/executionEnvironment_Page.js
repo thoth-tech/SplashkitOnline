@@ -16,6 +16,54 @@ function writeTerminalSpan(head, text, classList){
     el.innerHTML = text;
 }
 
+function writeTerminalHTML(html){
+    if (terminalElement) {
+        let sections = html.split("\x1b[");
+
+        let newTerminalHead = document.createElement("div");
+        let curFmtClasses = terminalHead.lastChild.previousSibling.className.split(/,| /).filter(s=>s);
+
+        // We can immediately insert all the text before the first control sequence,
+        // as no styling needs to be changed yet.
+        writeTerminalSpan(newTerminalHead, sections[0], curFmtClasses);
+        sections.splice(0, 1);
+                            
+        sections = sections.map(s => {
+            let i = s.indexOf("m");
+
+            // Each section has the form: (format codes list, text)
+            return [s.substring(0, i).split(";"), s.substring(i+1)]
+        });
+
+        for(let section of sections){
+            let fmtCodes = section[0];
+            let fmtText = section[1];
+
+            curFmtClasses = newTerminalHead.lastChild.className.split(/,| /).filter(s=>s);
+
+            if(fmtCodes.includes("0")){
+                // SGR code 0 resets all styling.
+                curFmtClasses = [];
+            }
+
+            let fmtClasses = fmtCodes.map(s => "sk-term-fmt-code" + s);
+            fmtClasses = fmtClasses.filter(s => !curFmtClasses.includes(s));
+            // Only concern ourself with styles that aren't already applied.
+
+            writeTerminalSpan(newTerminalHead, fmtText, fmtClasses);
+        }
+        
+        newTerminalHead.appendChild(document.createElement("br"));
+
+        terminalHead = newTerminalHead;
+        terminalElement.appendChild(newTerminalHead);
+
+        terminalElement.scrollTop = terminalElement.scrollHeight; // focus on bottom
+    }
+}
+
+
+
 function writeTerminal(text){
     if (terminalElement) {
         if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
@@ -86,6 +134,7 @@ function ReportError(block, message, line, formatted=false){
     if (outputMessage && line != null)
         message = "Error on line "+line+": "+message;
 
+    
     if (block != null && block != "" && block != "__USERCODE__null") {
         if (!block.startsWith(userCodeBlockIdentifier)){
             message = "Please file a bug report and send us the following info!\n    Error in file: "+block+"\n    "+message;
@@ -97,12 +146,17 @@ function ReportError(block, message, line, formatted=false){
         if (outputMessage)
             message = "(" + block + ") " + message;
     }
+    // Get the full stack trace
+    let stackTrace = new Error().stack;
+
+    // Format the stack trace with <details> and <summary> tags
+    let formattedStackTrace = `<details><summary>${message}</summary><pre>${stackTrace}</pre></details>`;
 
     if (outputMessage && !formatted)
-        message = "\x1b[0m\x1b[31m" + message + "\x1b[0m";
+        message = "\x1b[0m\x1b[31m" + formattedStackTrace + "\x1b[0m";
 
     if (outputMessage)
-        writeTerminal(message);
+        writeTerminalHTML(message);
 
     parent.postMessage({
         type: "error",
