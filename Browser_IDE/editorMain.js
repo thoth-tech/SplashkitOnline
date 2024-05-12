@@ -120,6 +120,29 @@ for (let i = 0; i < tabElems.length; i++) {
 
 SwitchToTabs(tabs[0].contents.id);
 
+// setup language selection box
+let languageSelectElem = document.getElementById("languageSelection");
+for (let i = 0; i < SplashKitOnlineLanguageDefinitions.length; i++) {
+    let language = SplashKitOnlineLanguageDefinitions[i];
+    languageSelectElem.append(elem("option", {value: language.name}, [language.userVisibleName]));
+}
+
+// switch active language
+// currently just reloads the page with the 'language' parameter set
+// in the future, ideally this will work _without_ reloading the page,
+// by unloading the existing language scripts then loading the new ones
+function switchActiveLanguage(language){
+     let page_url = new URL(window.location.href);
+     page_url.searchParams.set('language', language.replaceAll("+"," ") /* spaces become + in url */);
+     window.location = page_url;
+}
+
+languageSelectElem.addEventListener('change', function(event) {
+    // just switch active language
+    // TODO: store chosen language inside project
+    switchActiveLanguage(event.target.value);
+})
+
 // ------ Setup Project and Execution Environment ------
 
 // decide which language to use
@@ -132,11 +155,13 @@ if (SKO.language in SplashKitOnlineLanguageAliasMap) {
 
     displayEditorNotification("Unable to switch to language "+SKO.language+", defaulting to JavaScript.", NotificationIcons.ERROR, -1);
     displayEditorNotification("Available languages are: <br/><ul>"+
-        SplashKitOnlineLanguageDefinitions.map(val => `<li>${val.name}</li>`).join("")+
+        SplashKitOnlineLanguageDefinitions.map(val => `<li>${val.userVisibleName}</li>`).join("")+
         "</ul>", NotificationIcons.ERROR, -1
     );
 }
 activeLanguageSetup = activeLanguage.setups[0];
+
+languageSelectElem.value = activeLanguage.name;
 
 // initialize language
 initializeLanguageCompilerFiles(activeLanguageSetup);
