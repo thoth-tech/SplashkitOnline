@@ -263,25 +263,28 @@ async function tryRunFunction_Internal(func) {
                 state: "stopped",
                 value: run
             };
-        }
+        }   
+         // Get the full stack trace
+         let stackTrace = err.stack; 
 
         let error = parseErrorStack(err);
 
         return{
             state: "error",
-            message: err,
+            message: err.message, // This is the error message from the original error
             line: error.lineNumber,
             block: error.file,
+            stackTrace: stackTrace // Include the stack trace in the result
         };
     }
-}
+}   
 
 // Run a function
 async function tryRunFunction(func){
     let res = await tryRunFunction_Internal(func);
     if (res.state == "error"){
         stopProgram();
-        ReportError(res.block, res.message, res.line);
+        ReportError(res.block, res.message, res.line,res.stackTrace);
     }
     return res;
 }
@@ -296,7 +299,7 @@ async function createEvalFunctionAndSyntaxCheck(block, source){
         );
     });
     if (res.state == "error"){
-        ReportError(res.block, res.message, res.line);
+        ReportError(res.block, res.message, res.line,res.stackTrace);
     }
     return res;
 }
@@ -347,7 +350,7 @@ async function tryProcessAndRunCode(name, source){
     catch(e) {
         // If we got a syntax error from Babel, we know the browser can't return a more user friendly
         // one since it didn't report one initially. Still, better to return it than not...
-        ReportError(userCodeBlockIdentifier+name, "Unexpected error when parsing code: "+e.toString(), null);
+        ReportError(userCodeBlockIdentifier+name, "Unexpected error when parsing code: "+e.toString(), null,null);
     }
 }
 
@@ -358,7 +361,7 @@ async function runProgram(program){
     }
 
     if (window.main === undefined || !(window.main instanceof Function)){
-        ReportError(userCodeBlockIdentifier+"Program", "There is no main() function to run!", null);
+        ReportError(userCodeBlockIdentifier+"Program", "There is no main() function to run!", null,null);
         return;
     }
     if (!mainIsRunning){
@@ -388,7 +391,7 @@ window.addEventListener('message', async function(m){
         }
 
         if (m.data.type == "ReportError"){
-            ReportError(userCodeBlockIdentifier + m.data.block, m.data.message, m.data.line);
+            ReportError(userCodeBlockIdentifier + m.data.block, m.data.message, m.data.line,m.data.stackTrace);
         }
 
         if (m.data.type == "CleanEnvironment"){
