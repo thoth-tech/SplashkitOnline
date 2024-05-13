@@ -215,30 +215,33 @@ ReferenceError: test is not defined
 // Currently those are the only two forms supported, but this should account for the majority well enough.
 // It also doesn't parse the url style ones - it only needs to work for the local user's code, so good enough.
 
+
+
 function parseErrorStack(err){
     const stackParse = /(?:@|\()((?:[^;:`]|[:;`](?=.*(?:\/|\.)))*)`?;?:([0-9]*)/g;
     let stack = [...err.stack.matchAll(stackParse)];
 
     let stackIndex = 0;
 
-    //Should we limit this to only SplashKitArgumentError? (i.e if (err instanceof SplashKitArgumentError))
-
     // Unwind stack until we find user code:
     while(stackIndex < stack.length && !stack[stackIndex][1].startsWith(userCodeBlockIdentifier))
         stackIndex += 1;
 
-    if (stackIndex >= stack.length)
-        stackIndex = 0;
+    // Only include the stack frames that are relevant to your code
+    stack = stack.slice(stackIndex, stackIndex + 2);
 
-    let lineNumber = stack[stackIndex][2];
-
-    let file = stack[stackIndex][1];
+    let lineNumber = stack[0][2];
+    let file = stack[0][1];
 
     if (file.startsWith(userCodeBlockIdentifier))
         lineNumber -= userCodeStartLineOffset;
 
-    return {lineNumber, file};
+    // Include the error message at the beginning of the stack trace
+    stack.unshift([err.message]);
+    stack = stack.map(s=>s.join(':')).join('\n');
+    return {lineNumber, file, stack};
 }
+
 
 
 async function tryRunFunction_Internal(func) {
@@ -264,8 +267,6 @@ async function tryRunFunction_Internal(func) {
                 value: run
             };
         }   
-         // Get the full stack trace
-         let stackTrace = err.stack; 
 
         let error = parseErrorStack(err);
 
@@ -274,7 +275,7 @@ async function tryRunFunction_Internal(func) {
             message: err.message, // This is the error message from the original error
             line: error.lineNumber,
             block: error.file,
-            stackTrace: stackTrace // Include the stack trace in the result
+            stackTrace: error.stack // Include the stack trace in the result
         };
     }
 }   

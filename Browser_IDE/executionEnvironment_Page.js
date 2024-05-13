@@ -113,7 +113,7 @@ function ReportError(block, message, line, stacktrace ,formatted=false){
         if (outputMessage)
             escapedMessage = "(" + escapedBlock + ") " + escapedMessage;
     }
-
+    
     // Format the stack trace with <details> and <summary> tags
     escapedMessage = '<summary style="color: red;">' + escapedMessage + '</summary>';
     stackTrace = '<pre>' + stackTrace + '</pre>';
