@@ -459,7 +459,7 @@ window.addEventListener('message', async function(m){
         if('callbackID' in m.data){
             parent.postMessage({
                 type: "callback",
-                callbackID: m.data.callbackID,
+                responseCallbackID: m.data.callbackID,
                 error: undefined,
             }, "*");
         }
@@ -474,7 +474,7 @@ window.addEventListener('message', async function(m){
         if('callbackID' in m.data){
             parent.postMessage({
                 type: "callback",
-                callbackID: m.data.callbackID,
+                responseCallbackID: m.data.callbackID,
                 error: err,
             }, "*");
         }
