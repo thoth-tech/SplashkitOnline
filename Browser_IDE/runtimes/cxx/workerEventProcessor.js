@@ -196,15 +196,15 @@ moduleEvents.addEventListener("onRuntimeInitialized", function() {
     });
 });
 
-Module['onRuntimeInitialized'] = (function() {
-    moduleEvents.dispatchEvent(new Event("onRuntimeInitialized"));
-});
-
 // ensure we're up to date on events before runnning.
 // this way, even if the user's program never calls
 // process_events(), we'll still have processed all the
 // file commands at least.
-Module['preRun'] = __sko_process_events;
+Module['onRuntimeInitialized'] = function() {
+    moduleEvents.dispatchEvent(new Event("onRuntimeInitialized"));
+
+    __sko_process_events();
+}
 
 // setup user program exit event
 Module['noExitRuntime'] = false;
