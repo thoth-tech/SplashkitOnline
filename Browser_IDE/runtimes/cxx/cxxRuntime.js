@@ -40,6 +40,13 @@ var Module = {
             case "ProgramContinued":
                 executionEnvironment.signalContinue();
                 break;
+            case "FS":
+                // just forward it straight through
+                parent.postMessage(data, "*");
+                break;
+            default:
+                console.log("Unexpected event in cxxRuntime.js!", event);
+                break;
         }
     }
 };
@@ -86,13 +93,57 @@ class ExecutionEnvironmentInternalCXX extends ExecutionEnvironmentInternal{
         clearInterval(this.keepAliveID);
         this.keepAliveID = setInterval(this.sendKeepAliveSignal, 500);
 
-        RunProgram(program);
+        clearWorkerCommands();
+
+        StartProgramWorker(program);
+
+        // attempt to synchronize to main project file system
+        // this just schedules all the commands, which will
+        // be run as soon as the program starts, and before
+        // entering main.
+        try {
+            await postMessageFallible(parent, {type: "mirrorRequest"});
+        }
+        catch(err){
+            // should we abort running the program if this fails?
+            // user might not be using files at all
+            console.log(err);
+        }
+
+        // start the program!
+        worker.RunProgram();
     }
     sendKeepAliveSignal(){
         sendWorkerCommand("keepAlive", {});
     }
     resetExecutionScope(){
         // nothing to do...
+    }
+
+    async sendFSCommandToWorker(command){
+        if (worker == null)
+            return;// no need to throw, since we'll resync next time we run
+
+        await sendAwaitableWorkerCommand(command.type, command);
+    }
+
+    async mkdir(path){
+        await this.sendFSCommandToWorker({type:'mkdir', path: path});
+    }
+    async writeFile(path, data){
+        if (typeof data == 'string')
+            await this.sendFSCommandToWorker({type:'writeFile', path: path, data: data});
+        else
+            await this.sendFSCommandToWorker({type:'writeFile', path: path, data: Array.from(data) /* can't encode Uint8Array in JSON */});
+    }
+    async rename(oldPath, newPath){
+        await this.sendFSCommandToWorker({type:'rename', oldPath, newPath});
+    }
+    async unlink(path){
+        await this.sendFSCommandToWorker({type:'unlink', path});
+    }
+    async rmdir(path, recursive){
+        await this.sendFSCommandToWorker({type:'rmdir', path, recursive});
     }
 }
 

@@ -186,17 +186,27 @@ MakePatch(
 )
 
 
-# Wrap all the worker creation inside a function, 'RunProgram'
+# Wrap all the worker creation inside a function, 'StartProgramWorker'
 MakePatch(
     "var worker = new Worker(workerURL);",
     "var worker = null;\n"+
-    "function RunProgram(wasmBinary){\n"+
+    "function StartProgramWorker(wasmBinary){\n"+
     "worker = new Worker(workerURL);"
 )
 # End of function
 MakePatch(
     "function cloneObject(event) {",
     "}\n\n function cloneObject(event) {"
+)
+
+# Wrap starting the program as a method of the worker
+MakePatch(
+    "setTimeout(() => {",
+    "worker.RunProgram = () => {"
+)
+MakePatch(
+    "}, 0); // delay til next frame, to make sure html is ready",
+    "};"
 )
 
 # Send the user's compiled code to the worker first

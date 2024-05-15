@@ -48,6 +48,7 @@ let SplashKitOnlineLanguageDefinitions = [
         setups: [{
             name: "C++ (Clang)",
             runtimeFiles: [
+                "fallibleMessage.js",
                 "runtimes/ExecutionEnvironmentInternal.js",
                 "runtimes/cxx/cxxRuntime.js",
                 "runtimes/cxx/bin/SplashKitBackendWASMCPP.js",
