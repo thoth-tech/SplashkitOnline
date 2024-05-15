@@ -122,6 +122,14 @@ function sendWorkerCommand(command, args) {
     currentServiceWorker.postMessage({type: "programEvent", command, args});
 }
 
+// seperate function to keep performance up (sendWorkerCommand is called a _lot_)
+async function sendAwaitableWorkerCommand(command, args) {
+    if (!serviceWorkerSanityCheck())
+        return;
+
+    await postMessageFallible(currentServiceWorker, {type: "programEvent", command, args});
+}
+
 function clearWorkerCommands(command) {
     if (!serviceWorkerSanityCheck())
         return;
@@ -142,6 +150,13 @@ async function registerServiceWorker(){
 
         if (worker.active) {
             currentServiceWorker = worker.active;
+            navigator.serviceWorker.addEventListener('message', async function(m){
+                switch(m.data.type){
+                    case "callback":
+                        executeTempCallback(m.data);
+                        break;
+                }
+            });
 
             executionEnvironment.signalReady();
         }

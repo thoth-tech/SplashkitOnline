@@ -20,7 +20,7 @@ async function executeTempCallback(eventData){
 }
 
 function isWorker(oWindow){
-    return (oWindow instanceof Worker);
+    return (oWindow instanceof Worker) || (oWindow instanceof ServiceWorker);
 }
 
 function isInWorker(){
