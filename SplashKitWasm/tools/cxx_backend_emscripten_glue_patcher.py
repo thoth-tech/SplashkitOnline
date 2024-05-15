@@ -44,6 +44,9 @@ MakePatch(
 MakePatch(
     "var Module = typeof Module != 'undefined' ? Module : {};\n",
     "var Module = {};\n"+
+    "var FS/*no space here so it doesn't get replaced*/ = null;\n"+
+    "importScripts('./../../../moduleEventTarget.js');\n"+
+    "importScripts('./../../../fsevents.js');\n"+
     "importScripts('./../workerEventProcessor.js');\n"+
     "function RunProgram() {\n"+
     "Module = typeof Module != 'undefined' ? Module : {};\n"
@@ -70,6 +73,10 @@ MakePatch(
 MakePatch(
     "var document ",
     "document"
+)
+MakePatch(
+    "var FS ",
+    "FS"
 )
 MakePatch(
     "function AudioContext() {",
