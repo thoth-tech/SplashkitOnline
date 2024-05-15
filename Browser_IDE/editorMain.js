@@ -233,7 +233,12 @@ function prepareIDEForLoading(){
             return;
         }
         Promise.all([waitForInitialize, waitForProjectAttach]).then(async function() {
-            await MirrorToExecutionEnvironment();
+            if (!haveMirrored && canMirror){
+                displayEditorNotification("Loading project files.", NotificationIcons.INFO);
+
+                haveMirrored = true;
+                await MirrorToExecutionEnvironment();
+            }
             resolve();
         });
     });
@@ -266,29 +271,28 @@ executionEnviroment.addEventListener("onCriticalInitializationFail", function(da
 
 async function MirrorToExecutionEnvironment(){
     try {
-        if (!haveMirrored && canMirror){
-            displayEditorNotification("Loading project files.", NotificationIcons.INFO);
+        let tree = await storedProject.access((project)=>project.getFileTree());
 
-            haveMirrored = true;
-            let tree = await storedProject.access((project)=>project.getFileTree());
+        let promises = []
 
-            async function mirror(tree, path){
-                let dirs_files = tree;
+        async function mirror(tree, path){
+            let dirs_files = tree;
 
-                for(let node of dirs_files){
-                    let abs_path = path+""+node.label;
-                    if (node.children != null){
-                        executionEnviroment.mkdir(abs_path);
-                        mirror(node.children, abs_path+"/");
-                    }
-                    else{
-                        executionEnviroment.writeFile(abs_path, await storedProject.access((project)=>project.readFile(abs_path)));
-                    }
+            for(let node of dirs_files){
+                let abs_path = path+""+node.label;
+                if (node.children != null){
+                    promises.push(executionEnviroment.mkdir(abs_path));
+                    promises.push(mirror(node.children, abs_path+"/"));
+                }
+                else{
+                    promises.push(executionEnviroment.writeFile(abs_path, await storedProject.access((project)=>project.readFile(abs_path))));
                 }
             }
-
-            await mirror(tree, "/");
         }
+
+        await mirror(tree, "/");
+
+        await Promise.all(promises);
     } catch(err){
         let errEv = new Event("filesystemError");
         errEv.shortMessage = "Internal error";
@@ -646,6 +650,8 @@ async function fileAsString(buffer){
 
 // ------ Project Zipping/Unzipping Functions ------
 async function projectFromZip(file){
+    let promises = [];
+
     try {
         await JSZip.loadAsync(file)
         .then(async function(zip) {
@@ -654,14 +660,16 @@ async function projectFromZip(file){
                 if (zipEntry.dir){
                     abs_path = abs_path.substring(0, abs_path.length-1);
 
-                    await unifiedFS.mkdir(abs_path);
+                    promises.push(unifiedFS.mkdir(abs_path));
                 }
                 else{
                     let uint8_view = await zip.file(rel_path).async("uint8array");
-                    await unifiedFS.writeFile(abs_path, uint8_view);
+                    promises.push(unifiedFS.writeFile(abs_path, uint8_view));
                 }
             });
         });
+
+        await Promise.all(promises);
     } catch(err){
         let errEv = new Event("filesystemError");
         errEv.shortMessage = "Import failed";
