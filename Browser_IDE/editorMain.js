@@ -525,8 +525,6 @@ async function runProgram(){
         ], reportCompilationError);
 
         if (compiled.output != null) {
-            displayEditorNotification("Running project!", NotificationIcons.SUCCESS);
-
             executionEnviroment.runProgram(compiled.output);
         } else {
             displayEditorNotification("Project has errors! Please see terminal for details.", NotificationIcons.ERROR);
@@ -844,6 +842,8 @@ function clearErrorLines(){
 
 // Update buttons when the state of the ExecutionEnvironment changes
 executionEnviroment.addEventListener("programStarted", function(e){
+    displayEditorNotification("Running project!", NotificationIcons.SUCCESS);
+
     updateButtons();
 });
 executionEnviroment.addEventListener("programContinued", function(e){

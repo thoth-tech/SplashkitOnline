@@ -88,7 +88,6 @@ class ExecutionEnvironmentInternalCXX extends ExecutionEnvironmentInternal{
     }
     async runProgram(program){
         await this.stopProgram();
-        await this.signalStarted();
 
         clearInterval(this.keepAliveID);
         this.keepAliveID = setInterval(this.sendKeepAliveSignal, 500);
@@ -109,6 +108,8 @@ class ExecutionEnvironmentInternalCXX extends ExecutionEnvironmentInternal{
             // user might not be using files at all
             console.log(err);
         }
+
+        await this.signalStarted();
 
         // start the program!
         worker.RunProgram();
