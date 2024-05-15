@@ -106,18 +106,27 @@ let executionEnvironment = null;
 
 let currentServiceWorker = null;
 
-function sendWorkerCommand(command, args) {
+function serviceWorkerSanityCheck() {
     if (!currentServiceWorker)
+        return false;
+    if (currentServiceWorker.state == "redundant") {
+        executionEnvironment.Reload();
+    }
+    return true;
+}
+
+function sendWorkerCommand(command, args) {
+    if (!serviceWorkerSanityCheck())
         return;
 
     currentServiceWorker.postMessage({type: "programEvent", command, args});
 }
 
-function handleServiceWorkerStateChange(event) {
-    if (this.state == "activated") {
-        // trigger reload so service worker starts intercepting properly
-        executionEnvironment.Reload();
-    }
+function clearWorkerCommands(command) {
+    if (!serviceWorkerSanityCheck())
+        return;
+
+    currentServiceWorker.postMessage({type: "clearEvents"});
 }
 
 async function registerServiceWorker(){
@@ -125,7 +134,7 @@ async function registerServiceWorker(){
         let worker = await navigator.serviceWorker.register("/SKOservice-worker.js", { scope: "/" });
 
         worker.addEventListener("statechange", (event) => {
-            if (this.state == "activated") {
+            if (this.state == "activated" || this.state == "redundant") {
                 // trigger reload so service worker starts intercepting properly
                 executionEnvironment.Reload();
             }
