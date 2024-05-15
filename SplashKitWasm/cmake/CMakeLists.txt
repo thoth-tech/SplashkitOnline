@@ -354,7 +354,7 @@ if (EMSCRIPTEN)
     endif()
     if (ENABLE_CPP_BACKEND)
         add_executable(SplashKitBackendWASMCPP "${SK_WASMEXT}/src/cxxbackend/stubs/dummy.cpp")
-        set_target_properties(SplashKitBackendWASMCPP PROPERTIES LINK_FLAGS " -sDEMANGLE_SUPPORT --proxy-to-worker --pre-js=${SK_WASMEXT}/src/cxxbackend/cxx_preamble.js -sINCLUDE_FULL_LIBRARY  -sALLOW_TABLE_GROWTH -s MAXIMUM_MEMORY=1gb -sALLOW_MEMORY_GROWTH -sEXPORTED_RUNTIME_METHODS=['addFunction'] -s EXPORTED_FUNCTIONS=\"['_malloc','stackAlloc','stackSave','stackRestore','_free']\" -s EXPORT_ALL=1 -sFS_DEBUG" LINK_DEPENDS "${SK_WASMEXT}/src/cxxbackend/cxx_preamble.js")
+        set_target_properties(SplashKitBackendWASMCPP PROPERTIES LINK_FLAGS " -sWASM_BIGINT -sDEMANGLE_SUPPORT --proxy-to-worker --pre-js=${SK_WASMEXT}/src/cxxbackend/cxx_preamble.js -sINCLUDE_FULL_LIBRARY  -sALLOW_TABLE_GROWTH -s MAXIMUM_MEMORY=1gb -sALLOW_MEMORY_GROWTH -sEXPORTED_RUNTIME_METHODS=['addFunction'] -s EXPORTED_FUNCTIONS=\"['_malloc','stackAlloc','stackSave','stackRestore','_free']\" -s EXPORT_ALL=1 -sFS_DEBUG" LINK_DEPENDS "${SK_WASMEXT}/src/cxxbackend/cxx_preamble.js")
 
         target_link_libraries(SplashKitBackendWASMCPP SplashKitBackend)
         set_target_properties(SplashKitBackendWASMCPP

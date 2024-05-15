@@ -17,13 +17,6 @@ def MakePatch(substr, repl):
 
     inGlue = inGlue.replace(substr, repl)
 
-# Sometimes offset_low/offset_high are bigints - it's a hack, but just force them to be Numbers
-# Note: I've seen errors related to file reading that _might_ be related to this...
-MakePatch(
-    "var offset = convertI32PairToI53Checked(offset_low, offset_high)",
-    "var offset = convertI32PairToI53Checked(Number(offset_low), Number(offset_high));"
-)
-
 # We need access to the main function
 MakePatch(
     "var stackRestore = Module['stackRestore'] = createExportWrapper('stackRestore');",
@@ -58,9 +51,11 @@ MakePatch(
 
 MakePatch(
     "strftime_l: _strftime_l",
-    "strftime_l: _strftime_l,"+
-    "  /** @export */"
-    "  __sko_process_events : __sko_process_events,"
+    "strftime_l: _strftime_l,\n"+
+    "  /** @export */\n"+
+    "  __sko_process_events : __sko_process_events,\n"+
+    "  /** @export */\n"+
+    "  emscripten_memcpy_js : _emscripten_memcpy_js,"
 )
 
 # These will need to be accessible globally
