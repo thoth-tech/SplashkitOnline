@@ -1,13 +1,3 @@
-// function to load the system libraries zip file
-async function loadSystemRootFiles(){
-    try {
-        return await downloadFile("compilers/cxx/bin/wasi-sysroot.zip", null, true);
-    }
-    catch(err) {
-        throw new Error("Couldn't load the compiler system root files!<br/>"+err.toString());
-    }
-}
-
 // utility functions for reporting errors from Clang
 function removeAnsiFromString(text){
     return text.replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '');
@@ -75,7 +65,6 @@ w.onmessage = function(event){
 // initialize the compilers
 await postMessageFallible(w, {
     type: "initialize",
-    sysroot: await loadSystemRootFiles(),
     SKO: SKO,
 });
 

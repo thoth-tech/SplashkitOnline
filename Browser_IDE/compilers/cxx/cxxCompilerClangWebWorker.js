@@ -8,6 +8,16 @@ importScripts('./../../external/js-lzma/src/lzma.shim.js');
 self.wlzmaCustomPath = "./../../external/js-lzma/src/wlzma.wrk.js";
 importScripts('./../../downloadHandler.js');
 
+// function to load the system libraries zip file
+async function loadSystemRootFiles(){
+    try {
+        return await downloadFile("bin/wasi-sysroot.zip", null, true);
+    }
+    catch(err) {
+        throw new Error("Failed to load compiler system root files: \""+err.toString()+"\"</br> Please check that the files are installed correctly.");
+    }
+}
+
 // function to load in the system root files from a zip file
 async function preloadSysroot(FS, sysroot){
     let contents = [];
@@ -97,8 +107,9 @@ onmessage = async function(event){
                     throw new Error("Failed to load Wasm-ld: \""+err.toString()+"\"</br> Please check that the files are installed correctly.");
                 }
 
-                await initializeCompiler();
-                await initializeSystemRoot(event.data.sysroot);
+                let [ , rootFiles] = await Promise.all([initializeCompiler(), loadSystemRootFiles()]);
+                await initializeSystemRoot(rootFiles);
+
                 resolveMessageFallible(event);
                 break;
             case "setupUserCode":
