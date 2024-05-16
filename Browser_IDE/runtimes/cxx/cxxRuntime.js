@@ -122,7 +122,10 @@ function handleServiceWorkerStateChange(event) {
 
 async function registerServiceWorker(){
     try {
-        let worker = await navigator.serviceWorker.register("/SKOservice-worker.js", { scope: "/" });
+        let path = (new URL(window.location.href)).pathname;
+        let scope = path.slice(0,path.lastIndexOf("/")+1);
+
+        let worker = await navigator.serviceWorker.register("SKOservice-worker.js", { scope: scope });
 
         worker.addEventListener("statechange", (event) => {
             if (this.state == "activated") {
