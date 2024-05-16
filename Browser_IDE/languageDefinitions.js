@@ -13,7 +13,6 @@
 let SplashKitOnlineLanguageDefinitions = [
     {
         name: "JavaScript",
-        userVisibleName: "JavaScript",
         aliases: ['JS'],
         setups: [{
             name: "JavaScript Native",
@@ -43,7 +42,6 @@ let SplashKitOnlineLanguageDefinitions = [
     },
     {
         name: "C++",
-        userVisibleName: "C++ (Experimental)",
         aliases: ['CXX','C'],
         setups: [{
             name: "C++ (Clang)",
@@ -77,7 +75,6 @@ function makeAliasMap(languages){
         let language = languages[i];
 
         aliasMap[language.name] = language;
-        aliasMap[language.userVisibleName] = language;
 
         for (let i = 0; i < language.aliases.length; i ++) {
             aliasMap[language.aliases[i]] = language;

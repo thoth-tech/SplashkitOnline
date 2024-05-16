@@ -120,57 +120,29 @@ for (let i = 0; i < tabElems.length; i++) {
 
 SwitchToTabs(tabs[0].contents.id);
 
-// setup language selection box
-let languageSelectElem = document.getElementById("languageSelection");
-for (let i = 0; i < SplashKitOnlineLanguageDefinitions.length; i++) {
-    let language = SplashKitOnlineLanguageDefinitions[i];
-    languageSelectElem.append(elem("option", {value: language.name}, [language.userVisibleName]));
-}
-
-// switch active language
-// currently just reloads the page with the 'language' parameter set
-// in the future, ideally this will work _without_ reloading the page,
-// by unloading the existing language scripts then loading the new ones
-function switchActiveLanguage(language){
-     let page_url = new URL(window.location.href);
-     page_url.searchParams.set('language', language.replaceAll("+"," ") /* spaces become + in url */);
-     window.location = page_url;
-}
-
-languageSelectElem.addEventListener('change', function(event) {
-    // just switch active language
-    // TODO: store chosen language inside project
-    switchActiveLanguage(event.target.value);
-})
-
 // ------ Setup Project and Execution Environment ------
 
 // decide which language to use
-let activeLanguage = null;
-let activeLanguageSetup = null;
+let currentLanguage = null;
 if (SKO.language in SplashKitOnlineLanguageAliasMap) {
-    activeLanguage = SplashKitOnlineLanguageAliasMap[SKO.language];
+    currentLanguage = SplashKitOnlineLanguageAliasMap[SKO.language].setups[0];
 } else {
-    activeLanguage = SplashKitOnlineLanguageAliasMap["JavaScript"];
+    currentLanguage = SplashKitOnlineLanguageAliasMap["JavaScript"].setups[0];
 
     displayEditorNotification("Unable to switch to language "+SKO.language+", defaulting to JavaScript.", NotificationIcons.ERROR, -1);
     displayEditorNotification("Available languages are: <br/><ul>"+
-        SplashKitOnlineLanguageDefinitions.map(val => `<li>${val.userVisibleName}</li>`).join("")+
+        SplashKitOnlineLanguageDefinitions.map(val => `<li>${val.name}</li>`).join("")+
         "</ul>", NotificationIcons.ERROR, -1
     );
 }
-activeLanguageSetup = activeLanguage.setups[0];
-
-languageSelectElem.value = activeLanguage.name;
-
 // initialize language
-initializeLanguageCompilerFiles(activeLanguageSetup);
+initializeLanguageCompilerFiles(currentLanguage);
 
 // initialize execution environment and project storage objects
-let executionEnviroment = new ExecutionEnvironment(document.getElementById("ExecutionEnvironment"), activeLanguageSetup);
+let executionEnviroment = new ExecutionEnvironment(document.getElementById("ExecutionEnvironment"), currentLanguage);
 let appStorage = new AppStorage();
 appStorage.attach();
-let storedProject = new IDBStoredProject(appStorage, activeLanguageSetup.getDefaultProject());
+let storedProject = new IDBStoredProject(appStorage, currentLanguage.getDefaultProject());
 let unifiedFS = new UnifiedFS(storedProject, executionEnviroment);
 storedProject.attachToProject();
 
@@ -205,7 +177,7 @@ async function newProject(){
 
 function prepareIDEForLoading(){
     let waitForCompilerReady = new Promise((resolve) => {
-        if (getCompiler(activeLanguageSetup.compilerName))
+        if (getCompiler(currentLanguage.compilerName))
             resolve();
         registeredCompilersEvents.addEventListener("compilerReady", () => {
             resolve();
@@ -228,7 +200,7 @@ function prepareIDEForLoading(){
     });
 
     let waitForMirrorCompletion = new Promise((resolve) => {
-        if (!activeLanguageSetup.persistentFilesystem){
+        if (!currentLanguage.persistentFilesystem){
             resolve();
             return;
         }
@@ -305,11 +277,11 @@ async function MirrorToExecutionEnvironment(){
 // There is currently a lot of repetition (for instance, runInitialization/runMainLoop, saveInitialization/saveMainLoop, etc)
 
 // temporary hack until the above actually gets done...
-if (activeLanguageSetup.name.includes("C++")) {
+if (currentLanguage.name.includes("C++")) {
     document.getElementById("codeViewTabs").children[0].innerText = "GeneralCode.cpp";
     document.getElementById("codeViewTabs").children[1].innerText = "MainCode.cpp";
 }
-if (!activeLanguageSetup.supportHotReloading) {
+if (!currentLanguage.supportHotReloading) {
     document.getElementById("runOne").children[0].innerText = "Syntax Check File";
 }
 
@@ -343,7 +315,7 @@ async function runFile(name, code) {
         clearErrorLines();
 
         let message = `Preparing ${name}...`;
-        if (activeLanguageSetup.compiled)
+        if (currentLanguage.compiled)
             message = `Compiling ${name}...`
         displayEditorNotification(message, NotificationIcons.CONSTRUCTION);
 
@@ -394,14 +366,14 @@ async function syntaxCheckFile(name, code) {
 
 // Functions to run the code blocks
 function runInitialization(){
-    if (activeLanguageSetup.supportHotReloading)
+    if (currentLanguage.supportHotReloading)
         runFile("GeneralCode", editorInit.getValue());
     else
         syntaxCheckFile("GeneralCode", editorInit.getValue());
 }
 
 function runMainLoop(){
-    if (activeLanguageSetup.supportHotReloading)
+    if (currentLanguage.supportHotReloading)
         runFile("MainCode", editorMainLoop.getValue());
     else
         syntaxCheckFile("MainCode", editorMainLoop.getValue());
@@ -483,7 +455,7 @@ function asyncSleep(time=0) {
 }
 
 function getCurrentCompiler() {
-    let currentCompiler = getCompiler(activeLanguageSetup.compilerName);
+    let currentCompiler = getCompiler(currentLanguage.compilerName);
 
     if (currentCompiler == null)
         displayEditorNotification("Failed to start compiler! Maybe it hasn't loaded yet, try again in a bit!", NotificationIcons.ERROR);
@@ -496,7 +468,7 @@ async function runProgram(){
     try {
         clearErrorLines();
 
-        displayEditorNotification(activeLanguageSetup.compiled ? "Compiling project..." : "Building project...", NotificationIcons.CONSTRUCTION);
+        displayEditorNotification(currentLanguage.compiled ? "Compiling project..." : "Building project...", NotificationIcons.CONSTRUCTION);
 
         // give the notification a chance to show
         await asyncSleep();

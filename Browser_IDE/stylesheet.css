@@ -53,29 +53,6 @@ button:hover {
     background-color: #404040;
 }
 
-select {
-    -webkit-appearance: button;
-    -moz-appearance: button;
-
-    margin: 0px 3px;
-    border-radius: 3px;
-    border: 0px black solid;
-    background-color: transparent;
-    color: inherit;
-    cursor: pointer;
-    outline:none;
-    line-height: 1em;
-}
-
-select:disabled {
-    color: #AAA;
-}
-
-select:hover {
-    background-color: #303030;
-}
-
-
 a:visited {
     color: #0A0;
 }
