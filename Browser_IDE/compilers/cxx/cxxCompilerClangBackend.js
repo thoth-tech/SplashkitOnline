@@ -1,21 +1,11 @@
 // function to load the system libraries zip file
 async function loadSystemRootFiles(){
-    return new Promise((resolve, reject) => {
-        var xhr = new XMLHttpRequest();
-        xhr.responseType = 'arraybuffer';
-        xhr.onreadystatechange = function(){
-            if (xhr.readyState === 4) {
-                if (xhr.status === 0 || xhr.status === 200) {
-                    resolve(xhr.response);
-                }
-                else{
-                    reject(new Error("Couldn't load the compiler system root files!"));
-                }
-            }
-        };
-        xhr.open("GET", "compilers/cxx/bin/wasi-sysroot.zip", true);
-        xhr.send(null);
-    });
+    try {
+        return await downloadFile("compilers/cxx/bin/wasi-sysroot.zip", null, true);
+    }
+    catch(err) {
+        throw new Error("Couldn't load the compiler system root files!<br/>"+err.toString());
+    }
 }
 
 // utility functions for reporting errors from Clang
@@ -85,7 +75,8 @@ w.onmessage = function(event){
 // initialize the compilers
 await postMessageFallible(w, {
     type: "initialize",
-    sysroot: await loadSystemRootFiles()
+    sysroot: await loadSystemRootFiles(),
+    SKO: SKO,
 });
 
 // export functions to compile and link objects - this is used in the main cxxCompiler.js

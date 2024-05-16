@@ -22,5 +22,6 @@ let SKO = (function(){
 
     return {
         language: getEnvParam("language", "JavaScript", false), /*don't decode, so + remains + rather than a space*/
+        useCompressedBinaries: getEnvParam("useCompressedBinaries", "on", true) == "on",
     };
 })();
