@@ -433,7 +433,6 @@ if (EMSCRIPTEN)
         set(UNCOMPRESSED_COMPILER_BINARY_FILES
             "${SK_WASMEXT}/prebuilt/cxx/compiler/clang.wasm"
             "${SK_WASMEXT}/prebuilt/cxx/compiler/lld.wasm"
-            "${SK_WASMEXT}/prebuilt/cxx/compiler/lld.data"
         )
 
         if (COMPRESS_BACKENDS)
