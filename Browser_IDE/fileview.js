@@ -72,19 +72,19 @@ myTreeView.addEventListener("folderDeleteRequest", async function(e){
 });
 
 // Attach to file system callbacks within the Execution Environment
-executionEnviroment.addEventListener('onMovePath', function(e) {
+executionEnviromentClient.addEventListener('onMovePath', function(e) {
     myTreeView.moveNode(e.oldPath, e.newPath, "transient");
 });
 
-executionEnviroment.addEventListener('onMakeDirectory', function(e) {
+executionEnviromentClient.addEventListener('onMakeDirectory', function(e) {
     myTreeView.addDirectory(e.path, "transient");
 });
 
-executionEnviroment.addEventListener('onDeletePath', function(e) {
+executionEnviromentClient.addEventListener('onDeletePath', function(e) {
     myTreeView.deleteNode(e.path, "transient");
 });
 
-executionEnviroment.addEventListener('onOpenFile', function(e) {
+executionEnviromentClient.addEventListener('onOpenFile', function(e) {
     myTreeView.addFile(e.path, "transient");
 });
 

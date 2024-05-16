@@ -5,9 +5,9 @@
  * Using this helps to avoid the two filesystems becoming out-of-sync.
  */
 class UnifiedFS {
-    constructor(_storedProject, _executionEnvironment){
+    constructor(_storedProject, _executionEnvironmentClient){
         this.storedProject = _storedProject;
-        this.executionEnvironment = _executionEnvironment;
+        this.executionEnvironmentClient = _executionEnvironmentClient;
     }
 
     async mkdir(path){
@@ -16,7 +16,7 @@ class UnifiedFS {
         let err = undefined;
 
         try {
-            await this.executionEnvironment.mkdir(path);
+            await this.executionEnvironmentClient.mkdir(path);
             tSucc = true;
 
             await this.storedProject.access((project)=>project.mkdir(path));
@@ -26,7 +26,7 @@ class UnifiedFS {
         }
 
         if(err){
-            if (tSucc) this.executionEnvironment.rmdir(path);
+            if (tSucc) this.executionEnvironmentClient.rmdir(path);
             if (pSucc) this.storedProject.access((project)=>project.rmdir(path));
             throw err;
         }
@@ -51,7 +51,7 @@ class UnifiedFS {
             let err = undefined;
 
             try {
-                await this.executionEnvironment.writeFile(path, data);
+                await this.executionEnvironmentClient.writeFile(path, data);
                 tSucc = true;
 
                 await this.storedProject.access((project)=>project.writeFile(path, data));
@@ -62,7 +62,7 @@ class UnifiedFS {
 
             if(err){
                 // If one fails, we need to revert the other.
-                if(tSucc) await this.executionEnvironment.writeFile(path, tOriginalData);
+                if(tSucc) await this.executionEnvironmentClient.writeFile(path, tOriginalData);
                 if(pSucc) await this.storedProject.access((project)=>project.writeFile(path, pOriginalData));
                 throw err;
             }
@@ -70,7 +70,7 @@ class UnifiedFS {
             return;
         }
 
-        if(t) await this.executionEnvironment.writeFile(path, data);
+        if(t) await this.executionEnvironmentClient.writeFile(path, data);
         if(p) await this.storedProject.access((project)=>project.writeFile(path, data));
     }
 
@@ -81,7 +81,7 @@ class UnifiedFS {
             let err = undefined;
 
             try {
-                await this.executionEnvironment.rename(oldPath, newPath);
+                await this.executionEnvironmentClient.rename(oldPath, newPath);
                 tSucc = true;
 
                 await this.storedProject.access((project)=>project.rename(oldPath, newPath));
@@ -92,7 +92,7 @@ class UnifiedFS {
 
             if(err){
                 // If one fails, we need to revert the other.
-                if(tSucc) await this.executionEnvironment.rename(newPath, oldPath);
+                if(tSucc) await this.executionEnvironmentClient.rename(newPath, oldPath);
                 if(pSucc) await this.storedProject.access((project)=>project.rename(newPath, oldPath));
                 throw err;
             }
@@ -100,7 +100,7 @@ class UnifiedFS {
             return;
         }
 
-        if (t) await this.executionEnvironment.rename(oldPath, newPath);
+        if (t) await this.executionEnvironmentClient.rename(oldPath, newPath);
         if (p) await this.storedProject.access((project)=>project.rename(oldPath, newPath));
     }
 
@@ -113,7 +113,7 @@ class UnifiedFS {
             let err = undefined;
 
             try {
-                await this.executionEnvironment.unlink(path);
+                await this.executionEnvironmentClient.unlink(path);
                 tSucc = true;
 
                 await this.storedProject.access((project)=>project.unlink(path));
@@ -124,7 +124,7 @@ class UnifiedFS {
 
             if(err){
                 // If one fails, we need to revert the other.
-                if(tSucc) await this.executionEnvironment.writeFile(path, tOriginalData);
+                if(tSucc) await this.executionEnvironmentClient.writeFile(path, tOriginalData);
                 if(pSucc) await this.storedProject.access((project)=>project.writeFile(path, pOriginalData));
                 throw err;
             }
@@ -132,7 +132,7 @@ class UnifiedFS {
             return;
         }
 
-        if (t) await this.executionEnvironment.unlink(path);
+        if (t) await this.executionEnvironmentClient.unlink(path);
         if (p) await this.storedProject.access((project)=>project.unlink(path));
     }
 
@@ -142,7 +142,7 @@ class UnifiedFS {
         // folder in case we need to revert the deletion,
         // so what should be done?
 
-        if (t) await this.executionEnvironment.rmdir(path, recursive);
+        if (t) await this.executionEnvironmentClient.rmdir(path, recursive);
         if (p) await this.storedProject.access((project)=>project.rmdir(path, recursive));
     }
 }

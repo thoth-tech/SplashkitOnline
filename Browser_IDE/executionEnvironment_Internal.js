@@ -21,6 +21,7 @@ function findAsyncFunctionConstructorLineOffset(){
     return newlineCount;
 }
 
+
 let isInitialized = false;
 
 moduleEvents.addEventListener("onRuntimeInitialized", function() {
