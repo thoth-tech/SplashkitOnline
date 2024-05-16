@@ -216,6 +216,12 @@ class ExecutionEnvironment extends EventTarget{
             newPath: newPath,
         });
     }
+    async readFile(path){
+        this.iFrame.contentWindow.postMessage({
+            type: "readFile",
+            path: path
+        }, "*");
+    }
     unlink(path){
         this.iFrame.contentWindow.postMessage({
             type: "unlink",

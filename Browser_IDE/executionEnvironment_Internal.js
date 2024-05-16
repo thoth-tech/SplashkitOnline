@@ -420,7 +420,12 @@ window.addEventListener('message', async function(m){
         if (m.data.type == "rename"){
             FS.rename(m.data.oldPath,m.data.newPath);
         }
-
+        
+        if (m.data.type == "readFile"){
+            let a= FS.readFile(m.data.path);
+            console.log(a);
+            
+        }
         if (m.data.type == "unlink"){
             FS.unlink(m.data.path);
         }
