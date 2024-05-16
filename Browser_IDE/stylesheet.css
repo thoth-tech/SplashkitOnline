@@ -226,6 +226,12 @@ textarea {
     pointer-events: all;
 }
 
+.sk-input {
+  padding: 0.5em;
+  margin-top: 0.5em;
+  width: 100%;
+}
+
 .sk-terminal {
     overflow-y: scroll;
     height:200px;

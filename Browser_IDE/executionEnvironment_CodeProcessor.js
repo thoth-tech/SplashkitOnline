@@ -234,6 +234,7 @@ let findGlobalDeclarationsTransform__awaitables = new Set();
 findGlobalDeclarationsTransform__awaitables.add("refresh_screen");
 findGlobalDeclarationsTransform__awaitables.add("refresh_screen_with_target_fps");
 findGlobalDeclarationsTransform__awaitables.add("delay");
+findGlobalDeclarationsTransform__awaitables.add("read_line");
 
 function findGlobalDeclarationsTransform(babel){
     return{

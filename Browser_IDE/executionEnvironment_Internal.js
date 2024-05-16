@@ -50,6 +50,15 @@ moduleEvents.addEventListener("onRuntimeInitialized", function() {
         return new Promise((re) => setTimeout(re, milliseconds));
     }
 
+    window.userInputResolve = null;
+    window.read_line = function() {
+        console.log("read_line is waiting for user input...");
+        return new Promise(resolve => {
+            window.userInputResolve = resolve;
+            console.log("userInputResolve function set");
+        });
+    };
+
     // In case function overloads are disabled
     if (window.refresh_screen_with_target_fps != undefined){
         let original_refresh_screen_with_target_fps = refresh_screen_with_target_fps;
@@ -516,3 +525,28 @@ moduleEvents.addEventListener("onRuntimeInitialized", function() {
 
     parent.postMessage({type:"initialized"},"*");
 });
+
+function handleUserInput(event) {
+    if (event.key === "Enter") {
+        console.log("Event triggered:", event);
+        event.preventDefault();
+        const input = document.getElementById('user-input');
+        const output = document.getElementById('output');
+        const command = input.value.trim();
+        console.log("User input:", command);
+        input.value = ''; // Clear the input field
+
+        if (window.userInputResolve) {
+            console.log("Output element before update:", output.innerHTML);
+            output.innerHTML += `&gt; ${command}<br>`; // Use &gt; to represent '>' in HTML
+            console.log("Output element after update:", output.innerHTML);
+            console.log("Resolving user input with command:", command);
+            window.userInputResolve(command); // Resolve the Promise with the command
+            window.userInputResolve = null; // Reset the resolve function
+        } else {
+            console.log("No userInputResolve function available");
+        }
+    }
+}
+
+window.handleUserInput = handleUserInput;
