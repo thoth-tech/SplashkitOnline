@@ -96,8 +96,15 @@ MakePatch(
     "this.createPanner = makeNode;",
 """
 this.createPanner = makeNode;
-this.createScriptProcessor = makeNode;
+this.createScriptProcessor = function(bufferSize, numberOfInputChannels, numberOfOutputChannels){
+    let node = makeNode();
+
+    setGlobalScriptProcessor(bufferSize, numberOfInputChannels, numberOfOutputChannels, node);
+
+    return node;
+};
 this.close = () => {};
+this.sampleRate = AudioContextExt.sampleRate;
 """
 )
 
@@ -107,6 +114,7 @@ inGlue += """
 var document = null;
 var window = null;
 var AudioContext = null;
+var AudioContextExt = null;
 navigator.getGamepads = function(){return [];};
 
 onmessage = function onMessageFromMainEmscriptenThread(message) {
@@ -115,6 +123,8 @@ onmessage = function onMessageFromMainEmscriptenThread(message) {
 
 			if (message.data.wasmBinary)
 				Module['wasmBinary'] = message.data.wasmBinary;
+
+			AudioContextExt = message.data.audioContext;
 
 			RunProgram();
 			break;
@@ -190,7 +200,7 @@ MakePatch(
 MakePatch(
     "var worker = new Worker(workerURL);",
     "var worker = null;\n"+
-    "function StartProgramWorker(wasmBinary){\n"+
+    "function StartProgramWorker(wasmBinary, audioContext){\n"+
     "worker = new Worker(workerURL);"
 )
 # End of function
@@ -216,6 +226,7 @@ MakePatch(
   worker.postMessage({
     target: 'module-init',
         wasmBinary: wasmBinary,
+        audioContext: audioContext,
   });
 
   WebGLClient.prefetch();

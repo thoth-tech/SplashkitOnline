@@ -127,6 +127,8 @@ function __sko_process_events(){
 
     let now = performance.now();
 
+    emitAudio(now);
+
     if (now >= nextEventsCheckTime){
         nextEventsCheckTime = now + minimumEventsCheckInterval;
 
@@ -195,6 +197,60 @@ moduleEvents.addEventListener("onRuntimeInitialized", function() {
         postFSEvent({type: "onOpenFile", path: e.path});
     });
 });
+
+// Audio
+let lastAudioEmitTime = 0;
+let audioEventBuffer = null;
+let globalScriptProcessorNode = null;
+
+// initialize global script processor
+function setGlobalScriptProcessor(bufferSize, numberOfInputChannels, numberOfOutputChannels, node) {
+    if (numberOfOutputChannels != 2) {
+        console.error("Unexpected number of output channels: ", numberOfOutputChannels);
+        return;
+    }
+
+    globalScriptProcessorNode = node;
+    globalScriptProcessorNode.bufferSize = bufferSize;
+
+    // initialize storage
+    audioEventBuffer = {
+        outputBuffer : {
+            numberOfChannels: 2,
+            channelBuffers: [new Float32Array(bufferSize), new Float32Array(bufferSize)],
+            getChannelData : function(channel){
+                return this.channelBuffers[channel]
+            },
+        },
+    };
+
+    // now that we know the buffer size, let the main page know
+    postCustomMessage({
+        type: "InitializeAudioBuffer",
+        bufferSize: bufferSize,
+    });
+}
+
+function emitAudio(now) {
+    // if first run, or too much time has passed, reset ourselves
+    if (lastAudioEmitTime==0 || (now - lastAudioEmitTime)>500)lastAudioEmitTime = now;
+
+    if (globalScriptProcessorNode != null) {
+
+        // how much time passes in the audio buffer sent by one emission
+        let msPerAudioBufferSize = (globalScriptProcessorNode.bufferSize / AudioContextExt.sampleRate)*1000;
+
+        // loop until caught up
+        for(; lastAudioEmitTime <= now; lastAudioEmitTime += msPerAudioBufferSize) {
+            // process audio and send to main page
+            globalScriptProcessorNode.onaudioprocess(audioEventBuffer);
+            postCustomMessage({
+                type: "Audio",
+                channelBuffers: audioEventBuffer.outputBuffer.channelBuffers,
+            });
+        }
+    }
+}
 
 // ensure we're up to date on events before runnning.
 // this way, even if the user's program never calls

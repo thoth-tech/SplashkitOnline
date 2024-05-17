@@ -40,6 +40,19 @@ var Module = {
             case "ProgramContinued":
                 executionEnvironment.signalContinue();
                 break;
+            case "InitializeAudioBuffer":
+                audioPlayer.setupBuffer(data.bufferSize);
+                break;
+            case "Audio":
+                if (audioPlayer.readyToBuffer) {
+                    audioPlayer.channelBuffers[0].set(data.channelBuffers[0], audioPlayer.bufferWritePosition*audioPlayer.bufferSize);
+                    audioPlayer.channelBuffers[1].set(data.channelBuffers[1], audioPlayer.bufferWritePosition*audioPlayer.bufferSize);
+
+                    audioPlayer.bufferWritePosition += 1;
+                    if (audioPlayer.bufferWritePosition >= audioPlayer.bufferSegments)
+                        audioPlayer.bufferWritePosition = 0;
+                }
+                break;
             case "FS":
                 // just forward it straight through
                 parent.postMessage(data, "*");
@@ -94,7 +107,9 @@ class ExecutionEnvironmentInternalCXX extends ExecutionEnvironmentInternal{
 
         clearWorkerCommands();
 
-        StartProgramWorker(program);
+        StartProgramWorker(program, {
+            sampleRate: audioPlayer.audioContext.sampleRate
+        });
 
         // attempt to synchronize to main project file system
         // this just schedules all the commands, which will
@@ -222,9 +237,103 @@ async function registerServiceWorker(){
     }
 }
 
+//  Audio
+let audioPlayer = null;
+
+function setupAudio(){
+    let ctx = this;
+
+    // initial settings
+    ctx.audioContext = null;
+    ctx.readyToBuffer = false;
+
+    if (!ctx.audioContext) {
+        if (typeof(AudioContext) !== 'undefined') {
+            ctx.audioContext = new AudioContext();
+        } else if (typeof(webkitAudioContext) !== 'undefined') {
+            ctx.audioContext = new webkitAudioContext();
+        }
+    }
+
+    ctx.setupBuffer = function (bufferSize) {
+        if (!ctx.audioContext) return;
+
+        // initialize the buffers
+        ctx.bufferSize = bufferSize;
+
+        ctx.bufferApproxLengthSeconds = 10;
+        ctx.bufferSegments = Math.floor(ctx.bufferApproxLengthSeconds / (bufferSize / ctx.audioContext.sampleRate));
+        ctx.channelBuffers = [new Float32Array(ctx.bufferSize*ctx.bufferSegments), new Float32Array(ctx.bufferSize*ctx.bufferSegments)];
+
+        ctx.bufferWritePosition = 0;
+        ctx.bufferReadPosition = 0;
+
+        ctx.readyToBuffer = true;
+
+        // util
+        function mod(n, m) {
+          return ((n % m) + m) % m;
+        }
+
+        // setup the script processor node, and make it output from our buffer
+        ctx.scriptProcessorNode = ctx.audioContext.createScriptProcessor(ctx.bufferSize, 0, 2);
+
+        ctx.scriptProcessorNode.onaudioprocess = function (e) {
+
+            // synchronize if we're too far behind
+            let diff = Math.abs(ctx.bufferReadPosition - ctx.bufferWritePosition);
+            if (Math.min(diff, ctx.bufferSegments - diff) > 2) {
+                ctx.bufferReadPosition = mod(ctx.bufferWritePosition-1, ctx.bufferSegments);
+            }
+
+            // only play if we haven't caught up
+            if (ctx.bufferReadPosition != ctx.bufferWritePosition){
+                // The output buffer contains the samples that will be modified and played
+                let outputBuffer = e.outputBuffer;
+
+                for (let channel = 0; channel < outputBuffer.numberOfChannels; channel++) {
+                    let outputData = outputBuffer.getChannelData(channel);
+                    let inputData = ctx.channelBuffers[channel];
+
+                    outputData.set(inputData.subarray(ctx.bufferReadPosition*ctx.bufferSize, ctx.bufferReadPosition*ctx.bufferSize+ctx.bufferSize));
+                }
+
+                ctx.bufferReadPosition++;
+                if (ctx.bufferReadPosition >= ctx.bufferSegments)
+                    ctx.bufferReadPosition = 0;
+            }
+        };
+
+        ctx.scriptProcessorNode.connect(ctx.audioContext.destination);
+    }
+
+    // ensure context resumes once interacted with
+    // listenOnce and autoResumeAudioContext from Emscripten
+    var listenOnce = (object, event, func) => {
+        object.addEventListener(event, func, { 'once': true });
+    };
+    var autoResumeAudioContext = (ctx, elements) => {
+        if (!elements) {
+            elements = [document, document.getElementById('canvas')];
+        }
+        ['keydown', 'mousedown', 'touchstart'].forEach((event) => {
+            elements.forEach((element) => {
+                if (element) {
+                    listenOnce(element, event, () => {
+                        if (ctx.state === 'suspended') ctx.resume();
+                    });
+                }
+            });
+        });
+    };
+    autoResumeAudioContext(ctx.audioContext);
+}
+
+
 // set everything up!
 executionEnvironment = new ExecutionEnvironmentInternalCXX(window);
 registerServiceWorker();
+audioPlayer = new setupAudio();
 
 // make canvas take focus when clicked
 Module.canvas.addEventListener("click", async function () {
