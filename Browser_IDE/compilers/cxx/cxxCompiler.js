@@ -45,10 +45,8 @@ class CXXCompiler extends Compiler{
 
         let object = await this.compileObject(name, source);
 
-        if (object.output == null) return null;
-
         return {
-            output: object
+            output: object.object != null ? object : null
         };
     }
 
