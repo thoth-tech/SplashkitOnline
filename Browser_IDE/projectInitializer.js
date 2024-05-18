@@ -1,6 +1,6 @@
 "use strict";
 
-let defaultInitCodeJS =
+let defaultGameLoopCodeJS =
 `// Example code!
 // - Draws a circle where the user clicks!
 
@@ -39,7 +39,7 @@ function gameInnerLoop(){
 }
 `;
 
-let defaultMainLoopCodeJS =
+let defaultMainCodeJS =
 `let windowName = "My Game!";
 
 // Declare a global variable for the circle's position
@@ -71,7 +71,7 @@ function main(){
 }
 `;
 
-let defaultInitCodeCXX =
+let defaultGameLoopCodeCXX =
 `#include "splashkit.h"
 // Example code!
 // - Draws a circle where the user clicks!
@@ -113,7 +113,7 @@ void gameInnerLoop(){
 }
 `;
 
-let defaultMainLoopCodeCXX =
+let defaultMainCodeCXX =
 `#include "splashkit.h"
 
 std::string windowName = "My Game!";
@@ -153,8 +153,6 @@ int main(){
 }
 `;
 
-let initCodePath = "/code/codeblock_init.js";
-let mainLoopCodePath = "/code/codeblock_mainloop.js";
 let codePath = "/code";
 
 async function initializeSplashKitResourceFolders(storedProject) {
@@ -173,14 +171,14 @@ async function makeNewProject_JavaScript(storedProject){
     await initializeSplashKitResourceFolders(storedProject);
 
     await storedProject.mkdir("/code");
-    await storedProject.writeFile(initCodePath, defaultInitCodeJS);
-    await storedProject.writeFile(mainLoopCodePath, defaultMainLoopCodeJS);
+    await storedProject.writeFile("/code/innerLoop.js", defaultGameLoopCodeJS);
+    await storedProject.writeFile("/code/main.js", defaultMainCodeJS);
 }
 
 async function makeNewProject_CXX(storedProject){
     await initializeSplashKitResourceFolders(storedProject);
 
     await storedProject.mkdir("/code");
-    await storedProject.writeFile(initCodePath, defaultInitCodeCXX);
-    await storedProject.writeFile(mainLoopCodePath, defaultMainLoopCodeCXX);
+    await storedProject.writeFile("/code/inner_loop.cpp", defaultGameLoopCodeCXX);
+    await storedProject.writeFile("/code/main.cpp", defaultMainCodeCXX);
 }

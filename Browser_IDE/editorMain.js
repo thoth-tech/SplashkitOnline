@@ -120,12 +120,22 @@ class CodeViewer {
 
 }
 
-// TODO: make it search for user's source files...
-function findAllSourceFiles() {
-    return [
-        "/code/codeblock_init.js",
-        "/code/codeblock_mainloop.js"
-    ];
+function getExtension(filename) {
+    return filename.slice(filename.lastIndexOf('.')+1);
+}
+
+async function getFilesByExtension(extensions) {
+    let files = await storedProject.access((project) => project.getFlatFileList());
+
+    return files.filter((filename) => extensions.indexOf(getExtension(filename)) != -1);
+}
+
+async function findAllSourceFiles() {
+    return await getFilesByExtension(activeLanguage.sourceExtensions);
+}
+
+async function findAllCompilableFiles() {
+    return await getFilesByExtension(activeLanguage.compilableExtensions);
 }
 
 let editors = [];
@@ -158,8 +168,8 @@ function openCodeEditor(filename, setFocus=true) {
     }
 }
 
-function openCodeEditors() {
-    let sourceFiles = findAllSourceFiles();
+async function openCodeEditors() {
+    let sourceFiles = await findAllSourceFiles();
     for(let i = 0; i < sourceFiles.length; i ++) {
         openCodeEditor(sourceFiles[i], false);
     }
@@ -604,7 +614,7 @@ async function runProgram(){
             };
         }
 
-        let compiled = await currentCompiler.compileAll(await Promise.all(findAllSourceFiles().map(mapBit)), reportCompilationError);
+        let compiled = await currentCompiler.compileAll(await Promise.all((await findAllCompilableFiles()).map(mapBit)), reportCompilationError);
 
         if (compiled.output != null) {
             executionEnviroment.runProgram(compiled.output);
@@ -884,7 +894,7 @@ async function downloadProject(){
 }
 
 function openProjectFile(filename) {
-    let extension = filename.slice(filename.lastIndexOf('.')+1);
+    let extension = getExtension(filename);
     if (activeLanguage.sourceExtensions.indexOf(extension) > -1) {
         openCodeEditor(filename);
     } else {

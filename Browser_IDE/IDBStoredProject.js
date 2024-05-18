@@ -350,6 +350,26 @@ class __IDBStoredProjectRW{
         });
     }
 
+    async getFlatFileList(){
+        let fileTree = await this.getFileTree();
+        let files = [];
+
+        function internal(path, node){
+            if (node.children == null){ // leaf
+                files.push(path+node.label);
+                return;
+            }
+
+            // directory
+            for(let i = 0; i < node.children.length; i ++)
+                internal(path + node.label + "/", node.children[i]);
+        }
+
+        internal("", {children: fileTree, label: ""});
+
+        return files;
+    }
+
 
     // "Private" Methods
 
