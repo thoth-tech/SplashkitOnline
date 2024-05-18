@@ -133,6 +133,7 @@ a:visited {
     padding: 0;
     justify-content: space-between;
     color:#AAA;
+    min-width: 0;
 }
 .sk-tabs li:hover {
     background-color: #222328;
@@ -144,6 +145,11 @@ a:visited {
     border-right: 1px #404040 solid;
     cursor: pointer;
     transition: all 0.2s;
+    min-width: 0;
+}
+.sk-tabs li .sk-tab-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .sk-tabs-active {

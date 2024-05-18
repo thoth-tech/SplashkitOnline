@@ -4,29 +4,38 @@
 
 class CodeViewer {
     constructor(filename) {
+        let self = this;
+
         this.filename = filename;
         this.shortname = filename.slice(filename.lastIndexOf("/")+1);
 
         let viewArea = document.getElementById("codeEditorContainer");
         let tabArea = document.getElementById("codeViewTabs");
 
-        this.editorElem = elem("textarea", {type: "text", style:{height:'100%'}});
+        let editorElem = elem("textarea", {type: "text", style:{height:'100%'}});
 
         this.editorContainer = elem("div", {class: "sk-contents sk-tab-hidden", file: filename}, [
-            this.editorElem
+            editorElem
         ]);
 
-        this.tab = elem("li", {}, [this.shortname]);
+        let closeButton = elem("button", { class: "bi bi-x", style:{'margin-right': '-20px'} });
 
-        let self = this;
+        closeButton.addEventListener('click', function(event){
+            closeCodeEditor(self);
+            event.stopPropagation();
+        })
+
+        this.tab = elem("li", {}, [elem("div", {class: "sk-tab-label", title: this.filename}, [this.shortname]), closeButton]);
+
         this.tab.addEventListener('click', function(){
             SwitchToTab(self);
+            event.stopPropagation();
         })
 
         viewArea.appendChild(this.editorContainer);
         tabArea.appendChild(this.tab);
 
-        this.editor = this.setupCodeArea(this.editorElem);
+        this.editor = this.setupCodeArea(editorElem);
     }
 
     setupCodeArea(element) {
@@ -65,7 +74,7 @@ class CodeViewer {
     }
 
     // Functions to save/load the code blocks
-    async save(){
+    async save() {
         let self = this;
         try {
             await storedProject.access(async function(project){
@@ -80,7 +89,7 @@ class CodeViewer {
         }
     }
 
-    async load(){
+    async load() {
         let self = this;
         let newVal = undefined;
         try {
@@ -98,6 +107,17 @@ class CodeViewer {
             self.editor.setValue(newVal);
     }
 
+    close() {
+        this.tab.remove();
+        this.editorContainer.remove();
+
+        this.filename = null;
+        this.shortname = null;
+        this.tab = null;
+        this.editorContainer = null;
+        this.editor = null;
+    }
+
 }
 
 // TODO: make it search for user's source files...
@@ -108,24 +128,63 @@ function findAllSourceFiles() {
     ];
 }
 
-
 let editors = [];
+
+function getCodeEditor(filename) {
+
+    for(let i = 0; i < editors.length; i ++) {
+        if (editors[i].filename == filename)
+            return editors[i];
+    }
+
+    return null;
+}
+
+function openCodeEditor(filename, setFocus=true) {
+    let existing = getCodeEditor(filename);
+    if (existing) {
+        if (setFocus)
+            SwitchToTab(existing);
+
+        return;
+    }
+
+    let codeView = new CodeViewer(filename);
+    codeView.load();
+    editors.push(codeView);
+
+    if (setFocus) {
+        SwitchToTab(codeView);
+    }
+}
 
 function openCodeEditors() {
     let sourceFiles = findAllSourceFiles();
     for(let i = 0; i < sourceFiles.length; i ++) {
-        let codeView = new CodeViewer(sourceFiles[i]);
-        codeView.load();
-        editors.push(codeView);
+        openCodeEditor(sourceFiles[i], false);
     }
     if (editors.length > 0)
         SwitchToTab(editors[0]);
 }
 
+function closeCodeEditor(editor) {
+    let index = editors.indexOf(editor);
+    if (index != -1) {
+        editors[index].close();
+        editors.splice(index, 1);
+    }
+
+    if (currentEditor == editor) {
+        if (index >= editors.length)
+            index = editors.length - 1;
+        if (editors.length > 0)
+            SwitchToTab(editors[index]);
+    }
+}
+
 function closeAllCodeEditors() {
     for(let i = 0; i < editors.length; i ++) {
-        editors[i].tab.remove();
-        editors[i].editorContainer.remove();
+        editors[i].close();
     }
     editors = [];
 }
@@ -199,7 +258,7 @@ function SwitchToTab(editor){
             editors[i].editorContainer.style.display = 'flex';
             editors[i].tab.classList.add('sk-tabs-active');
 
-            currentEditor = editors;
+            currentEditor = editors[i];
         }
         else {
             editors[i].editorContainer.style.display = 'none';
@@ -211,8 +270,6 @@ function SwitchToTab(editor){
         editors[i].editor.refresh();
     }
 }
-
-SwitchToTab(editors[0]);
 
 // setup language selection box
 let languageSelectElem = document.getElementById("languageSelection");
@@ -826,7 +883,14 @@ async function downloadProject(){
     downloadFileGeneric(await projectToZip(), "project.zip");
 }
 
-
+function openProjectFile(filename) {
+    let extension = filename.slice(filename.lastIndexOf('.')+1);
+    if (activeLanguage.sourceExtensions.indexOf(extension) > -1) {
+        openCodeEditor(filename);
+    } else {
+        FSviewFile(filename)
+    }
+}
 
 // ------ Project Zipping/Unzipping Click Handling ------
 async function uploadProjectFromInput(){
