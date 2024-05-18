@@ -7,7 +7,7 @@ class CodeViewer {
         let self = this;
 
         this.filename = filename;
-        this.shortname = filename.slice(filename.lastIndexOf("/")+1);
+        this.basename = filename.slice(filename.lastIndexOf("/")+1);
 
         let viewArea = document.getElementById("codeEditorContainer");
         let tabArea = document.getElementById("codeViewTabs");
@@ -25,10 +25,16 @@ class CodeViewer {
             event.stopPropagation();
         })
 
-        this.tab = elem("li", {}, [elem("div", {class: "sk-tab-label", title: this.filename}, [this.shortname]), closeButton]);
+        this.label = elem("div", {class: "sk-tab-label", title: this.filename}, [this.basename]);
+        this.tab = elem("li", {}, [this.label, closeButton]);
 
         this.tab.addEventListener('click', function(){
             SwitchToTab(self);
+            event.stopPropagation();
+        })
+
+        this.tab.addEventListener('dblclick', function(){
+            self.showRenameInput();
             event.stopPropagation();
         })
 
@@ -36,6 +42,44 @@ class CodeViewer {
         tabArea.appendChild(this.tab);
 
         this.editor = this.setupCodeArea(editorElem);
+    }
+
+    showRenameInput() {
+        let self = this;
+        self.label.contentEditable = true;
+        self.label.focus();
+
+        function resetRenameInput() {
+            self.label.removeEventListener('blur', blurListener);
+            self.label.removeEventListener('keydown', keydownListener);
+            var sel = window.getSelection();
+            sel.removeAllRanges();
+            self.label.contentEditable = false;
+
+            self.label.blur();
+        }
+
+        let blurListener = (e) => {
+            resetRenameInput();
+            self.renameBasename(self.label.innerText);
+        };
+
+        let keydownListener = (e) => {
+            if(e.key == "Escape"){
+                resetRenameInput();
+                self.label.innerText = self.basename;
+            }
+
+            if(e.key == "Enter"){
+                resetRenameInput();
+                self.renameBasename(self.label.innerText);
+                e.preventDefault();
+            }
+        };
+
+        self.label.addEventListener("blur", blurListener);
+
+        self.label.addEventListener("keydown", keydownListener);
     }
 
     setupCodeArea(element) {
@@ -66,11 +110,11 @@ class CodeViewer {
     }
 
     async runOne() {
-        await runFile(this.shortname, this.editor.getValue());
+        await runFile(this.basename, this.editor.getValue());
     }
 
     async syntaxCheck() {
-        await syntaxCheckFile(this.shortname, this.editor.getValue());
+        await syntaxCheckFile(this.basename, this.editor.getValue());
     }
 
     // Functions to save/load the code blocks
@@ -107,12 +151,54 @@ class CodeViewer {
             self.editor.setValue(newVal);
     }
 
+    async renameBasename(basename) {
+        let self = this;
+
+        if (basename == self.basename) {
+            self.label.innerText = self.basename;
+            return;
+        }
+
+        let newFilename = self.filename.slice(0, self.filename.lastIndexOf("/")+1)+basename;
+
+        try {
+            let newExists = await storedProject.access((project) => project.exists(newFilename));
+            if (newExists) {
+                displayEditorNotification("Cannot rename to " + basename + " - file already exists!", NotificationIcons.WARNING);
+                return;
+            }
+
+            // ignore rename if still unsaved
+            let oldExists = await storedProject.access((project) => project.exists(self.filename));
+            if (oldExists) {
+                await storedProject.access((project) => project.rename(self.filename, newFilename));
+                // don't really care if the execution environment fails - should the code be mirrored there in the first place?
+                try {
+                    executionEnviroment.rename(self.filename, newFilename);
+                } catch {};
+            }
+
+            self.filename = newFilename;
+            self.basename = basename;
+
+            self.label.innerText = self.basename;
+        }
+        catch(err) {
+            let errEv = new Event("filesystemError");
+            errEv.shortMessage = "Rename failed";
+            errEv.longMessage = "An error occured and " + self.filename + " could not be renamed to " + newFilename + ".\n\nReason:\n" + err;
+            window.dispatchEvent(errEv);
+            return;
+        }
+    }
+
     close() {
         this.tab.remove();
         this.editorContainer.remove();
 
         this.filename = null;
-        this.shortname = null;
+        this.basename = null;
+        this.label = null;
         this.tab = null;
         this.editorContainer = null;
         this.editor = null;
@@ -150,7 +236,7 @@ function getCodeEditor(filename) {
     return null;
 }
 
-function openCodeEditor(filename, setFocus=true) {
+function openCodeEditor(filename, setFocus=true, load=true) {
     let existing = getCodeEditor(filename);
     if (existing) {
         if (setFocus)
@@ -160,7 +246,10 @@ function openCodeEditor(filename, setFocus=true) {
     }
 
     let codeView = new CodeViewer(filename);
-    codeView.load();
+
+    if (load)
+        codeView.load();
+
     editors.push(codeView);
 
     if (setFocus) {
@@ -168,20 +257,54 @@ function openCodeEditor(filename, setFocus=true) {
     }
 }
 
+async function updateNoEditorsMessage() {
+    document.getElementById("noEditorsMessage").style.opacity = (editors.length == 0 && !makingNewProject) ? 1 : 0;
+}
+
 async function openCodeEditors() {
     let sourceFiles = await findAllSourceFiles();
+
     for(let i = 0; i < sourceFiles.length; i ++) {
         openCodeEditor(sourceFiles[i], false);
     }
+
     if (editors.length > 0)
         SwitchToTab(editors[0]);
+    else
+        currentEditor = null;
+
+    updateNoEditorsMessage();
 }
 
-function closeCodeEditor(editor) {
+let shownRenameMessage = false; // show once per session
+async function openUntitledCodeEditor() {
+    let number = 0;
+    let filename = "/code/untitled."+activeLanguage.defaultSourceExtension;
+
+    while(await storedProject.access((project) => project.exists(filename)))
+    {
+        number ++;
+        filename = "/code/untitled (" + number + ")."+activeLanguage.defaultSourceExtension;
+    }
+
+    openCodeEditor(filename, true, false);
+
+    updateNoEditorsMessage();
+
+    if (!shownRenameMessage) {
+        displayEditorNotification("You can double click a code tab's name to rename it!", NotificationIcons.INFO, 4);
+        shownRenameMessage = true;
+    }
+}
+
+async function closeCodeEditor(editor) {
     let index = editors.indexOf(editor);
     if (index != -1) {
-        editors[index].close();
+        let editor = editors[index];
         editors.splice(index, 1);
+
+        await editor.save();
+        editor.close();
     }
 
     if (currentEditor == editor) {
@@ -189,7 +312,11 @@ function closeCodeEditor(editor) {
             index = editors.length - 1;
         if (editors.length > 0)
             SwitchToTab(editors[index]);
+        else
+            currentEditor = null;
     }
+
+    updateNoEditorsMessage();
 }
 
 function closeAllCodeEditors() {
@@ -197,6 +324,10 @@ function closeAllCodeEditors() {
         editors[i].close();
     }
     editors = [];
+
+    currentEditor = null;
+
+    updateNoEditorsMessage();
 }
 
 async function saveAllOpenCode() {
@@ -692,11 +823,19 @@ updateButtons();
 
 // Add events for the code view
 updateCodeButton.addEventListener("click", function () {
+    if (currentEditor == null) return;
+
     currentEditor.save();
     if (activeLanguageSetup.supportHotReloading)
         currentEditor.runOne();
     else
         currentEditor.syntaxCheck();
+});
+
+// Add events to new file source file button
+document.getElementById("addSourceFile").addEventListener("click", function (event) {
+    openUntitledCodeEditor();
+    event.stopPropagation();
 });
 
 

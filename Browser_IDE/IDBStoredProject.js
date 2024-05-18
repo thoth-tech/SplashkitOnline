@@ -258,6 +258,14 @@ class __IDBStoredProjectRW{
         });
     }
 
+    async exists(path){
+        let IDBSP = this;
+        return this.doTransaction("files", "readonly", async function(t, files){
+            let node = await IDBSP.getNodeFromPath(t, files, path);
+            return node != null;
+        });
+    }
+
     async unlink(path){
         let IDBSP = this;
         await this.doTransaction("files", "readwrite", async function(t, files){

@@ -17,6 +17,7 @@ let SplashKitOnlineLanguageDefinitions = [
         aliases: ['JS'],
         sourceExtensions: ['js', 'jsx', 'ts', 'mjs'],
         compilableExtensions: ['js', 'jsx', 'ts', 'mjs'],
+        defaultSourceExtension: "js",
         setups: [{
             name: "JavaScript Native",
             runtimeFiles: [
@@ -49,6 +50,7 @@ let SplashKitOnlineLanguageDefinitions = [
         aliases: ['CXX','C'],
         sourceExtensions: ['c', 'h', 'cpp', 'hpp', 'cc'],
         compilableExtensions: ['c', 'cpp', 'cc'],
+        defaultSourceExtension: "cpp",
         setups: [{
             name: "C++ (Clang)",
             runtimeFiles: [
