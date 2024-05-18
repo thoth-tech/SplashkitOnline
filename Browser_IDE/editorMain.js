@@ -122,7 +122,9 @@ class CodeViewer {
         let self = this;
         try {
             await storedProject.access(async function(project){
-                await project.writeFile(self.filename, self.editor.getValue());
+                let source = self.editor.getValue();
+                if (await project.exists(self.filename) || source != "")
+                    await project.writeFile(self.filename, source);
             });
         } catch(err){
             let errEv = new Event("filesystemError");
@@ -484,7 +486,7 @@ async function newProject(initializer){
     storedProject.detachFromProject();
     closeAllCodeEditors();
     canMirror = false;
-    await executionEnviroment.resetEnvironment();
+    executionEnviroment.resetEnvironment();
     await storedProject.deleteProject(projectID);
     haveMirrored = false;
     storedProject.initializer = initializer;
@@ -744,8 +746,16 @@ async function runProgram(){
                 source: source
             };
         }
+        let compilableFiles = await findAllCompilableFiles();
+        if (compilableFiles.length == 0) {
+            displayEditorNotification("Project has no source files! In a "+activeLanguage.name+" project, valid source files end with:</br><ul>"+
+                activeLanguage.compilableExtensions.map((s)=>"<li>."+s+"</li>").join("")+"</ul>",
+                NotificationIcons.ERROR, -1
+            );
+            return;
+        }
 
-        let compiled = await currentCompiler.compileAll(await Promise.all((await findAllCompilableFiles()).map(mapBit)), reportCompilationError);
+        let compiled = await currentCompiler.compileAll(await Promise.all(compilableFiles.map(mapBit)), reportCompilationError);
 
         if (compiled.output != null) {
             executionEnviroment.runProgram(compiled.output);
@@ -840,8 +850,8 @@ document.getElementById("addSourceFile").addEventListener("click", function (eve
 
 
 // Add events for the main program buttons
-runProgramButton.addEventListener("click", function () {
-    saveAllOpenCode();
+runProgramButton.addEventListener("click", async function () {
+    await saveAllOpenCode();
     runProgram();
 });
 
@@ -849,13 +859,13 @@ stopProgramButton.addEventListener("click", function () {
     pauseProgram();
 });
 
-restartProgramButton.addEventListener("click", function () {
-    saveAllOpenCode();
+restartProgramButton.addEventListener("click", async function () {
+    await saveAllOpenCode();
     restartProgram();
 });
 
-continueProgramButton.addEventListener("click", function () {
-    saveAllOpenCode();
+continueProgramButton.addEventListener("click", async function () {
+    await saveAllOpenCode();
     continueProgram();
 });
 
@@ -896,8 +906,10 @@ async function projectFromZip(file){
                     promises.push(unifiedFS.mkdir(abs_path));
                 }
                 else{
-                    let uint8_view = await zip.file(rel_path).async("uint8array");
-                    promises.push(unifiedFS.writeFile(abs_path, uint8_view));
+                    promises.push(async function () {
+                        let uint8_view = await zip.file(rel_path).async("uint8array");
+                        await unifiedFS.writeFile(abs_path, uint8_view)
+                    }());
                 }
             });
         });
@@ -1047,7 +1059,8 @@ async function uploadProjectFromInput(){
     let files = document.getElementById('projectuploader').files;
     let file = files[0];
     await newProject(function(){});
-    projectFromZip(file);
+    await projectFromZip(file);
+    openCodeEditors();
 }
 document.getElementById("DownloadProject").addEventListener("click", async function (e) {
     downloadProject();
