@@ -159,9 +159,9 @@ export const linkObjects = async (objects) => {
                 '-lsockets',
                 '--no-entry',
 
+                '--wrap=_ZN13splashkit_lib14process_eventsEv',
                 '-lSplashKitBackend',
 
-                //'main.o',
                 '-o',
                 'main.wasm',
 
