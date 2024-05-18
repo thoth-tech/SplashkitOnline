@@ -1,39 +1,31 @@
 "use strict";
-
+let executionEnviroment = new ExecutionEnvironment(document.getElementById("ExecutionEnvironment"));
+let storedProject = new IDBStoredProject(makeNewProject);
 // ------ Setup UI ------
 
-function setupCodeArea(element){
-    let editor = CodeMirror.fromTextArea(element, {
-        mode: "text/javascript",
-        theme: "dracula",
-        lineNumbers: true,
-        autoCloseBrackets: true,
-        styleActiveLine: true,
-        extraKeys: {"Ctrl-Space": "autocomplete"},
-        hintOptions: {
-            alignWithWord: false,
-            completeSingle: false,
-            useGlobalScope: false,
-        },
-        foldGutter: true,
-        gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"]
-    });
-
-    editor.on('inputRead', (cm, change) => {
-        if (!cm.state.completeActive) {
-            cm.showHint();
-        }
-    });
-    return editor;
+let editors = []
+let editorPathMap = {};
+function addNewEditor( codeblock_name,eleID,ExecutionEnvironment, StoredProject,filePath  ) {
+    let parts = filePath.split("/");
+    let filename = parts[parts.length - 1];
+    let elementID = document.getElementById(eleID);
+     
+    let newEditorcl = new CodeEditor(filename,codeblock_name,elementID,ExecutionEnvironment, StoredProject,filePath);
+    let newEditor = newEditorcl.editorout;
+    editors.push(newEditor);
+    editorPathMap[filePath] = newEditorcl;// Assign newEditorcl to the key 'filePath' in editorMap
+    newEditor.display.wrapper.classList.add("sk-contents");
+    return newEditorcl;
 }
 
-let editorInit = setupCodeArea(document.getElementById("editorInit"));
-editorInit.display.wrapper.classList.add("sk-contents");
 
-let editorMainLoop = setupCodeArea(document.getElementById("editorMainLoop"));
-editorMainLoop.display.wrapper.classList.add("sk-contents");
+let editorInitcl = addNewEditor("GeneralCode", "editorInit", executionEnviroment, storedProject,initCodePath);
 
-let editors = [editorInit, editorMainLoop]
+
+
+let editorMainLoopcl = addNewEditor("MainCode", "editorMainLoop", executionEnviroment, storedProject,mainLoopCodePath);
+
+
 
 let updateCodeButton = document.getElementById("runInit");
 
@@ -121,8 +113,7 @@ for (let i = 0; i < tabElems.length; i++) {
 SwitchToTabs(tabs[0].contents.id);
 
 // ------ Setup Project and Execution Environment ------
-let executionEnviroment = new ExecutionEnvironment(document.getElementById("ExecutionEnvironment"));
-let storedProject = new IDBStoredProject(makeNewProject);
+
 let unifiedFS = new UnifiedFS(storedProject, executionEnviroment);
 storedProject.attachToProject("Untitled");
 
@@ -157,8 +148,8 @@ executionEnviroment.addEventListener("initialized", function() {
 
 storedProject.addEventListener("attached", async function() {
     MirrorToExecutionEnvironment();
-    loadInitialization();
-    loadMainLoop();
+    editorInitcl.loadCode();
+    editorMainLoopcl.loadCode();
 });
 
 async function MirrorToExecutionEnvironment(){
@@ -218,94 +209,24 @@ function enableCodeExecution(){
 }
 
 
-// Functions to run the code blocks
-function runInitialization(){
-    clearErrorLines();
-
-    executionEnviroment.runCodeBlock("GeneralCode", editorInit.getValue());
-}
-
-function runMainLoop(){
-    clearErrorLines();
-
-    executionEnviroment.runCodeBlock("MainCode", editorMainLoop.getValue());
-}
 
 function runAllCodeBlocks(){
-    executionEnviroment.runCodeBlocks([
-        {name: "GeneralCode", code: editorInit.getValue()},
-        {name: "MainCode", code: editorMainLoop.getValue()}
-    ]);
-}
-
-// Functions to save/load the code blocks
-async function saveInitialization(){
-    try {
-        await storedProject.access(async function(project){
-            await project.mkdir(codePath);
-            await project.writeFile(initCodePath, editorInit.getValue());
-        });
-    } catch(err){
-        let errEv = new Event("filesystemError");
-        errEv.shortMessage = "Save failed";
-        errEv.longMessage = "An error occured and the initialisation code could not be saved.\n\nReason:\n" + err;
-        window.dispatchEvent(errEv);
-        return;
-    }
-}
-async function saveMainLoop(){
-    try {
-        await storedProject.access(async function(project){
-            await project.mkdir(codePath);
-            await project.writeFile(mainLoopCodePath, editorMainLoop.getValue());
-        });
-    } catch(err){
-        let errEv = new Event("filesystemError");
-        errEv.shortMessage = "Save failed";
-        errEv.longMessage = "An error occured and the main loop code could not be saved.\n\nReason:\n" + err;
-        window.dispatchEvent(errEv);
-        return;
-    }
-}
-
-async function loadInitialization(){
-    let newVal = undefined;
-    try {
-        newVal = await fileAsString(await storedProject.access(function(project){
-            return project.readFile(initCodePath);
-        }));
-    } catch(err){
-        let errEv = new Event("filesystemError");
-        errEv.shortMessage = "Load failed";
-        errEv.longMessage = "An error occured and the initialisation code could not be loaded.\n\nReason:\n" + err;
-        window.dispatchEvent(errEv);
-        return;
-    }
-    if (newVal != editorInit.getValue())
-        editorInit.setValue(newVal);
-}
-async function loadMainLoop(){
-    let newVal = undefined;
-    try {
-        newVal = await fileAsString(await storedProject.access(function(project){
-            return project.readFile(mainLoopCodePath);
-        }));
-    } catch(err){
-        let errEv = new Event("filesystemError");
-        errEv.shortMessage = "Load failed";
-        errEv.longMessage = "An error occured and the main loop code could not be loaded.\n\nReason:\n" + err;
-        window.dispatchEvent(errEv);
-        return;
-    }
-    if (newVal != editorMainLoop.getValue())
-        editorMainLoop.setValue(newVal);
+    editorInitcl.runCode(editors);
+    editorMainLoopcl.runCode(editors);
 }
 
 storedProject.addEventListener('onWriteToFile', function(e) {
-    if (e.path == initCodePath)
-        loadInitialization();
-    else if (e.path == mainLoopCodePath)
-        loadMainLoop();
+    let filepath = e.path;
+    // Get the class instance from the map using the filename
+    let editorClass = editorPathMap[filepath];
+    if (editorClass) {
+      // If the class instance exists, call the saveCode method
+      editorClass.loadCode(filepath);
+      // If you also want to run the code, uncomment the next line
+      // editorClass.runCode(editors);
+    } else {
+      console.log(`No editor class found for filepath: ${filepath}`);
+    }
 });
 
 
@@ -372,64 +293,62 @@ function updateButtons(){
 }
 updateButtons();
 
-
 // Add events for the code blocks
 updateCodeButton.addEventListener("click", function () {
-    // Hack to make this work until this code gets generalized
-    if (currentTab.contents.dataset.file == "codeblock_init.js") {
-        saveInitialization();
-        runInitialization();
-    }
-    if (currentTab.contents.dataset.file == "codeblock_mainloop.js") {
-        saveMainLoop();
-        runMainLoop();
+    let filepath = currentTab.contents.dataset.file.path;
+    
+    let editorClass = editorPathMap[filepath];
+    if (editorClass) {
+      
+      editorClass.saveCode(codePath);
+      editorClass.runCode(editors);
+      
+    } else {
+      console.log(`No editor class found for filepath: ${filepath}`);
     }
 });
+
+updateCodeButton.addEventListener("click", function () {
+    let filepath = currentTab.contents.dataset.file.path;
+    
+    let editorClass = editorPathMap[filepath];
+    if (editorClass) {
+      
+      editorClass.saveCode(codePath);
+      
+    } else {
+      console.log(`No editor class found for filepath: ${filepath}`);
+    }
+  });
+
 
 
 // Add events for the main program buttons
 runProgramButton.addEventListener("click", function () {
-    saveMainLoop();
-    saveInitialization();
+       
+    editorInitcl.saveCode(codePath);
+    editorMainLoopcl.saveCode(codePath);
     runProgram();
 });
 
+
 stopProgramButton.addEventListener("click", function () {
     pauseProgram();
-});
+}); 
+
 
 restartProgramButton.addEventListener("click", function () {
-    saveMainLoop();
-    saveInitialization();
+    editorInitcl.saveCode(codePath);
+    editorMainLoopcl.saveCode(codePath);
     restartProgram();
 });
 
 continueProgramButton.addEventListener("click", function () {
-    saveMainLoop();
-    saveInitialization();
+    editorInitcl.saveCode(codePath);
+    editorMainLoopcl.saveCode(codePath);
     continueProgram();
 });
 
-
-// Utility function for saving/loading the code blocks
-async function fileAsString(buffer){
-    return new Promise((resolve,error) => {
-        //_arrayBufferToString from https://stackoverflow.com/a/14078925
-        // Thanks Will Scott!
-        function _arrayBufferToString(buffer) {
-            var bb = new Blob([new Uint8Array(buffer)]);
-            var f = new FileReader();
-            f.onload = function(e) {
-                resolve(e.target.result);
-            };
-            f.readAsText(bb);
-        }
-        if (typeof buffer === 'string' || buffer instanceof String)
-            resolve(buffer);
-        else
-            return _arrayBufferToString(buffer);
-    });
-}
 
 
 // ------ Project Zipping/Unzipping Functions ------
@@ -630,7 +549,7 @@ executionEnviroment.addEventListener("programStopped", function(e){
 
 // Also highlight errors when they come
 executionEnviroment.addEventListener("error", function(e){
-    let editor = (e.block=="GeneralCode"?editorInit:editorMainLoop);
+    let editor = (e.block=="GeneralCode"?editorInitcl.editorout:editorMainLoopcl.editor);
     if (e.line != null){
         if (editor.lineCount() < e.line)
             e.line = editor.lineCount();
