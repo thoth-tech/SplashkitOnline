@@ -178,13 +178,13 @@ let haveMirrored = false;
 let canMirror = false;
 
 let makingNewProject = false;
-async function newProject(){
+async function newProject(initializer){
     // Guard against re-entry on double click
     if (makingNewProject)
         return;
     makingNewProject = true;
 
-    prepareIDEForLoading();
+    let preparationPromises = prepareIDEForLoading();
 
     let projectID = storedProject.projectID;
 
@@ -194,6 +194,7 @@ async function newProject(){
     await executionEnviroment.resetEnvironment();
     await storedProject.deleteProject(projectID);
     haveMirrored = false;
+    storedProject.initializer = initializer;
     await storedProject.attachToProject(projectID);
 
     await storedProject.access(async (project) => {
@@ -201,6 +202,8 @@ async function newProject(){
     });
 
     makingNewProject = false;
+
+    await preparationPromises.waitForMirrorCompletion;
 }
 
 function prepareIDEForLoading(){
@@ -249,6 +252,14 @@ function prepareIDEForLoading(){
             resolve();
         });
     });
+
+    return {
+        waitForCompilerReady,
+        waitForInitialize,
+        waitForProjectAttach,
+        waitForMirrorCompletion,
+        waitForCodeExecution
+    };
 }
 prepareIDEForLoading();
 
@@ -815,7 +826,7 @@ async function uploadProjectFromInput(){
     let reader = new FileReader();
     let files = document.getElementById('projectuploader').files;
     let file = files[0];
-    await newProject();
+    await newProject(function(){});
     projectFromZip(file);
 }
 document.getElementById("DownloadProject").addEventListener("click", async function (e) {
@@ -827,7 +838,7 @@ document.getElementById("UploadProject").addEventListener("click", function (e) 
     e.stopPropagation();
 });
 document.getElementById("NewProject").addEventListener("click", async function (e) {
-    newProject();
+    newProject(activeLanguageSetup.getDefaultProject());
     e.stopPropagation();
 });
 
