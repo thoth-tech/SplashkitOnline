@@ -166,6 +166,7 @@ class CodeViewer {
         try {
             let newExists = await storedProject.access((project) => project.exists(newFilename));
             if (newExists) {
+                self.label.innerText = self.basename;
                 displayEditorNotification("Cannot rename to " + basename + " - file already exists!", NotificationIcons.WARNING);
                 return;
             }
