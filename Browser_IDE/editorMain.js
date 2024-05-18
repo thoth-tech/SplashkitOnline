@@ -110,11 +110,11 @@ class CodeViewer {
     }
 
     async runOne() {
-        await runFile(this.basename, this.editor.getValue());
+        await runFile(this.filename, this.editor.getValue());
     }
 
     async syntaxCheck() {
-        await syntaxCheckFile(this.basename, this.editor.getValue());
+        await syntaxCheckFile(this.filename, this.editor.getValue());
     }
 
     // Functions to save/load the code blocks
