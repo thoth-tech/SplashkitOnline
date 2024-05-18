@@ -102,7 +102,7 @@ export const compileObject = async (name, source) => {
         });
         output = await postMessageFallible(w, {
             type: "compileObject",
-            arguments: ['-idirafter/lib/clang/16.0.4/include/', '-fdiagnostics-color=always', '-c', name+".cpp"],
+            arguments: ['-idirafter/lib/clang/16.0.4/include/', '-fdiagnostics-color=always', '-c', name+".cpp", "-o", name+".o"],
             outputName: name+".o"
         });
     }
