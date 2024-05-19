@@ -489,7 +489,22 @@ async function FSdownloadFile(filename, mime) {
 
 
 async function downloadProject(projectName){
+    let projectName = (await appStorage.access((s) => s.getProject(storedProject.projectID))).name;
     downloadFileGeneric(await projectToZip(), projectName + ".zip");
+}
+
+document.getElementById("DownloadProject").addEventListener("click", async function (e) {
+    downloadProject();
+    e.stopPropagation();
+});**
+document.getElementById("UploadProject").addEventListener("click", function (e) {
+    document.getElementById("projectuploader").click();
+    e.stopPropagation();
+});
+document.getElementById("NewProject").addEventListener("click", async function (e) {
+    newProject();
+    e.stopPropagation();
+});
 }
 
 
