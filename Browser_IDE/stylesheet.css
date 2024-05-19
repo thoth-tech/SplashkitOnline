@@ -559,7 +559,6 @@ li.CodeMirror-hint-active {
     display: none;
 }
 
-/* Centering and styling the loading container */
 .loading-container {
   display: flex;
   justify-content: center;
