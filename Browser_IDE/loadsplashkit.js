@@ -8,7 +8,6 @@ function updateLoadingProgress(progress) {
     }
 }
 
-// Function to show loading bar
 function showLoadingBar() {
     const loadingBar = document.getElementById('loading-bar');
     if (loadingBar) {
@@ -16,7 +15,6 @@ function showLoadingBar() {
     }
 }
 
-// Function to hide loading bar
 function hideLoadingBar() {
     const loadingBar = document.getElementById('loading-bar');
     if (loadingBar) {
@@ -24,19 +22,26 @@ function hideLoadingBar() {
     }
 }
 
-// Listen to onDownloadProgress event
+function showDownloadFailure() {
+    const progressBar = document.getElementById('loading-progress');
+    const loadingText = document.getElementById('loading-text');
+    if (progressBar && loadingText) {
+        progressBar.style.backgroundColor = 'red';
+        loadingText.textContent = 'Download Failed';
+    }
+}
+
 moduleEvents.addEventListener("onDownloadProgress", function(progress) {
     console.log("Downloading: ", progress.downloadName, progress.downloadIndex, "/", progress.downloadCount, progress.downloadProgress*100,"%");
     updateLoadingProgress(progress);
     showLoadingBar();
 });
 
-// Listen to onDownloadFail event
 moduleEvents.addEventListener("onDownloadFail", function(progress) {
     console.log("Failed to download:", progress.downloadName, progress.downloadIndex, "/", progress.downloadCount);
+    showDownloadFailure();
 });
 
-// Listen to onRuntimeInitialized event
 moduleEvents.addEventListener('onRuntimeInitialized', function(event) {
     hideLoadingBar(); // Hide loading bar when runtime is initialized
 });
