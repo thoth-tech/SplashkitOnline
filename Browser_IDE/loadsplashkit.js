@@ -17,8 +17,10 @@ function showLoadingBar() {
 
 function hideLoadingBar() {
     const loadingBar = document.getElementById('loading-bar');
+    const loadingText = document.getElementById('loading-text');
     if (loadingBar) {
         loadingBar.style.display = 'none';
+        loadingText.style.display = 'none';
     }
 }
 
