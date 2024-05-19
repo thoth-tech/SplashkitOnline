@@ -24,6 +24,13 @@ function hideLoadingBar() {
     }
 }
 
+function hideLoadingContainer() {
+    const loadingContainer = document.getElementById('loading-container');
+    if (loadingContainer) {
+        loadingContainer.style.display = 'none';
+    }
+}
+
 function showDownloadFailure() {
     const progressBar = document.getElementById('loading-progress');
     const loadingText = document.getElementById('loading-text');
@@ -45,7 +52,8 @@ moduleEvents.addEventListener("onDownloadFail", function(progress) {
 });
 
 moduleEvents.addEventListener('onRuntimeInitialized', function(event) {
-    hideLoadingBar(); // Hide loading bar when runtime is initialized
+    hideLoadingBar(); 
+    hideLoadingContainer();
 });
 
 var Module = {
