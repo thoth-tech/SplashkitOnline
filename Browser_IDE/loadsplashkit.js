@@ -1,5 +1,46 @@
 "use strict";
 
+function updateLoadingProgress(progress) {
+    const progressBar = document.getElementById('loading-progress');
+    if (progressBar) {
+        progressBar.style.width = progress.downloadProgress * 100 + '%';
+        progressBar.setAttribute('aria-valuenow', progress.downloadProgress * 100);
+    }
+}
+
+// Function to show loading bar
+function showLoadingBar() {
+    const loadingBar = document.getElementById('loading-bar');
+    if (loadingBar) {
+        loadingBar.style.display = 'block';
+    }
+}
+
+// Function to hide loading bar
+function hideLoadingBar() {
+    const loadingBar = document.getElementById('loading-bar');
+    if (loadingBar) {
+        loadingBar.style.display = 'none';
+    }
+}
+
+// Listen to onDownloadProgress event
+moduleEvents.addEventListener("onDownloadProgress", function(progress) {
+    console.log("Downloading: ", progress.downloadName, progress.downloadIndex, "/", progress.downloadCount, progress.downloadProgress*100,"%");
+    updateLoadingProgress(progress);
+    showLoadingBar();
+});
+
+// Listen to onDownloadFail event
+moduleEvents.addEventListener("onDownloadFail", function(progress) {
+    console.log("Failed to download:", progress.downloadName, progress.downloadIndex, "/", progress.downloadCount);
+});
+
+// Listen to onRuntimeInitialized event
+moduleEvents.addEventListener('onRuntimeInitialized', function(event) {
+    hideLoadingBar(); // Hide loading bar when runtime is initialized
+});
+
 var Module = {
     onRuntimeInitialized: (function() {
         moduleEvents.dispatchEvent(new Event("onRuntimeInitialized"));

@@ -11,19 +11,28 @@
 </head>
 
 <body class="sk-body">
-	<div class="sk-column" style="max-height: 100%;">
-		<div class="sk-contents" style="flex-direction: row; max-height: 85%;">
-			<canvas id="canvas" style="margin:auto; vertical-align:center; max-height: 100%; left:0px; right:0px; width:inherit; outline: none;" oncontextmenu="event.preventDefault()" tabindex=-1></canvas>
-		</div>
-		<div class="sk-header sk-header-indent">
-			TERMINAL OUTPUT
-			<button id="clearButton" class="btn btn-outline-secondary btn-sm ms-2" onclick="clearTerminal()">Clear</button>
-		</div>
-		<div class="sk-contents">
-			<div id="output" class="sk-contents sk-contents-darker sk-terminal"></div>
-		</div>
-	</div>
+    <!-- Loading Bar Container -->
+    <div id="loading-container" class="loading-container">
+        <div id="loading-bar" class="loading-bar">
+            <div id="loading-progress" class="loading-progress"></div>
+        </div>
+        <div id="loading-text" class="loading-text">Loading...</div>
+    </div>
+
+    <div class="sk-column" style="max-height: 100%;">
+        <div class="sk-contents" style="flex-direction: row; max-height: 85%;">
+            <canvas id="canvas" style="margin:auto; vertical-align:center; max-height: 100%; left:0px; right:0px; width:inherit; outline: none;" oncontextmenu="event.preventDefault()" tabindex=-1></canvas>
+        </div>
+        <div class="sk-header sk-header-indent">
+            TERMINAL OUTPUT
+            <button id="clearButton" class="btn btn-outline-secondary btn-sm ms-2" onclick="clearTerminal()">Clear</button>
+        </div>
+        <div class="sk-contents">
+            <div id="output" class="sk-contents sk-contents-darker sk-terminal"></div>
+        </div>
+    </div>
 </body>
 
 <script src="runtimes/ExecutionEnvironmentInternalLoader.js"></script>
+<script src="loadsplashkit.js"></script>
 </html>
