@@ -40,8 +40,27 @@ class CXXCompiler extends Compiler{
         return compiled;
     }
 
+    checkUsageOfIncompleteAPI(source) {
+        let incompleteAPIFunctions = [
+            "read_line",
+            "read_char",
+            "terminal_has_input",
+            "take_screenshot",
+            "get_pixel",
+            "get_pixel_from_window",
+            "display_dialog",
+        ];
+        for(let i = 0; i < incompleteAPIFunctions.length; i ++) {
+            if (source.indexOf(incompleteAPIFunctions[i]) != -1) {
+                displayEditorNotification("Usage of (currently) unsupported function detected: <code>"+incompleteAPIFunctions[i]+"</code>", NotificationIcons.WARNING, 4);
+            }
+        }
+    }
+
     async compileOne(name, source, print){
         this.setPrintFunction(print);
+
+        this.checkUsageOfIncompleteAPI(source);
 
         let object = await this.compileObject(name, source);
 
