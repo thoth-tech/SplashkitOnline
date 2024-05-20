@@ -50,8 +50,11 @@ class CXXCompiler extends Compiler{
             "get_pixel_from_window",
             "display_dialog",
         ];
+
         for(let i = 0; i < incompleteAPIFunctions.length; i ++) {
-            if (source.indexOf(incompleteAPIFunctions[i]) != -1) {
+            let usageRegex = new RegExp("(?<!\\/\\/.*)"+incompleteAPIFunctions[i]+"\\s*\\(",'g');
+
+            if (usageRegex.test(source)) {
                 displayEditorNotification("Usage of (currently) unsupported function detected: <code>"+incompleteAPIFunctions[i]+"</code>", NotificationIcons.WARNING, 4);
             }
         }
