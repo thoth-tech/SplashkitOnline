@@ -184,7 +184,10 @@ export const linkObjects = async (objects) => {
                 '--allow-undefined-file=/lib/libemscripten_js_symbols.txt',
                 '--export=main','--export=emscripten_stack_init',
                 '--export=stackSave',
-                '--export=__cxa_demangle'
+                '--export=__cxa_demangle',
+                '--export=fileno',
+                '--export=__wrap__ZN13splashkit_lib14process_eventsEv',
+                '--export=_ZN13splashkit_lib14process_eventsEv',
             ].concat(objectNames),
             outputName: "main.wasm"
         });
