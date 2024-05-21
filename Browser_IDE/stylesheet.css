@@ -46,6 +46,7 @@ button {
     color: inherit;
     cursor: pointer;
     transition: background-color 0.1s; 
+    line-height: 1em;
 }
 button:disabled {
     color: #AAA;
@@ -590,7 +591,9 @@ li.CodeMirror-hint-active {
 }
 
 .btn {
-  transition: background-color 0.3s, box-shadow 0.3s; 
+  transition: background-color 0.3s, box-shadow 0.3s;
+  box-shadow: 3px 3px 6px rgba(0,0,0,0.2);
+  line-height: 1em;
   padding: 0.5em;
 }
 
@@ -604,10 +607,11 @@ li.CodeMirror-hint-active {
 }
 
 .btn-success {
-  color: white; 
+  color: #54ff3b;
 }
 
 .btn-success:hover, .btn-success:focus {
+  background-color: #2d332f;
 }
 
 /* Canvas scaling fix */
