@@ -15,7 +15,7 @@ class ExecutionEnvironmentInternal {
                     break;
 
                 case "ReportError":
-                    self.ReportError(userCodeBlockIdentifier + m.data.block, m.data.message, m.data.line, m.data.formatted);
+                    self.ReportError(userCodeBlockIdentifier + m.data.block, m.data.message, m.data.line,m.data.stackTrace ,m.data.formatted);
                     break;
 
                 case "WriteToTerminal":
@@ -73,8 +73,8 @@ class ExecutionEnvironmentInternal {
     rename(oldPath, newPath)            { throw new Error("Unhandled rename");}
     initializeFilesystem(folders, files){ throw new Error("Unhandled initializeFilesystem");}
 
-    ReportError(block, message, line, formatted) {
-        ReportError(block, message, line, formatted); // call external function
+    ReportError(block, message, line,stackTrace, formatted) {
+        ReportError(block, message, line,stackTrace, formatted); // call external function
     }
 
     reportCriticalInitializationFail(message) {

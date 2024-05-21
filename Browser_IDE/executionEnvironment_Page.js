@@ -95,11 +95,15 @@ function ReportError(block, message, line, stacktrace ,formatted=false){
     let outputMessage = message != "";
     let stackTrace = stacktrace;
 
+    // Ensure block and message are strings
+    block = block || "";
+    message = message || "";
+
     // Escape only the user-provided input
     let escapedBlock = escapeHtml(block);
     let escapedMessage = escapeHtml(message);
 
-    if (outputMessage && line != null)
+    if (outputMessage && line != null && !formatted)
         escapedMessage = "Error on line "+line+": "+escapedMessage;
 
     if (escapedBlock != null && escapedBlock != "" && escapedBlock != "__USERCODE__null") {
@@ -114,13 +118,17 @@ function ReportError(block, message, line, stacktrace ,formatted=false){
             escapedMessage = "(" + escapedBlock + ") " + escapedMessage;
     }
     
-    // Format the stack trace with <details> and <summary> tags
-    escapedMessage = '<summary style="color: red;">' + escapedMessage + '</summary>';
-    stackTrace = '<pre>' + stackTrace + '</pre>';
+    // Check if the stackTrace is empty
+    if (stackTrace.trim() !== "") {
+        // Format the stack trace with <details> and <summary> tags
+        stackTrace = '<pre>' + stackTrace + '</pre>';
 
-    if (outputMessage && !formatted)
-        escapedMessage = '<details>' + escapedMessage + stackTrace + '</details>';
-
+        if (outputMessage && !formatted) {
+            // If formatted is true, do not add the color: red styling
+            escapedMessage = '<summary' + (formatted ? '' : ' style="color: red;"') + '>' + escapedMessage + '</summary>';
+            escapedMessage = '<details>' + escapedMessage + stackTrace + '</details>';
+        }
+    }
 
     if (outputMessage)
         writeTerminal(escapedMessage, false);

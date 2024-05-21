@@ -216,7 +216,6 @@ ReferenceError: test is not defined
 // It also doesn't parse the url style ones - it only needs to work for the local user's code, so good enough.
 
 
-
 function parseErrorStack(err){
     const stackParse = /(?:@|\()((?:[^;:`]|[:;`](?=.*(?:\/|\.)))*)`?;?:([0-9]*)/g;
     let stack = [...err.stack.matchAll(stackParse)];
@@ -227,20 +226,25 @@ function parseErrorStack(err){
     while(stackIndex < stack.length && !stack[stackIndex][1].startsWith(userCodeBlockIdentifier))
         stackIndex += 1;
 
-    // Only include the stack frames that are relevant to your code
-    stack = stack.slice(stackIndex, stackIndex + 2);
+    // Include all the messages relevant to the user
+    let userStackEnd = stackIndex;
+    while(userStackEnd < stack.length && stack[userStackEnd][1].startsWith(userCodeBlockIdentifier))
+        userStackEnd += 1;
 
-    let lineNumber = stack[0][2];
-    let file = stack[0][1];
+    stack = stack.slice(stackIndex, userStackEnd);
 
-    if (file.startsWith(userCodeBlockIdentifier))
-        lineNumber -= userCodeStartLineOffset;
+    stack.forEach(s => {
+        s[1] = s[1].slice(userCodeBlockIdentifier.length); // Slice off the userCodeBlockIdentifier
+        s[2] -= userCodeStartLineOffset; // Subtract userCodeStartLineOffset from line numbers
+    });
 
-    // Include the error message at the beginning of the stack trace
-    stack.unshift([err.message]);
-    stack = stack.map(s=>s.join(':')).join('\n');
-    return {lineNumber, file, stack};
+    
+    stack = stack.map(s => s[1] + ': line ' + s[2]).join('\n'); // Adjust the format here
+    return {lineNumber: stack[0][2], file: stack[0][1], stack};
 }
+
+
+
 
 
 
