@@ -3,7 +3,7 @@
 let userCodeBlockIdentifier = "__USERCODE__";
 
 // Base class for all Execution Environments
-class ExecutionEnvironmentInternal {
+class ExecutionEnvironment {
     constructor(listenOn) {
         const self = this;
         // ------ Message Listening ------

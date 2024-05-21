@@ -48,7 +48,7 @@ let SplashKitOnlineLanguageDefinitions = [
         setups: [{
             name: "C++ (Clang)",
             runtimeFiles: [
-                "runtimes/ExecutionEnvironmentInternal.js",
+                "runtimes/ExecutionEnvironment.js",
                 "runtimes/cxx/cxxRuntime.js",
                 "runtimes/cxx/bin/SplashKitBackendWASMCPP.js",
                 "executionEnvironment_Page.js",

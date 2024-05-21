@@ -32,20 +32,20 @@ var Module = {
         data = event.data.userData;
         switch(data.type){
             case "ProgramEnded":
-                executionEnvironment.stopProgram();
+                executionEnvironmentClient.stopProgram();
                 break;
             case "ProgramPaused":
-                executionEnvironment.signalPaused();
+                executionEnvironmentClient.signalPaused();
                 break;
             case "ProgramContinued":
-                executionEnvironment.signalContinue();
+                executionEnvironmentClient.signalContinue();
                 break;
         }
     }
 };
 
 // define and create the ExecutionEnvironmentInternal subclass
-class ExecutionEnvironmentInternalCXX extends ExecutionEnvironmentInternal{
+class ExecutionEnvironmentInternalCXX extends ExecutionEnvironment{
     constructor(listenOn) {
         return super(listenOn);
     }
@@ -96,7 +96,7 @@ class ExecutionEnvironmentInternalCXX extends ExecutionEnvironmentInternal{
     }
 }
 
-let executionEnvironment = null;
+let executionEnvironmentClient = null;
 
 // Service worker, which is used to provide a location we can send events to,
 // and that our user's program can recieve them from. Using a SharedArrayBuffer would of course
@@ -116,7 +116,7 @@ function sendWorkerCommand(command, args) {
 function handleServiceWorkerStateChange(event) {
     if (this.state == "activated") {
         // trigger reload so service worker starts intercepting properly
-        executionEnvironment.Reload();
+        executionEnvironmentClient.Reload();
     }
 }
 
@@ -127,18 +127,18 @@ async function registerServiceWorker(){
         worker.addEventListener("statechange", (event) => {
             if (this.state == "activated") {
                 // trigger reload so service worker starts intercepting properly
-                executionEnvironment.Reload();
+                executionEnvironmentClient.Reload();
             }
         });
 
         if (worker.active) {
             currentServiceWorker = worker.active;
 
-            executionEnvironment.signalReady();
+            executionEnvironmentClient.signalReady();
         }
     }
     catch(err){
-        executionEnvironment.reportCriticalInitializationFail(
+        executionEnvironmentClient.reportCriticalInitializationFail(
             "Failed to initialize critical component: Service Worker. <br/>"+
             "You can still compile and run programs, but you will be unable to interact with them with your mouse or keyboard.<br/>"+
             err.toString()
@@ -147,7 +147,7 @@ async function registerServiceWorker(){
 }
 
 // set everything up!
-executionEnvironment = new ExecutionEnvironmentInternalCXX(window);
+executionEnvironmentClient = new ExecutionEnvironmentInternalCXX(window);
 registerServiceWorker();
 
 // make canvas take focus when clicked

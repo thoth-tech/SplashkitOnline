@@ -6,7 +6,7 @@ const ExecutionStatus = {
   Paused: 'Paused'
 };
 
-class ExecutionEnvironment extends EventTarget{
+class ExecutionEnvironmentClient extends EventTarget{
 
     constructor(container, language) {
         super();

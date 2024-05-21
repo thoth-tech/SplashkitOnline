@@ -167,11 +167,11 @@ languageSelectElem.value = activeLanguage.name;
 initializeLanguageCompilerFiles(activeLanguageSetup);
 
 // initialize execution environment and project storage objects
-let executionEnviroment = new ExecutionEnvironment(document.getElementById("ExecutionEnvironment"), activeLanguageSetup);
+let executionEnviromentClient = new ExecutionEnvironmentClient(document.getElementById("ExecutionEnvironment"), activeLanguageSetup);
 let appStorage = new AppStorage();
 appStorage.attach();
 let storedProject = new IDBStoredProject(appStorage, activeLanguageSetup.getDefaultProject());
-let unifiedFS = new UnifiedFS(storedProject, executionEnviroment);
+let unifiedFS = new UnifiedFS(storedProject, executionEnviromentClient);
 storedProject.attachToProject();
 
 let haveMirrored = false;
@@ -191,7 +191,7 @@ async function newProject(){
     disableCodeExecution();
     storedProject.detachFromProject();
     canMirror = false;
-    await executionEnviroment.resetEnvironment();
+    await executionEnviromentClient.resetEnvironment();
     await storedProject.deleteProject(projectID);
     haveMirrored = false;
     await storedProject.attachToProject(projectID);
@@ -213,7 +213,7 @@ function prepareIDEForLoading(){
     });
 
     let waitForInitialize = new Promise((resolve) => {
-        executionEnviroment.addEventListener("initialized", () => {
+        executionEnviromentClient.addEventListener("initialized", () => {
             canMirror = true;
             resolve();
         });
@@ -247,7 +247,7 @@ function prepareIDEForLoading(){
 }
 prepareIDEForLoading();
 
-executionEnviroment.addEventListener("onDownloadFail", function(data) {
+executionEnviromentClient.addEventListener("onDownloadFail", function(data) {
     displayEditorNotification("Failed to load critical part of IDE: "+data.name+". Click for more details.", NotificationIcons.CRITICAL_ERROR, -1,
          function() {
             displayEditorNotification("If you are a <i>developer</i>, please ensure you have placed the file '"+data.url.slice(data.url.lastIndexOf("/")+1)+"' inside your /Browser_IDE/splashkit/ folder."+
@@ -260,7 +260,7 @@ executionEnviroment.addEventListener("onDownloadFail", function(data) {
     );
 });
 
-executionEnviroment.addEventListener("onCriticalInitializationFail", function(data) {
+executionEnviromentClient.addEventListener("onCriticalInitializationFail", function(data) {
     displayEditorNotification("Failed to load critical part of IDE: "+data.message+". ", NotificationIcons.CRITICAL_ERROR);
 });
 
@@ -278,11 +278,11 @@ async function MirrorToExecutionEnvironment(){
                 for(let node of dirs_files){
                     let abs_path = path+""+node.label;
                     if (node.children != null){
-                        executionEnviroment.mkdir(abs_path);
+                        executionEnviromentClient.mkdir(abs_path);
                         mirror(node.children, abs_path+"/");
                     }
                     else{
-                        executionEnviroment.writeFile(abs_path, await storedProject.access((project)=>project.readFile(abs_path)));
+                        executionEnviromentClient.writeFile(abs_path, await storedProject.access((project)=>project.readFile(abs_path)));
                     }
                 }
             }
@@ -319,7 +319,7 @@ let haveUploadedCodeOnce = false;
 // Functions to disable/enable code-execution
 disableCodeExecution();
 function disableCodeExecution(){
-    if (executionEnviroment.executionStatus != ExecutionStatus.Unstarted)
+    if (executionEnviromentClient.executionStatus != ExecutionStatus.Unstarted)
         stopProgram();
 
     allowExecution = false;
@@ -334,7 +334,7 @@ function enableCodeExecution(){
 }
 
 function reportCompilationError(error){
-    executionEnviroment.reportError(error.name, error.line, error.message, error.formatted);
+    executionEnviromentClient.reportError(error.name, error.line, error.message, error.formatted);
 }
 
 // Temporary just to avoid _some_ duplication... waiting on other tasks to be completed is fun!
@@ -360,7 +360,7 @@ async function runFile(name, code) {
 
         if (compiled.output != null) {
             displayEditorNotification(`Reloading ${name}!`, NotificationIcons.CONSTRUCTION);
-            executionEnviroment.hotReloadFile(name, compiled.output);
+            executionEnviromentClient.hotReloadFile(name, compiled.output);
         }
     }
     catch (err) {
@@ -512,7 +512,7 @@ async function runProgram(){
         if (compiled.output != null) {
             displayEditorNotification("Running project!", NotificationIcons.SUCCESS);
 
-            executionEnviroment.runProgram(compiled.output);
+            executionEnviromentClient.runProgram(compiled.output);
         } else {
             displayEditorNotification("Project has errors! Please see terminal for details.", NotificationIcons.ERROR);
         }
@@ -526,7 +526,7 @@ async function continueProgram(){
     clearErrorLines();
 
     try {
-        await executionEnviroment.continueProgram();
+        await executionEnviromentClient.continueProgram();
     }
     catch (err) {
         displayEditorNotification("Failed to continue program!", NotificationIcons.ERROR);
@@ -535,7 +535,7 @@ async function continueProgram(){
 
 async function pauseProgram(){
     try {
-        await executionEnviroment.pauseProgram();
+        await executionEnviromentClient.pauseProgram();
     }
     catch (err) {
         displayEditorNotification("Failed to pause program!", NotificationIcons.ERROR);
@@ -544,7 +544,7 @@ async function pauseProgram(){
 
 async function stopProgram(){
     try {
-        await executionEnviroment.stopProgram();
+        await executionEnviromentClient.stopProgram();
     }
     catch (err) {
         displayEditorNotification("Failed to stop program!", NotificationIcons.ERROR);
@@ -554,9 +554,9 @@ async function stopProgram(){
 async function restartProgram(){
     clearErrorLines();
 
-    if (executionEnviroment.executionStatus != ExecutionStatus.Unstarted)
-        await executionEnviroment.stopProgram(); // Make sure we wait for it to stop via await.
-    await executionEnviroment.cleanEnvironment();
+    if (executionEnviromentClient.executionStatus != ExecutionStatus.Unstarted)
+        await executionEnviromentClient.stopProgram(); // Make sure we wait for it to stop via await.
+    await executionEnviromentClient.cleanEnvironment();
 
     runProgram();
 }
@@ -567,10 +567,10 @@ async function restartProgram(){
 function updateButtons(){
     updateCodeButton.disabled = !allowExecution;
 
-    let runProgramButtonOn = executionEnviroment.executionStatus == ExecutionStatus.Unstarted && !executionEnviroment.hasRunOnce;
-    let continueProgramButtonOn = executionEnviroment.executionStatus == ExecutionStatus.Paused
-    let restartProgramButtonOn = executionEnviroment.hasRunOnce;
-    let stopProgramButtonOn = executionEnviroment.executionStatus == ExecutionStatus.Running;
+    let runProgramButtonOn = executionEnviromentClient.executionStatus == ExecutionStatus.Unstarted && !executionEnviromentClient.hasRunOnce;
+    let continueProgramButtonOn = executionEnviromentClient.executionStatus == ExecutionStatus.Paused
+    let restartProgramButtonOn = executionEnviromentClient.hasRunOnce;
+    let stopProgramButtonOn = executionEnviromentClient.executionStatus == ExecutionStatus.Running;
 
     runProgramButton.disabled = !(allowExecution && runProgramButtonOn);
     continueProgramButton.disabled = !(allowExecution && continueProgramButtonOn);
@@ -824,22 +824,22 @@ function clearErrorLines(){
 }
 
 // Update buttons when the state of the ExecutionEnvironment changes
-executionEnviroment.addEventListener("programStarted", function(e){
+executionEnviromentClient.addEventListener("programStarted", function(e){
     updateButtons();
 });
-executionEnviroment.addEventListener("programContinued", function(e){
+executionEnviromentClient.addEventListener("programContinued", function(e){
     updateButtons();
 });
-executionEnviroment.addEventListener("programStopped", function(e){
+executionEnviromentClient.addEventListener("programStopped", function(e){
     updateButtons();
     displayEditorNotification("Program Stopped!", NotificationIcons.INFO);
 });
-executionEnviroment.addEventListener("programPaused", function(e){
+executionEnviromentClient.addEventListener("programPaused", function(e){
     updateButtons();
 });
 
 // Also highlight errors when they come
-executionEnviroment.addEventListener("error", function(e){
+executionEnviromentClient.addEventListener("error", function(e){
     let editor = (e.block=="GeneralCode"?editorInit:editorMainLoop);
     if (e.line != null){
         if (editor.lineCount() < e.line)
