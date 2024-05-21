@@ -217,10 +217,11 @@ class ExecutionEnvironment extends EventTarget{
         });
     }
     async readFile(path){
-        this.iFrame.contentWindow.postMessage({
+        let result = await postMessageFallible(this.iFrame.contentWindow, {
             type: "readFile",
-            path: path
-        }, "*");
+            path: path,
+        });
+        return result;
     }
     unlink(path){
         this.iFrame.contentWindow.postMessage({

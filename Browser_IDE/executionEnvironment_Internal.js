@@ -422,10 +422,17 @@ window.addEventListener('message', async function(m){
         }
         
         if (m.data.type == "readFile"){
-            let a= FS.readFile(m.data.path);
-            console.log(a);
-            
+            let fileData= FS.readFile(m.data.path);
+            console.log(fileData);
+            parent.postMessage({
+                type: "callback",
+                callbackID: m.data.callbackID,
+                result: fileData,
+                error: undefined,
+            }, "*");
+            return;
         }
+        
         if (m.data.type == "unlink"){
             FS.unlink(m.data.path);
         }
