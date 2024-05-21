@@ -695,6 +695,7 @@ li.CodeMirror-hint-active {
 /* Canvas scaling fix */
 
 #canvas {
+  max-height: 100% !important;
   max-width: 100% !important;
   height: auto !important;
   width: auto !important;
