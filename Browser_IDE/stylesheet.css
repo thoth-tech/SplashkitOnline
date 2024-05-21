@@ -660,6 +660,10 @@ li.CodeMirror-hint-active {
   background-color: #2d332f;
 }
 
+.flex-column {
+    display: flex;
+}
+
 /* Canvas scaling fix */
 
 #canvas {
