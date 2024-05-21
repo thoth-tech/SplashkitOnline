@@ -1,10 +1,12 @@
 "use strict";
 
 function updateLoadingProgress(progress) {
+    let realProgress = (progress.downloadIndex - 1 + progress.downloadProgress) / progress.downloadCount;
+
     const progressBar = document.getElementById('loading-progress');
     if (progressBar) {
-        progressBar.style.width = progress.downloadProgress * 100 + '%';
-        progressBar.setAttribute('aria-valuenow', progress.downloadProgress * 100);
+        progressBar.style.width = realProgress * 100 + '%';
+        progressBar.setAttribute('aria-valuenow', realProgress * 100);
     }
 }
 
@@ -31,6 +33,13 @@ function hideLoadingContainer() {
     }
 }
 
+function showLoadingContainer() {
+    const loadingContainer = document.getElementById('loading-container');
+    if (loadingContainer) {
+        loadingContainer.style.display = 'flex';
+    }
+}
+
 function showDownloadFailure() {
     const progressBar = document.getElementById('loading-progress');
     const loadingText = document.getElementById('loading-text');
@@ -41,13 +50,12 @@ function showDownloadFailure() {
 }
 
 moduleEvents.addEventListener("onDownloadProgress", function(progress) {
-    console.log("Downloading: ", progress.downloadName, progress.downloadIndex, "/", progress.downloadCount, progress.downloadProgress*100,"%");
     updateLoadingProgress(progress);
     showLoadingBar();
 });
 
 moduleEvents.addEventListener("onDownloadFail", function(progress) {
-    console.log("Failed to download:", progress.downloadName, progress.downloadIndex, "/", progress.downloadCount);
+    showLoadingBar();
     showDownloadFailure();
 });
 
@@ -85,7 +93,7 @@ var Module = {
 };
 
 
-
+showLoadingContainer();
 
 
 
