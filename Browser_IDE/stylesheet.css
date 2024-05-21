@@ -78,6 +78,15 @@ select:hover {
     background-color: #303030;
 }
 
+input {
+    margin: 0px 3px;
+    border-radius: 3px;
+    border: 0;
+    background-color: transparent;
+    color: inherit;
+    outline:none;
+    line-height: 1em;
+}
 
 a:visited {
     color: #0A0;
@@ -181,6 +190,7 @@ a:visited {
     flex-direction: column;
     flex-grow:1;
     color: white;
+    min-height: 0;
 }
 .sk-contents-darker {
     background-color: #1B1B1B;
@@ -258,6 +268,16 @@ textarea {
     font-family:monospace, serif;
     white-space: pre-wrap;
     background-color: #161616;
+}
+
+.sk-terminal-input-wrapper {
+    padding:0 10px;
+    overflow: hidden;
+    box-shadow: 4px 4px 10px rgba(0,0,0,0.3) inset;
+    display: flex;
+}
+.sk-terminal-input-wrapper input {
+    flex-grow: 1;
 }
 
 .node{
