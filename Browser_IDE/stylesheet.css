@@ -10,9 +10,8 @@
 }
 body {
   line-height: 1.5;
-  -webkit-font-smoothing: antialiased;  
+  -webkit-font-smoothing: antialiased;
 }
-
 img, picture, video, canvas, svg {
   display: block;
   max-width: 100%;
@@ -28,6 +27,7 @@ p, h1, h2, h3, h4, h5, h6 {
   isolation: isolate;
 }
 
+
 iframe {
     border: 0;
 }
@@ -39,20 +39,14 @@ h3 {
 
 /* SplashKit Online */
 button {
-    margin: 0px 5px;
+    margin: 0px 3px;
     border-radius: 3px;
     border: 0;
-    background-color: #404040;
-    color: white;
+    background-color: transparent;
+    color: inherit;
     cursor: pointer;
-    padding: 0px 10px;    
-    border-radius: 5px;    
-    margin-top: 6px;
-    margin-bottom: -3px;
-    cursor: pointer;
-    transition: background-color 0.3s;    
+    transition: background-color 0.1s; 
 }
-
 button:disabled {
     color: #AAA;
 }
@@ -113,26 +107,12 @@ a:visited {
     margin: 0px;
     padding: 0px 10px 0px 0px;
     justify-content: space-between;
-    height: 3em;
-    line-height: 3em;
+    height: 2em;
+    line-height: 2em;
 }
 
 .sk-header-indent {
     padding-left: 1em;
-}
-
-.sk-header sk-header-indent{
-  position: fixed;
-  width: 100%; 
-  top: 0; 
-  z-index: 1000; 
-}
-
-.sk-header img {
-  width: 2em;
-  height: 2em;
-  margin-top: 14px;
-  margin-right: 10px;
 }
 
 .sk-menu {
@@ -180,12 +160,6 @@ a:visited {
     display: none;
 }
 
-.sk-menu li button:hover,
-.sk-tabs li button:hover,
-.flex-column button:hover {
-    background-color: #555;
-}
-
 .sk-tabs li[data-tab]::after {
     content: "\25BC";
     margin-left: 5px;
@@ -219,18 +193,16 @@ textarea {
 }
 
 .sk-main-columns {
-  display: flex;
-  flex-direction: row;
-  flex-grow: 1;
-  overflow: hidden;
+    overflow: hidden;
+    display: flex;
+    flex-direction: row;
+    flex-grow: 1;
 }
 
 .sk-column {
     display: flex;
     flex-direction: column;
     flex-grow: 1;
-    width: 100%; 
-    margin-bottom: 20px; 
 }
 
 .gutter {
@@ -425,26 +397,11 @@ li.CodeMirror-hint-active {
     color: white;
 }
 
-#fileViewContainer,
-#codeViewContainer,
-#runtimeContainer {
-  padding: 10px;
-}
 
 /* New changes for scrollbar in FILES explorer section */
 
 #fileViewContainer .sk-contents-focusable {
-  height: calc(100% - 50px); 
-  overflow-y: auto;
-  overflow-x: auto;  
-  width: 100%; 
-  max-width: 100%; 
-}
-
-#fileView > * {
   overflow: auto;
-  flex-basis: 0;
-  flex-grow: 1;
 }
 
 /* Leftover stuff from bootstrap */
@@ -625,26 +582,16 @@ li.CodeMirror-hint-active {
   align-items: center; 
 }
 
-.modal .modal-body {
-  border-top: 1px solid white;
-  border-bottom: 1px solid white; 
-}
-
 .modal .sk-modal-footer {
-  padding: 2.5em 1em; 
-  border-top: 1px solid white;
+  padding: 1.3em 1em; 
   display: flex; 
   align-items: center; 
   justify-content: flex-end; 
 }
 
 .btn {
-  font-size: 1rem; 
-  padding: 0.4em 0.8em; 
-  border-radius: 0.25rem; 
-  margin-right: 0.5rem; 
-  margin-top: 0.5rem; 
   transition: background-color 0.3s, box-shadow 0.3s; 
+  padding: 0.5em;
 }
 
 .btn:last-child {
@@ -653,18 +600,14 @@ li.CodeMirror-hint-active {
 
 
 .btn-secondary {
-  background-color: #6c757d; 
   color: white; 
 }
 
-
 .btn-success {
-  background-color: #28a745; 
   color: white; 
 }
 
 .btn-success:hover, .btn-success:focus {
-  background-color: #218838; 
 }
 
 /* Canvas scaling fix */
