@@ -112,10 +112,13 @@ function ReportError(block, message, line, formatted=false){
     },"*");
 }
 
+let headerHeight = parseFloat(getComputedStyle(document.getElementsByClassName("sk-header")[0]).height.slice(0,-2));
+
 Split(['#canvasContainer', '#terminalOutputContainer'], {
     direction: 'vertical',
     sizes: [75, 25],
-    minSize: [100, 100],
+    minSize: [100, headerHeight],
     gutterSize: 5,
-    gutterAlign: 'center',     
+    gutterAlign: 'center',
+    snapOffset: 20,
 });
