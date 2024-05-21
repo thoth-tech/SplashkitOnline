@@ -140,3 +140,11 @@ function ReportError(block, message, line, stacktrace ,formatted=false){
         line: line
     },"*");
 }
+
+Split(['#canvasContainer', '#terminalOutputContainer'], {
+    direction: 'vertical',
+    sizes: [75, 25],
+    minSize: [100, 100],
+    gutterSize: 5,
+    gutterAlign: 'center',     
+});

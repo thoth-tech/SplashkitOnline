@@ -197,6 +197,13 @@ textarea {
     z-index:100;
 }
 
+.gutter-vertical {
+  cursor: ns-resize;
+}
+
+.gutter-horizontal {
+  cursor: e-resize;
+}
 
 .sk-notification-area {
     position: absolute;
@@ -228,7 +235,7 @@ textarea {
 
 .sk-terminal {
     overflow-y: scroll;
-    height:200px;
+    flex-basis: 0;
     border:0;
     padding-left:1em;
     resize: none;
@@ -575,3 +582,8 @@ li.CodeMirror-hint-active {
 .sk-term-fmt-code35, .sk-term-fmt-code95 {color: magenta;}
 .sk-term-fmt-code36, .sk-term-fmt-code96 {color: cyan;}
 .sk-term-fmt-code37, .sk-term-fmt-code97 {color: white;}
+
+#canvas {  
+  max-width: 100%;
+  max-height: 100%;
+}
