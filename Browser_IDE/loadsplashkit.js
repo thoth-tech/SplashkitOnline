@@ -1,5 +1,61 @@
 "use strict";
 
+function updateLoadingProgress(progress) {
+    const progressBar = document.getElementById('loading-progress');
+    if (progressBar) {
+        progressBar.style.width = progress.downloadProgress * 100 + '%';
+        progressBar.setAttribute('aria-valuenow', progress.downloadProgress * 100);
+    }
+}
+
+function showLoadingBar() {
+    const loadingBar = document.getElementById('loading-bar');
+    if (loadingBar) {
+        loadingBar.style.display = 'block';
+    }
+}
+
+function hideLoadingBar() {
+    const loadingBar = document.getElementById('loading-bar');
+    const loadingText = document.getElementById('loading-text');
+    if (loadingBar) {
+        loadingBar.style.display = 'none';
+        loadingText.style.display = 'none';
+    }
+}
+
+function hideLoadingContainer() {
+    const loadingContainer = document.getElementById('loading-container');
+    if (loadingContainer) {
+        loadingContainer.style.display = 'none';
+    }
+}
+
+function showDownloadFailure() {
+    const progressBar = document.getElementById('loading-progress');
+    const loadingText = document.getElementById('loading-text');
+    if (progressBar && loadingText) {
+        progressBar.style.backgroundColor = 'red';
+        loadingText.textContent = 'Download Failed';
+    }
+}
+
+moduleEvents.addEventListener("onDownloadProgress", function(progress) {
+    console.log("Downloading: ", progress.downloadName, progress.downloadIndex, "/", progress.downloadCount, progress.downloadProgress*100,"%");
+    updateLoadingProgress(progress);
+    showLoadingBar();
+});
+
+moduleEvents.addEventListener("onDownloadFail", function(progress) {
+    console.log("Failed to download:", progress.downloadName, progress.downloadIndex, "/", progress.downloadCount);
+    showDownloadFailure();
+});
+
+moduleEvents.addEventListener('onRuntimeInitialized', function(event) {
+    hideLoadingBar(); 
+    hideLoadingContainer();
+});
+
 var Module = {
     onRuntimeInitialized: (function() {
         moduleEvents.dispatchEvent(new Event("onRuntimeInitialized"));
