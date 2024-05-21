@@ -305,13 +305,15 @@ async function openUntitledCodeEditor() {
     }
 }
 
-async function closeCodeEditor(editor) {
+async function closeCodeEditor(editor, autosave = true) {
     let index = editors.indexOf(editor);
     if (index != -1) {
         let editor = editors[index];
         editors.splice(index, 1);
 
-        await editor.save();
+        if (autosave)
+            await editor.save();
+
         editor.close();
     }
 
@@ -711,11 +713,15 @@ async function syntaxCheckFile(name, code) {
 }
 
 storedProject.addEventListener('onWriteToFile', function(e) {
-    for (let i = 0; i < editors.length; i ++) {
-        if (e.path == editors[i].filename) {
-            editors[i].load();
-        }
-    }
+    let editor = getCodeEditor(e.path);
+    if (editor)
+        editor.load();
+});
+
+storedProject.addEventListener('onDeletePath', function(e) {
+    let editor = getCodeEditor(e.path);
+    if (editor)
+        closeCodeEditor(editor, false);
 });
 
 
