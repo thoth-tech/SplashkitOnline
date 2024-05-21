@@ -10,33 +10,17 @@ function updateLoadingProgress(progress) {
     }
 }
 
-function showLoadingBar() {
-    const loadingBar = document.getElementById('loading-bar');
-    if (loadingBar) {
-        loadingBar.style.display = 'block';
-    }
-}
-
-function hideLoadingBar() {
-    const loadingBar = document.getElementById('loading-bar');
-    const loadingText = document.getElementById('loading-text');
-    if (loadingBar) {
-        loadingBar.style.display = 'none';
-        loadingText.style.display = 'none';
-    }
-}
-
 function hideLoadingContainer() {
     const loadingContainer = document.getElementById('loading-container');
     if (loadingContainer) {
-        loadingContainer.style.display = 'none';
+        loadingContainer.style.opacity = '0';
     }
 }
 
 function showLoadingContainer() {
     const loadingContainer = document.getElementById('loading-container');
     if (loadingContainer) {
-        loadingContainer.style.display = 'flex';
+        loadingContainer.style.opacity = '1';
     }
 }
 
@@ -51,16 +35,13 @@ function showDownloadFailure() {
 
 moduleEvents.addEventListener("onDownloadProgress", function(progress) {
     updateLoadingProgress(progress);
-    showLoadingBar();
 });
 
 moduleEvents.addEventListener("onDownloadFail", function(progress) {
-    showLoadingBar();
     showDownloadFailure();
 });
 
 moduleEvents.addEventListener('onRuntimeInitialized', function(event) {
-    hideLoadingBar(); 
     hideLoadingContainer();
 });
 

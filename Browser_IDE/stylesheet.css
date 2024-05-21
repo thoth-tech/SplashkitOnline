@@ -584,7 +584,8 @@ li.CodeMirror-hint-active {
 }
 
 .loading-container {
-  display: none; /* hide by default */
+  display: flex;
+  opacity: 0; /* hide by default */
   justify-content: center;
   align-items: center;
   position: fixed;
@@ -595,6 +596,8 @@ li.CodeMirror-hint-active {
   background-color: rgba(0, 0, 0, 0.4);
   z-index: 1000;
   flex-direction: column;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
 }
 
 .loading-bar {
