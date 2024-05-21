@@ -40,6 +40,9 @@ var Module = {
             case "ProgramContinued":
                 executionEnvironment.signalContinue();
                 break;
+            case "stdinAwait":
+                setTerminalInputAwaitState(true);
+                break;
         }
     }
 };
@@ -78,6 +81,8 @@ class ExecutionEnvironmentInternalCXX extends ExecutionEnvironmentInternal{
                 }, 100);
             });
         }
+
+        setTerminalInputAwaitState(false);
     }
     async runProgram(program){
         await this.stopProgram();
@@ -85,6 +90,8 @@ class ExecutionEnvironmentInternalCXX extends ExecutionEnvironmentInternal{
 
         clearInterval(this.keepAliveID);
         this.keepAliveID = setInterval(this.sendKeepAliveSignal, 500);
+
+        setTerminalInputAwaitState(false);
 
         RunProgram(program);
     }
@@ -162,9 +169,20 @@ new ResizeObserver(function(){
 
 // send terminal input on enter
 let terminalInput = document.getElementById("terminal-input");
+
+function setTerminalInputAwaitState(awaiting) {
+    if (awaiting)
+        terminalInput.placeholder = 'awaiting input...';
+    else
+        terminalInput.placeholder = '';
+}
+
 terminalInput.addEventListener("keydown", function(event){
     if (event.key === "Enter") {
         writeTerminal("> " + terminalInput.value);
+        sendWorkerCommand("stdin", {value: terminalInput.value + '\n'});
+
         terminalInput.value = '';
+        setTerminalInputAwaitState(false);
     }
 });
