@@ -813,9 +813,9 @@ async function FSdownloadFile(filename, mime) {
 
 
 async function downloadProject(){
-    downloadFileGeneric(await projectToZip(), "project.zip");
+    let projectName = (await appStorage.access((s) => s.getProject(storedProject.projectID))).name;
+    downloadFileGeneric(await projectToZip(), projectName + ".zip");
 }
-
 
 
 // ------ Project Zipping/Unzipping Click Handling ------
