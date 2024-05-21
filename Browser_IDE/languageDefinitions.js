@@ -24,7 +24,6 @@ let SplashKitOnlineLanguageDefinitions = [
                 "fsevents.js",
                 "executionEnvironment_CodeProcessor.js", //intention is to make this a compilerFile instead
                 "executionEnvironment_Internal.js", // and this should be based on ExecutionEnvironmentInternal.js
-                "executionEnvironment_Page.js",
             ],
             runtimeDependencies: [
                 "runtimes/javascript/bin/SplashKitBackendWASM.js",
@@ -51,7 +50,6 @@ let SplashKitOnlineLanguageDefinitions = [
                 "runtimes/ExecutionEnvironmentInternal.js",
                 "runtimes/cxx/cxxRuntime.js",
                 "runtimes/cxx/bin/SplashKitBackendWASMCPP.js",
-                "executionEnvironment_Page.js",
             ],
             runtimeDependencies: [
                 "runtimes/cxx/bin/SplashKitBackendWASMCPP.js",
