@@ -265,16 +265,22 @@ textarea {
     border:0;
     padding-left:1em;
     resize: none;
-    font-family:monospace, serif;
+    font-family: monospace, serif;
     white-space: pre-wrap;
     background-color: #161616;
 }
 
+.sk-terminal > :nth-child(2) {
+    margin-top: auto !important;
+}
+
 .sk-terminal-input-wrapper {
-    padding:0 10px;
+    padding: 0 1em;
     overflow: hidden;
     box-shadow: 4px 4px 10px rgba(0,0,0,0.3) inset;
     display: flex;
+    font-family: monospace, serif;
+    white-space: pre-wrap;
 }
 .sk-terminal-input-wrapper input {
     flex-grow: 1;

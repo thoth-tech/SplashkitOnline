@@ -159,3 +159,12 @@ new ResizeObserver(function(){
     if (window.cloneObject != undefined)
         sendWorkerCommand("EmEvent", { target: 'canvas', boundingClientRect: cloneObject(Module.canvas.getBoundingClientRect()) });
 }).observe(Module.canvas);
+
+// send terminal input on enter
+let terminalInput = document.getElementById("terminal-input");
+terminalInput.addEventListener("keydown", function(event){
+    if (event.key === "Enter") {
+        writeTerminal("> " + terminalInput.value);
+        terminalInput.value = '';
+    }
+});
