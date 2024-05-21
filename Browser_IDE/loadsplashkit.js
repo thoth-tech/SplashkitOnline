@@ -1,40 +1,7 @@
 "use strict";
 
-function updateLoadingProgress(progress) {
-    let realProgress = (progress.downloadIndex - 1 + progress.downloadProgress) / progress.downloadCount;
-
-    const progressBar = document.getElementById('loading-progress');
-    if (progressBar) {
-        progressBar.style.width = realProgress * 100 + '%';
-        progressBar.setAttribute('aria-valuenow', realProgress * 100);
-    }
-}
-
-function hideLoadingContainer() {
-    const loadingContainer = document.getElementById('loading-container');
-    if (loadingContainer) {
-        loadingContainer.style.opacity = '0';
-    }
-}
-
-function showLoadingContainer() {
-    const loadingContainer = document.getElementById('loading-container');
-    if (loadingContainer) {
-        loadingContainer.style.opacity = '1';
-    }
-}
-
-function showDownloadFailure() {
-    const progressBar = document.getElementById('loading-progress');
-    const loadingText = document.getElementById('loading-text');
-    if (progressBar && loadingText) {
-        progressBar.style.backgroundColor = 'red';
-        loadingText.textContent = 'Download Failed';
-    }
-}
-
 moduleEvents.addEventListener("onDownloadProgress", function(progress) {
-    updateLoadingProgress(progress);
+    updateLoadingProgress((progress.downloadIndex - 1 + progress.downloadProgress) / progress.downloadCount);
 });
 
 moduleEvents.addEventListener("onDownloadFail", function(progress) {
@@ -44,6 +11,8 @@ moduleEvents.addEventListener("onDownloadFail", function(progress) {
 moduleEvents.addEventListener('onRuntimeInitialized', function(event) {
     hideLoadingContainer();
 });
+
+showLoadingContainer();
 
 var Module = {
     onRuntimeInitialized: (function() {
@@ -72,9 +41,6 @@ var Module = {
         ENV.SDL_EMSCRIPTEN_KEYBOARD_ELEMENT = "canvas";
     }),
 };
-
-
-showLoadingContainer();
 
 
 

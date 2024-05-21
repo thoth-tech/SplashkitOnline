@@ -122,3 +122,34 @@ Split(['#canvasContainer', '#terminalOutputContainer'], {
     gutterAlign: 'center',
     snapOffset: 20,
 });
+
+function updateLoadingProgress(progress) {
+    const progressBar = document.getElementById('loading-progress');
+    if (progressBar) {
+        progressBar.style.width = progress * 100 + '%';
+        progressBar.setAttribute('aria-valuenow', progress * 100);
+    }
+}
+
+function hideLoadingContainer() {
+    const loadingContainer = document.getElementById('loading-container');
+    if (loadingContainer) {
+        loadingContainer.style.opacity = '0';
+    }
+}
+
+function showLoadingContainer() {
+    const loadingContainer = document.getElementById('loading-container');
+    if (loadingContainer) {
+        loadingContainer.style.opacity = '1';
+    }
+}
+
+function showDownloadFailure() {
+    const progressBar = document.getElementById('loading-progress');
+    const loadingText = document.getElementById('loading-text');
+    if (progressBar && loadingText) {
+        progressBar.style.backgroundColor = 'red';
+        loadingText.textContent = 'Download Failed';
+    }
+}
