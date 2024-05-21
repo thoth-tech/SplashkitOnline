@@ -264,8 +264,13 @@ async function updateNoEditorsMessage() {
     document.getElementById("noEditorsMessage").style.opacity = (editors.length == 0 && !makingNewProject) ? 1 : 0;
 }
 
-async function openCodeEditors() {
+async function openCodeEditors(editorLimit = 3) {
     let sourceFiles = await findAllSourceFiles();
+
+    if (sourceFiles.length > editorLimit) {
+        updateNoEditorsMessage();
+        return;
+    }
 
     for(let i = 0; i < sourceFiles.length; i ++) {
         openCodeEditor(sourceFiles[i], false);
