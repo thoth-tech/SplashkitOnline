@@ -770,6 +770,31 @@ async function FSviewFile(filename) {
         URL.revokeObjectURL(url);
     }, 2000);
 }
+
+async function FSviewFiletran(filename) {
+    let content = undefined;
+    
+    try {
+        content = await executionEnviroment.readFile(filename);
+    } catch(err){
+        let errEv = new Event("filesystemError");
+        errEv.shortMessage = "Open failed";
+        errEv.longMessage = "An error occured and the file could not be opened.\n\nReason:\n" + err;
+        window.dispatchEvent(errEv);
+        return;
+    }
+
+    let mimeType = mime.getType(filename) || 'application/octet-stream';
+    let blob = new Blob([content], {type: mimeType});
+
+    let url = URL.createObjectURL(blob);
+
+    window.open(url+"#"+filename, '_blank');
+    setTimeout(() => {
+        URL.revokeObjectURL(url);
+    }, 2000);
+}
+
 async function FSdownloadFile(filename, mime) {
     let content = undefined;
 

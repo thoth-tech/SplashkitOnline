@@ -420,7 +420,19 @@ window.addEventListener('message', async function(m){
         if (m.data.type == "rename"){
             FS.rename(m.data.oldPath,m.data.newPath);
         }
-
+        
+        if (m.data.type == "readFile"){
+            let fileData= FS.readFile(m.data.path);
+            console.log(fileData);
+            parent.postMessage({
+                type: "callback",
+                callbackID: m.data.callbackID,
+                result: fileData,
+                error: undefined,
+            }, "*");
+            return;
+        }
+        
         if (m.data.type == "unlink"){
             FS.unlink(m.data.path);
         }
