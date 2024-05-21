@@ -279,7 +279,7 @@ async function openCodeEditors() {
     updateNoEditorsMessage();
 }
 
-let shownRenameMessage = false; // show once per session
+const shownRenameMessageKey = 'sk-online-shown-rename-message';
 async function openUntitledCodeEditor() {
     let number = 0;
     let filename = "/code/untitled."+activeLanguage.defaultSourceExtension;
@@ -294,9 +294,9 @@ async function openUntitledCodeEditor() {
 
     updateNoEditorsMessage();
 
-    if (!shownRenameMessage) {
-        displayEditorNotification("You can double click a code tab's name to rename it!", NotificationIcons.INFO, 4);
-        shownRenameMessage = true;
+    if (!localStorage.getItem(shownRenameMessageKey)) {
+        displayEditorNotification("You can double click a code tab's name to rename it!", NotificationIcons.INFO, 6);
+        localStorage.setItem(shownRenameMessageKey, true);
     }
 }
 
