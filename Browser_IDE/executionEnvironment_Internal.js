@@ -215,30 +215,37 @@ ReferenceError: test is not defined
 // Currently those are the only two forms supported, but this should account for the majority well enough.
 // It also doesn't parse the url style ones - it only needs to work for the local user's code, so good enough.
 
+
 function parseErrorStack(err){
     const stackParse = /(?:@|\()((?:[^;:`]|[:;`](?=.*(?:\/|\.)))*)`?;?:([0-9]*)/g;
     let stack = [...err.stack.matchAll(stackParse)];
 
     let stackIndex = 0;
 
-    //Should we limit this to only SplashKitArgumentError? (i.e if (err instanceof SplashKitArgumentError))
-
     // Unwind stack until we find user code:
     while(stackIndex < stack.length && !stack[stackIndex][1].startsWith(userCodeBlockIdentifier))
         stackIndex += 1;
 
-    if (stackIndex >= stack.length)
-        stackIndex = 0;
+    // Include all the messages relevant to the user
+    let userStackEnd = stackIndex;
+    while(userStackEnd < stack.length && stack[userStackEnd][1].startsWith(userCodeBlockIdentifier))
+        userStackEnd += 1;
 
-    let lineNumber = stack[stackIndex][2];
+    stack = stack.slice(stackIndex, userStackEnd);
 
-    let file = stack[stackIndex][1];
+    stack.forEach(s => {
+        s[1] = s[1].slice(userCodeBlockIdentifier.length); // Slice off the userCodeBlockIdentifier
+        s[2] -= userCodeStartLineOffset; // Subtract userCodeStartLineOffset from line numbers
+    });
 
-    if (file.startsWith(userCodeBlockIdentifier))
-        lineNumber -= userCodeStartLineOffset;
-
-    return {lineNumber, file};
+    
+    let formattedStack = stack.map(s => s[1] + ': line ' + s[2]).join('\n'); // Adjust the format here  
+    return {lineNumber: stack[0][2], file: userCodeBlockIdentifier + stack[0][1], stack: formattedStack};  
 }
+
+
+
+
 
 
 async function tryRunFunction_Internal(func) {
@@ -263,25 +270,26 @@ async function tryRunFunction_Internal(func) {
                 state: "stopped",
                 value: run
             };
-        }
+        }   
 
         let error = parseErrorStack(err);
 
         return{
             state: "error",
-            message: err,
+            message: err.message, // This is the error message from the original error
             line: error.lineNumber,
             block: error.file,
+            stackTrace: error.stack // Include the stack trace in the result
         };
     }
-}
+}   
 
 // Run a function
 async function tryRunFunction(func){
     let res = await tryRunFunction_Internal(func);
     if (res.state == "error"){
         stopProgram();
-        ReportError(res.block, res.message, res.line);
+        ReportError(res.block, res.message, res.line,res.stackTrace);
     }
     return res;
 }
@@ -296,7 +304,7 @@ async function createEvalFunctionAndSyntaxCheck(block, source){
         );
     });
     if (res.state == "error"){
-        ReportError(res.block, res.message, res.line);
+        ReportError(res.block, res.message, res.line,res.stackTrace);
     }
     return res;
 }
@@ -347,7 +355,7 @@ async function tryProcessAndRunCode(name, source){
     catch(e) {
         // If we got a syntax error from Babel, we know the browser can't return a more user friendly
         // one since it didn't report one initially. Still, better to return it than not...
-        ReportError(userCodeBlockIdentifier+name, "Unexpected error when parsing code: "+e.toString(), null);
+        ReportError(userCodeBlockIdentifier+name, "Unexpected error when parsing code: "+e.toString(), null,null);
     }
 }
 
@@ -358,7 +366,7 @@ async function runProgram(program){
     }
 
     if (window.main === undefined || !(window.main instanceof Function)){
-        ReportError(userCodeBlockIdentifier+"Program", "There is no main() function to run!", null);
+        ReportError(userCodeBlockIdentifier+"Program", "There is no main() function to run!", null,null);
         return;
     }
     if (!mainIsRunning){
@@ -388,7 +396,7 @@ window.addEventListener('message', async function(m){
         }
 
         if (m.data.type == "ReportError"){
-            ReportError(userCodeBlockIdentifier + m.data.block, m.data.message, m.data.line);
+            ReportError(userCodeBlockIdentifier + m.data.block, m.data.message, m.data.line,m.data.stackTrace);
         }
 
         if (m.data.type == "CleanEnvironment"){
