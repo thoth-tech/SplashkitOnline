@@ -239,8 +239,8 @@ function parseErrorStack(err){
     });
 
     
-    stack = stack.map(s => s[1] + ': line ' + s[2]).join('\n'); // Adjust the format here
-    return {lineNumber: stack[0][2], file: stack[0][1], stack};
+    let formattedStack = stack.map(s => s[1] + ': line ' + s[2]).join('\n'); // Adjust the format here  
+    return {lineNumber: stack[0][2], file: userCodeBlockIdentifier + stack[0][1], stack: formattedStack};  
 }
 
 
