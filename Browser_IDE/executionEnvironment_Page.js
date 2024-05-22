@@ -122,7 +122,9 @@ function ReportError(block, message, line, stacktrace ,formatted=false){
             escapedMessage = "(" + escapedBlock + ") " + escapedMessage;
         
     }
-    escapedMessage = "\x1b[0m\x1b[31m" + escapedMessage + "\x1b[0m";
+    
+    
+
     // Check if the stackTrace is empty
     if (stackTrace != null && stackTrace.trim() !== "") {
         // Format the stack trace with <details> and <summary> tags
@@ -133,6 +135,9 @@ function ReportError(block, message, line, stacktrace ,formatted=false){
             escapedMessage = '<summary' + (formatted ? '' : ' style="color: red;"') + '>' + escapedMessage + '</summary>';
             escapedMessage = '<details>' + escapedMessage + stackTrace + '</details>';
         }
+            
+    }else {
+        escapedMessage = "\x1b[0m\x1b[31m" + escapedMessage + "\x1b[0m";
     }
 
     if (outputMessage)
