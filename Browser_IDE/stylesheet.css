@@ -14,6 +14,7 @@ html {
 body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  color-scheme: dark;
 }
 img, picture, video, canvas, svg {
   display: block;
@@ -300,6 +301,10 @@ textarea {
 
 .sk-terminal > :nth-child(2) {
     margin-top: auto !important;
+}
+
+#runProgram {
+    color: #9fff69;
 }
 
 .sk-terminal-input-wrapper {
