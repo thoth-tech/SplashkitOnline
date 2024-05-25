@@ -53,10 +53,11 @@ button {
     line-height: 1em;
 }
 button:disabled {
-    color: #AAA;
+    color: #AAA !important;
+    cursor: wait;
 }
 
-button:hover {
+button:hover:enabled {
     background-color: #404040;
 }
 
