@@ -49,7 +49,7 @@ button {
     background-color: transparent;
     color: inherit;
     cursor: pointer;
-    transition: background-color 0.1s; 
+    transition: color 0.4s, background-color 0.1s;
     line-height: 1em;
 }
 button:disabled {
