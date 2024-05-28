@@ -432,7 +432,7 @@ window.addEventListener('message', async function(m){
             console.log(fileData);
             parent.postMessage({
                 type: "callback",
-                callbackID: m.data.callbackID,
+                responseCallbackID: m.data.callbackID,
                 result: fileData,
                 error: undefined,
             }, "*");
