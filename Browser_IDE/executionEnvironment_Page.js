@@ -15,16 +15,27 @@ function writeTerminalSpan(head, text, classList){
     el.classList.add(...classList);
     el.innerHTML = text;
 }
+function escapeHtml(unsafe) {
+    return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace('\n', '<br>', 'g');
+}
 
-function writeTerminal(text){
+
+function writeTerminal(text, escapeSpecialCharacters = true){
     if (terminalElement) {
-        if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
+        if (arguments.length > 2) {
+            // Convert the arguments object to an array, excluding the last argument
+            let textArgs = Array.prototype.slice.call(arguments, 0, -1);
+            text = textArgs.join(' ');
+        }
         
-        // These replacements are necessary if you render to raw HTML
-        text = text.replace(/&/g, "&amp;");
-        text = text.replace(/</g, "&lt;");
-        text = text.replace(/>/g, "&gt;");
-        text = text.replace('\n', '<br>', 'g');
+        // Escape special characters if needed
+        if (escapeSpecialCharacters) {
+            text = escapeHtml(text);
+        }
 
         let sections = text.split("\x1b[");
 
@@ -80,34 +91,104 @@ document.getElementById("canvas").addEventListener("click", async function () {
 
 // Convenience function for reporting errors, printing them to the terminal
 // and also sending a message to the main window.
-function ReportError(block, message, line, formatted=false){
+function ReportError(block, message, line, stacktrace ,formatted=false){
     let outputMessage = message != "";
+    let stackTrace = stacktrace;
 
-    if (outputMessage && line != null)
-        message = "Error on line "+line+": "+message;
+    // Ensure block and message are strings
+    block = block || "";
+    message = message || "";
 
-    if (block != null && block != "" && block != "__USERCODE__null") {
-        if (!block.startsWith(userCodeBlockIdentifier)){
-            message = "Please file a bug report and send us the following info!\n    Error in file: "+block+"\n    "+message;
-            block = "Internal Error";
-        }
-        else{
-            block = block.slice(userCodeBlockIdentifier.length);
-        }
-        if (outputMessage)
-            message = "(" + block + ") " + message;
+    // Escape only the user-provided input
+    let escapedBlock = escapeHtml(block);
+    let escapedMessage = escapeHtml(message);
+
+    if (outputMessage && line != null && !formatted){
+        escapedMessage = "Error on line "+line+": "+escapedMessage;
+
     }
 
-    if (outputMessage && !formatted)
-        message = "\x1b[0m\x1b[31m" + message + "\x1b[0m";
+    
+
+    if (escapedBlock != null && escapedBlock != "" && escapedBlock != "__USERCODE__null") {
+        if (!escapedBlock.startsWith(userCodeBlockIdentifier)){
+            escapedMessage = "Please file a bug report and send us the following info!\n    Error in file: "+escapedBlock+"\n    "+escapedMessage;
+            escapedBlock = "Internal Error";
+        }
+        else{
+            escapedBlock = escapedBlock.slice(userCodeBlockIdentifier.length);
+        }
+        if (outputMessage)
+            escapedMessage = "(" + escapedBlock + ") " + escapedMessage;
+        
+    }
+    
+    
+
+    // Check if the stackTrace is empty
+    if (stackTrace != null && stackTrace.trim() !== "") {
+        // Format the stack trace with <details> and <summary> tags
+        stackTrace = '<pre>' + stackTrace + '</pre>';
+        
+        if (outputMessage && !formatted) {
+            // If formatted is true, do not add the color: red styling
+            escapedMessage = '<summary' + (formatted ? '' : ' style="color: red;"') + '>' + escapedMessage + '</summary>';
+            escapedMessage = '<details>' + escapedMessage + stackTrace + '</details>';
+        }
+            
+    }else {
+        escapedMessage = "\x1b[0m\x1b[31m" + escapedMessage + "\x1b[0m";
+    }
 
     if (outputMessage)
-        writeTerminal(message);
+        writeTerminal(escapedMessage, false);
 
     parent.postMessage({
         type: "error",
-        block: block,
-        message: message,
+        block: escapedBlock,
+        message: escapedMessage,
         line: line
     },"*");
+}
+
+let headerHeight = parseFloat(getComputedStyle(document.getElementsByClassName("sk-header")[0]).height.slice(0,-2));
+
+Split(['#canvasContainer', '#terminalOutputContainer'], {
+    direction: 'vertical',
+    sizes: [75, 25],
+    minSize: [100, headerHeight],
+    gutterSize: 5,
+    gutterAlign: 'center',
+    snapOffset: 20,
+});
+
+function updateLoadingProgress(progress) {
+    const progressBar = document.getElementById('loading-progress');
+    if (progressBar) {
+        progressBar.style.width = progress * 100 + '%';
+        progressBar.setAttribute('aria-valuenow', progress * 100);
+    }
+}
+
+function hideLoadingContainer() {
+    const loadingContainer = document.getElementById('loading-container');
+    if (loadingContainer) {
+        loadingContainer.style.opacity = '0';
+    }
+}
+
+function showLoadingContainer() {
+    const loadingContainer = document.getElementById('loading-container');
+    if (loadingContainer) {
+        loadingContainer.style.opacity = '1';
+    }
+}
+
+function showDownloadFailure() {
+    const progressBar = document.getElementById('loading-progress');
+    const loadingText = document.getElementById('loading-text');
+    if (progressBar && loadingText) {
+        progressBar.style.backgroundColor = 'red';
+        loadingText.textContent = 'Download Failed';
+    }
 }
