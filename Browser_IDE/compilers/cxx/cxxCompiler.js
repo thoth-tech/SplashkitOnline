@@ -26,7 +26,8 @@ class CXXCompiler extends Compiler{
             if (sourceList[i].source == "") continue;
 
             let object = await this.compileOne(sourceList[i].name, sourceList[i].source, print);
-            if (object == null){
+
+            if (object.output == null){
                 hasErrors = true;
                 continue;
             }
@@ -44,8 +45,6 @@ class CXXCompiler extends Compiler{
         this.setPrintFunction(print);
 
         let object = await this.compileObject(name, source);
-
-        if (object.output == null) return null;
 
         return {
             output: object

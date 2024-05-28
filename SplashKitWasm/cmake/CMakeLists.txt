@@ -233,8 +233,14 @@ add_definitions(-DELPP_THREAD_SAFE)
 #### END SETUP ####
 #### SplashKitBackend STATIC LIBRARY ####
 add_library(SplashKitBackend STATIC ${SOURCE_FILES} ${INCLUDE_FILES})
+#### SplashKitBackendCXX STATIC LIBRARY ####
+# IMPORTANT NOTE: This library does _not _ get linked anywhere in this file.
+# Instead, it is linked only during in-browser compilation.
+# It will not link without specific linker parameters (i.e --wrap=_ZN13splashkit_lib14process_eventsEv)
+add_library(SplashKitBackendCXX STATIC "${SK_WASMEXT}/src/cxxbackend/patched_functions.cpp" ${SOURCE_FILES} ${INCLUDE_FILES})
 
 target_link_libraries(SplashKitBackend ${LIB_FLAGS})
+target_link_libraries(SplashKitBackendCXX ${LIB_FLAGS})
 
 if (EMSCRIPTEN)
     # Ensure the 'generated' folder exists
@@ -329,6 +335,10 @@ set_target_properties(SplashKitBackend
     PROPERTIES
     ARCHIVE_OUTPUT_DIRECTORY "${SK_OUT}/lib"
 )
+set_target_properties(SplashKitBackendCXX
+    PROPERTIES
+    ARCHIVE_OUTPUT_DIRECTORY "${SK_OUT}/lib"
+)
 
 #### END SplashKitBackend STATIC LIBRARY ####
 #### SplashKitBackend WASM LIBRARY ####
@@ -336,7 +346,7 @@ if (EMSCRIPTEN)
     if (ENABLE_JS_BACKEND)
         add_executable(SplashKitBackendWASM "${SK_WASMEXT}/generated/SplashKitWasmGlue.cpp")
         set_target_properties(SplashKitBackendWASM PROPERTIES LINK_FLAGS "-sALLOW_TABLE_GROWTH -s MAXIMUM_MEMORY=1gb -sALLOW_MEMORY_GROWTH -s EXPORTED_RUNTIME_METHODS=addFunction -s EXPORTED_FUNCTIONS=\"['_malloc','stackAlloc','stackSave','stackRestore','_free']\" -s EXPORT_ALL=1 -sFS_DEBUG --post-js ${SK_WASMEXT}/generated/SplashKitWasmGlue.js")
-        target_link_libraries(SplashKitBackendWASM SplashKitBackend)
+        target_link_libraries(SplashKitBackendWASM SplashKitBackend) #NOTE: deliberately using SplashKitBackend rather than SplashKitBackendCXX - we don't care about the final linked output, we just want Emscripten to give us its JS runtime
         set_target_properties(SplashKitBackendWASM
             PROPERTIES
             RUNTIME_OUTPUT_DIRECTORY "${SK_OUT}/wasmlib_javascript"
@@ -389,7 +399,7 @@ if (EMSCRIPTEN)
             )
 
         # Generate compilation system root files
-        add_custom_target( CPPCompilationSystemRoot ALL DEPENDS SplashKitBackendWASM "${SK_OUT}/cxx/compiler/wasi-sysroot.zip")
+        add_custom_target( CPPCompilationSystemRoot ALL DEPENDS SplashKitBackendCXX "${SK_OUT}/cxx/compiler/wasi-sysroot.zip")
 
         if (COMPRESS_BACKENDS)
             set(ZIP_COMPRESSION_FLAG "stored") #make the zip easily compressible later
@@ -401,12 +411,12 @@ if (EMSCRIPTEN)
             DEPENDS
                 "${SK_WASMEXT}/prebuilt/cxx/compiler/sysroot.zip"
                 "${SK_WASMEXT}/tools/cxx_backend_systemroot_builder.py"
-                SplashKitBackendWASM
+                SplashKitBackendCXX
             OUTPUT
                 "${SK_OUT}/cxx/compiler/wasi-sysroot.zip"
             COMMENT "Bundling C++ Compilation System Root..."
             COMMAND python "${SK_WASMEXT}/tools/cxx_backend_systemroot_builder.py"
-                $<TARGET_FILE:SplashKitBackend>
+                $<TARGET_FILE:SplashKitBackendCXX>
                 "${SK_SRC}/coresdk/"
                 "${SK_WASMEXT}/prebuilt/cxx/compiler/sysroot.zip"
                 "${SK_OUT}/cxx/compiler/wasi-sysroot.zip"

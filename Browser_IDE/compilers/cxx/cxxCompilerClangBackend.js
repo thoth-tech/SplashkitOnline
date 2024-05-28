@@ -16,7 +16,7 @@ function reportCompilerError(err){
         let message = error[4];
 
         printCompilerMessage({
-            name: fileName.slice(0,-4),
+            name: fileName,
             line: line,
             message: "",
             formatted: true
@@ -76,13 +76,13 @@ export const compileObject = async (name, source) => {
         await postMessageFallible(w, {
             type: "setupUserCode",
             codeFiles : [{
-                name: name+".cpp",
+                name: name,
                 source: source
             }]
         });
         output = await postMessageFallible(w, {
             type: "compileObject",
-            arguments: ['-idirafter/lib/clang/16.0.4/include/', '-fdiagnostics-color=always', '-c', name+".cpp"],
+            arguments: ['-idirafter/lib/clang/16.0.4/include/', '-fdiagnostics-color=always', '-c', name, "-o", name+".o"],
             outputName: name+".o"
         });
     }
@@ -139,9 +139,9 @@ export const linkObjects = async (objects) => {
                 '-lsockets',
                 '--no-entry',
 
+                '--wrap=_ZN13splashkit_lib14process_eventsEv',
                 '-lSplashKitBackend',
 
-                //'main.o',
                 '-o',
                 'main.wasm',
 

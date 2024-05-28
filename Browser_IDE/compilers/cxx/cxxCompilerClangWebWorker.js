@@ -181,6 +181,7 @@ async function initializeSystemRoot(sysroot){
 // write user code files
 function setupUserCode(codeFiles){
     for(let i = 0; i < codeFiles.length; i ++){
+        clang.FS.createPath("", codeFiles[i].name.slice(0, codeFiles[i].name.lastIndexOf("/")));
         clang.FS.writeFile(codeFiles[i].name, codeFiles[i].source);
     }
 }
@@ -204,6 +205,7 @@ async function compileObject(arguments, outputName){
 // write user object files
 function setupUserObjects(objects){
     for(let i = 0; i < objects.length; i ++){
+        lld.FS.createPath("", objects[i].name.slice(0, objects[i].name.lastIndexOf("/")));
         lld.FS.writeFile(objects[i].name, objects[i].output);
     }
 }
