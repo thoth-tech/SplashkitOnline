@@ -57,6 +57,9 @@ let SplashKitOnlineLanguageDefinitions = [
                 "runtimes/cxx/bin/SplashKitBackendWASMCPP.worker.js",
             ],
             compilerFiles: [
+                "external/js-lzma/src/wlzma.js",
+                "external/js-lzma/src/lzma.shim.js",
+                "downloadHandler.js",
                 "compilers/cxx/cxxCompiler.js",
             ],
             compilerName: "cxxCompiler",
