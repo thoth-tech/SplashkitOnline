@@ -17,13 +17,6 @@ def MakePatch(substr, repl):
 
     inGlue = inGlue.replace(substr, repl)
 
-# Sometimes offset_low/offset_high are bigints - it's a hack, but just force them to be Numbers
-# Note: I've seen errors related to file reading that _might_ be related to this...
-MakePatch(
-    "var offset = convertI32PairToI53Checked(offset_low, offset_high)",
-    "var offset = convertI32PairToI53Checked(Number(offset_low), Number(offset_high));"
-)
-
 # We need access to the main function
 MakePatch(
     "var stackRestore = Module['stackRestore'] = createExportWrapper('stackRestore');",
@@ -51,6 +44,9 @@ MakePatch(
 MakePatch(
     "var Module = typeof Module != 'undefined' ? Module : {};\n",
     "var Module = {};\n"+
+    "var FS/*no space here so it doesn't get replaced*/ = null;\n"+
+    "importScripts('./../../../moduleEventTarget.js');\n"+
+    "importScripts('./../../../fsevents.js');\n"+
     "importScripts('./../workerEventProcessor.js');\n"+
     "function RunProgram() {\n"+
     "Module = typeof Module != 'undefined' ? Module : {};\n"
@@ -58,9 +54,11 @@ MakePatch(
 
 MakePatch(
     "strftime_l: _strftime_l",
-    "strftime_l: _strftime_l,"+
-    "  /** @export */"
-    "  __sko_process_events : __sko_process_events,"
+    "strftime_l: _strftime_l,\n"+
+    "  /** @export */\n"+
+    "  __sko_process_events : __sko_process_events,\n"+
+    "  /** @export */\n"+
+    "  emscripten_memcpy_js : _emscripten_memcpy_js,"
 )
 
 # These will need to be accessible globally
@@ -75,6 +73,10 @@ MakePatch(
 MakePatch(
     "var document ",
     "document"
+)
+MakePatch(
+    "var FS ",
+    "FS"
 )
 MakePatch(
     "function AudioContext() {",
@@ -184,17 +186,27 @@ MakePatch(
 )
 
 
-# Wrap all the worker creation inside a function, 'RunProgram'
+# Wrap all the worker creation inside a function, 'StartProgramWorker'
 MakePatch(
     "var worker = new Worker(workerURL);",
     "var worker = null;\n"+
-    "function RunProgram(wasmBinary){\n"+
+    "function StartProgramWorker(wasmBinary){\n"+
     "worker = new Worker(workerURL);"
 )
 # End of function
 MakePatch(
     "function cloneObject(event) {",
     "}\n\n function cloneObject(event) {"
+)
+
+# Wrap starting the program as a method of the worker
+MakePatch(
+    "setTimeout(() => {",
+    "worker.RunProgram = () => {"
+)
+MakePatch(
+    "}, 0); // delay til next frame, to make sure html is ready",
+    "};"
 )
 
 # Send the user's compiled code to the worker first

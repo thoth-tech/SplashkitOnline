@@ -40,8 +40,15 @@ var Module = {
             case "ProgramContinued":
                 executionEnvironment.signalContinue();
                 break;
+            case "FS":
+                // just forward it straight through
+                parent.postMessage(data, "*");
+                break;
             case "stdinAwait":
                 setTerminalInputAwaitState(true);
+                break;
+            default:
+                console.log("Unexpected event in cxxRuntime.js!", event);
                 break;
         }
     }
@@ -86,20 +93,64 @@ class ExecutionEnvironmentInternalCXX extends ExecutionEnvironmentInternal{
     }
     async runProgram(program){
         await this.stopProgram();
-        await this.signalStarted();
 
         clearInterval(this.keepAliveID);
         this.keepAliveID = setInterval(this.sendKeepAliveSignal, 500);
 
+        clearWorkerCommands();
         setTerminalInputAwaitState(false);
 
-        RunProgram(program);
+        StartProgramWorker(program);
+
+        // attempt to synchronize to main project file system
+        // this just schedules all the commands, which will
+        // be run as soon as the program starts, and before
+        // entering main.
+        try {
+            await postMessageFallible(parent, {type: "mirrorRequest"});
+        }
+        catch(err){
+            // should we abort running the program if this fails?
+            // user might not be using files at all
+            console.log(err);
+        }
+
+        await this.signalStarted();
+
+        // start the program!
+        worker.RunProgram();
     }
     sendKeepAliveSignal(){
         sendWorkerCommand("keepAlive", {});
     }
     resetExecutionScope(){
         // nothing to do...
+    }
+
+    async sendFSCommandToWorker(command){
+        if (worker == null)
+            return;// no need to throw, since we'll resync next time we run
+
+        await sendAwaitableWorkerCommand(command.type, command);
+    }
+
+    async mkdir(path){
+        await this.sendFSCommandToWorker({type:'mkdir', path: path});
+    }
+    async writeFile(path, data){
+        if (typeof data == 'string')
+            await this.sendFSCommandToWorker({type:'writeFile', path: path, data: data});
+        else
+            await this.sendFSCommandToWorker({type:'writeFile', path: path, data: Array.from(data) /* can't encode Uint8Array in JSON */});
+    }
+    async rename(oldPath, newPath){
+        await this.sendFSCommandToWorker({type:'rename', oldPath, newPath});
+    }
+    async unlink(path){
+        await this.sendFSCommandToWorker({type:'unlink', path});
+    }
+    async rmdir(path, recursive){
+        await this.sendFSCommandToWorker({type:'rmdir', path, recursive});
     }
 }
 
@@ -113,18 +164,35 @@ let executionEnvironment = null;
 
 let currentServiceWorker = null;
 
-function sendWorkerCommand(command, args) {
+function serviceWorkerSanityCheck() {
     if (!currentServiceWorker)
+        return false;
+    if (currentServiceWorker.state == "redundant") {
+        executionEnvironment.Reload();
+    }
+    return true;
+}
+
+function sendWorkerCommand(command, args) {
+    if (!serviceWorkerSanityCheck())
         return;
 
     currentServiceWorker.postMessage({type: "programEvent", command, args});
 }
 
-function handleServiceWorkerStateChange(event) {
-    if (this.state == "activated") {
-        // trigger reload so service worker starts intercepting properly
-        executionEnvironment.Reload();
-    }
+// seperate function to keep performance up (sendWorkerCommand is called a _lot_)
+async function sendAwaitableWorkerCommand(command, args) {
+    if (!serviceWorkerSanityCheck())
+        return;
+
+    await postMessageFallible(currentServiceWorker, {type: "programEvent", command, args});
+}
+
+function clearWorkerCommands(command) {
+    if (!serviceWorkerSanityCheck())
+        return;
+
+    currentServiceWorker.postMessage({type: "clearEvents"});
 }
 
 async function registerServiceWorker(){
@@ -132,7 +200,7 @@ async function registerServiceWorker(){
         let worker = await navigator.serviceWorker.register("/SKOservice-worker.js", { scope: "/" });
 
         worker.addEventListener("statechange", (event) => {
-            if (this.state == "activated") {
+            if (this.state == "activated" || this.state == "redundant") {
                 // trigger reload so service worker starts intercepting properly
                 executionEnvironment.Reload();
             }
@@ -140,6 +208,13 @@ async function registerServiceWorker(){
 
         if (worker.active) {
             currentServiceWorker = worker.active;
+            navigator.serviceWorker.addEventListener('message', async function(m){
+                switch(m.data.type){
+                    case "callback":
+                        executeTempCallback(m.data);
+                        break;
+                }
+            });
 
             executionEnvironment.signalReady();
         }
