@@ -1,26 +1,28 @@
 "use strict";
 
+moduleEvents.addEventListener("onDownloadProgress", function(progress) {
+    updateLoadingProgress((progress.downloadIndex - 1 + progress.downloadProgress) / progress.downloadCount);
+});
+
+moduleEvents.addEventListener("onDownloadFail", function(progress) {
+    showDownloadFailure();
+});
+
+moduleEvents.addEventListener('onRuntimeInitialized', function(event) {
+    hideLoadingContainer();
+});
+
+showLoadingContainer();
+
 var Module = {
     onRuntimeInitialized: (function() {
         moduleEvents.dispatchEvent(new Event("onRuntimeInitialized"));
     }),
-    print: (function() {
-        let element = document.getElementById('output');
-        if (element) element.value = ''; // clear browser cache
-        return function(text) {
-            if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
-            // These replacements are necessary if you render to raw HTML
-            //text = text.replace(/&/g, "&amp;");
-            //text = text.replace(/</g, "&lt;");
-            //text = text.replace(/>/g, "&gt;");
-            //text = text.replace('\n', '<br>', 'g');
-            console.log(text);
-            if (element) {
-                element.value += text + "\n";
-                element.scrollTop = element.scrollHeight; // focus on bottom
-            }
-        };
-    })(),
+    print: (function(text){
+        let ev = new Event("print");
+        ev.text = text;
+        window.dispatchEvent(ev);
+    }),
     canvas: (() => {
         let canvas = document.getElementById('canvas');
 
@@ -39,11 +41,6 @@ var Module = {
         ENV.SDL_EMSCRIPTEN_KEYBOARD_ELEMENT = "canvas";
     }),
 };
-
-
-document.getElementById("canvas").addEventListener("click", async function () {
-    document.getElementById("canvas").focus();
-});
 
 
 
@@ -91,13 +88,13 @@ function LoadSplashKitWASMDependency(pieceURL, pieceName, pieceIndex, pieceCount
 }
 
 // First, load the WebAssembly
-LoadSplashKitWASMDependency("splashkit/SplashKitBackendWASM.wasm", "SplashKit Library", 1, 2).then(function(e){
+LoadSplashKitWASMDependency("runtimes/javascript/bin/SplashKitBackendWASM.wasm", "SplashKit Library", 1, 2).then(function(e){
 
     // Pre-set the module's binary with our manually downloaded one
     Module.wasmBinary = e.response;
 
     // Next, load the Emscripten generated JS runtime
-    LoadSplashKitWASMDependency("splashkit/SplashKitBackendWASM.js", "Runtime", 2, 2).then(function(e){
+    LoadSplashKitWASMDependency("runtimes/javascript/bin/SplashKitBackendWASM.js", "Runtime", 2, 2).then(function(e){
 
         // Attach the downloaded script to the page
         var s = document.createElement("script");

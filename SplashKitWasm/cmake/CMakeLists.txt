@@ -32,6 +32,10 @@ else()
     set(FUNCTION_OVERLOADING "false")
 endif()
 
+option(ENABLE_JS_BACKEND "Enable compiling SplashKit for use in SplashKit Online JavaScript Projects" ON)
+
+option(ENABLE_CPP_BACKEND "Enable compiling SplashKit for use in SplashKit Online C++ Projects" OFF)
+
 
 if (WIN32 OR MSYS OR MINGW)
   SET(MSYS "true")
@@ -168,6 +172,7 @@ file(GLOB SOURCE_FILES
 if (EMSCRIPTEN)
   file(GLOB WASM_SOURCE_FILES
     "${SK_WASMEXT}/stubs/*.cpp"
+    "${SK_WASMEXT}/src/cxxbackend/funcs/*.cpp"
   )
   set(SOURCE_FILES ${SOURCE_FILES} ${WASM_SOURCE_FILES})
 endif()
@@ -234,7 +239,12 @@ if (EMSCRIPTEN)
     add_custom_target(WASMBindingsDirectory ALL
     COMMAND ${CMAKE_COMMAND} -E make_directory "${SK_WASMEXT}/generated/")
 
+    # ensure the 'api' folder exists
+    add_custom_target(SKAPIDirectory ALL
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${SK_OUT}/api")
 
+
+if (ENABLE_JS_BACKEND)
     # Auto generate C++ Javascript Glue code
     add_custom_target( WASMBindings ALL DEPENDS
         "${SK_WASMEXT}/generated/SplashKitWasmGlue.cpp"
@@ -259,24 +269,25 @@ if (EMSCRIPTEN)
         )
 
     add_dependencies(WASMBindings WASMBindingsDirectory)
+endif()
 
     # Auto generate JSON file used to perform autocomplete in the IDE
-    add_custom_target( AutocompleteJSON ALL DEPENDS "${SK_OUT}/wasmlib/splashkit_autocomplete.json")
+    add_custom_target( AutocompleteJSON ALL DEPENDS "${SK_OUT}/api/splashkit_autocomplete.json")
 
     add_custom_command(
         DEPENDS
             "${SK_CMAKE}/../../generated/docs/api.json"
             "${SK_WASMEXT}/tools/generate_autocomplete_json.py"
             "${SK_WASMEXT}/tools/json_api_reader.py"
-        OUTPUT "${SK_OUT}/wasmlib/splashkit_autocomplete.json"
+        OUTPUT "${SK_OUT}/api/splashkit_autocomplete.json"
         COMMENT "Generating Autocomplete JSON..."
         COMMAND python "${SK_WASMEXT}/tools/generate_autocomplete_json.py"
             "${SK_CMAKE}/../../generated/docs/api.json"
-            "${SK_OUT}/wasmlib/splashkit_autocomplete.json"
+            "${SK_OUT}/api/splashkit_autocomplete.json"
             "${FUNCTION_OVERLOADING}"
     )
 
-    add_dependencies(AutocompleteJSON WASMBindingsDirectory)
+    add_dependencies(AutocompleteJSON SKAPIDirectory)
 
 endif()
 
@@ -320,26 +331,106 @@ set_target_properties(SplashKitBackend
 #### END SplashKitBackend STATIC LIBRARY ####
 #### SplashKitBackend WASM LIBRARY ####
 if (EMSCRIPTEN)
-    add_executable(SplashKitBackendWASM "${SK_WASMEXT}/generated/SplashKitWasmGlue.cpp")
-    set_target_properties(SplashKitBackendWASM PROPERTIES LINK_FLAGS "-sALLOW_TABLE_GROWTH -s MAXIMUM_MEMORY=1gb -sALLOW_MEMORY_GROWTH -s EXPORTED_RUNTIME_METHODS=addFunction -s EXPORTED_FUNCTIONS=\"['_malloc','stackAlloc','stackSave','stackRestore','_free']\" -s EXPORT_ALL=1 -sFS_DEBUG --post-js ${SK_WASMEXT}/generated/SplashKitWasmGlue.js")
-    target_link_libraries(SplashKitBackendWASM SplashKitBackend)
-    set_target_properties(SplashKitBackendWASM
-        PROPERTIES
-        RUNTIME_OUTPUT_DIRECTORY "${SK_OUT}/wasmlib"
-    )
-    add_dependencies(SplashKitBackendWASM WASMBindings)
-    set_target_properties(SplashKitBackendWASM PROPERTIES SUFFIX ".js")
+    if (ENABLE_JS_BACKEND)
+        add_executable(SplashKitBackendWASM "${SK_WASMEXT}/generated/SplashKitWasmGlue.cpp")
+        set_target_properties(SplashKitBackendWASM PROPERTIES LINK_FLAGS "-sALLOW_TABLE_GROWTH -s MAXIMUM_MEMORY=1gb -sALLOW_MEMORY_GROWTH -s EXPORTED_RUNTIME_METHODS=addFunction -s EXPORTED_FUNCTIONS=\"['_malloc','stackAlloc','stackSave','stackRestore','_free']\" -s EXPORT_ALL=1 -sFS_DEBUG --post-js ${SK_WASMEXT}/generated/SplashKitWasmGlue.js")
+        target_link_libraries(SplashKitBackendWASM SplashKitBackend)
+        set_target_properties(SplashKitBackendWASM
+            PROPERTIES
+            RUNTIME_OUTPUT_DIRECTORY "${SK_OUT}/wasmlib_javascript"
+        )
+        add_dependencies(SplashKitBackendWASM WASMBindings)
+        set_target_properties(SplashKitBackendWASM PROPERTIES SUFFIX ".js")
+
+        # Copy built library to the IDE
+        add_custom_target( SplashKitOnlineIDEComponents ALL DEPENDS SplashKitBackendWASM AutocompleteJSON)
+        add_custom_command(TARGET SplashKitOnlineIDEComponents
+            POST_BUILD COMMAND
+            ${CMAKE_COMMAND} -E copy_directory "${SK_OUT}/wasmlib_javascript" "${SK_BROWSERIDE}/runtimes/javascript/bin")
+
+        add_custom_command(TARGET SplashKitOnlineIDEComponents POST_BUILD
+                       COMMAND ${CMAKE_COMMAND} -E cmake_echo_color --cyan
+                       "Copied built JavaScript library to the IDE!")
+
+    endif()
+    if (ENABLE_CPP_BACKEND)
+        add_executable(SplashKitBackendWASMCPP "${SK_WASMEXT}/src/cxxbackend/stubs/dummy.cpp")
+        set_target_properties(SplashKitBackendWASMCPP PROPERTIES LINK_FLAGS " -sDEMANGLE_SUPPORT --proxy-to-worker --pre-js=${SK_WASMEXT}/src/cxxbackend/cxx_preamble.js -sINCLUDE_FULL_LIBRARY  -sALLOW_TABLE_GROWTH -s MAXIMUM_MEMORY=1gb -sALLOW_MEMORY_GROWTH -sEXPORTED_RUNTIME_METHODS=['addFunction'] -s EXPORTED_FUNCTIONS=\"['_malloc','stackAlloc','stackSave','stackRestore','_free']\" -s EXPORT_ALL=1 -sFS_DEBUG" LINK_DEPENDS "${SK_WASMEXT}/src/cxxbackend/cxx_preamble.js")
+
+        target_link_libraries(SplashKitBackendWASMCPP SplashKitBackend)
+        set_target_properties(SplashKitBackendWASMCPP
+            PROPERTIES
+            RUNTIME_OUTPUT_DIRECTORY "${SK_OUT}/wasm_cpplib"
+        )
+
+        set_target_properties(SplashKitBackendWASMCPP PROPERTIES SUFFIX ".js")
+
+        # Patch generated JavaScript runtime
+        add_custom_target( SplashKitBackendWASMCPPPatched ALL DEPENDS SplashKitBackendWASMCPP "${SK_WASMEXT}/out/wasm_cpplib_patched/SplashKitBackendWASMCPP.worker.js" "${SK_WASMEXT}/out/wasm_cpplib_patched/SplashKitBackendWASMCPP.js")
+
+        add_custom_command(
+            DEPENDS
+                "${SK_WASMEXT}/out/wasm_cpplib/SplashKitBackendWASMCPP.js"
+                "${SK_WASMEXT}/out/wasm_cpplib/SplashKitBackendWASMCPP.worker.js"
+                "${SK_WASMEXT}/tools/cxx_backend_emscripten_glue_patcher.py"
+            OUTPUT
+                "${SK_WASMEXT}/out/wasm_cpplib_patched/SplashKitBackendWASMCPP.worker.js"
+                "${SK_WASMEXT}/out/wasm_cpplib_patched/SplashKitBackendWASMCPP.js"
+            COMMENT "Patching generated Emscripten glue JavaScript for C++ Backend..."
+            COMMAND ${CMAKE_COMMAND} -E make_directory "${SK_WASMEXT}/out/wasm_cpplib_patched/"
+            COMMAND python "${SK_WASMEXT}/tools/cxx_backend_emscripten_glue_patcher.py"
+                "${SK_WASMEXT}/out/wasm_cpplib/SplashKitBackendWASMCPP.worker.js"
+                "${SK_WASMEXT}/out/wasm_cpplib_patched/SplashKitBackendWASMCPP.worker.js"
+                "${SK_WASMEXT}/out/wasm_cpplib/SplashKitBackendWASMCPP.js"
+                "${SK_WASMEXT}/out/wasm_cpplib_patched/SplashKitBackendWASMCPP.js"
+            )
+
+        # Generate compilation system root files
+        add_custom_target( CPPCompilationSystemRoot ALL DEPENDS SplashKitBackendWASM "${SK_OUT}/wasm_cpplib_patched/wasi-sysroot.zip")
+
+        add_custom_command(
+            DEPENDS
+                "${SK_WASMEXT}/prebuilt/sysroot.zip"
+                "${SK_WASMEXT}/tools/cxx_backend_systemroot_builder.py"
+                SplashKitBackendWASM
+            OUTPUT
+                "${SK_OUT}/wasm_cpplib_patched/wasi-sysroot.zip"
+            COMMENT "Bundling C++ Compilation System Root..."
+            COMMAND python "${SK_WASMEXT}/tools/cxx_backend_systemroot_builder.py"
+                $<TARGET_FILE:SplashKitBackend>
+                "${SK_SRC}/coresdk/"
+                "${SK_WASMEXT}/prebuilt/sysroot.zip"
+                "${SK_OUT}/wasm_cpplib_patched/wasi-sysroot.zip"
+            )
+
+
+        # Copy built library to the IDE
+        add_custom_target( SplashKitOnlineIDE_CPPBackend ALL DEPENDS SplashKitBackendWASMCPPPatched CPPCompilationSystemRoot)
+        add_custom_command(TARGET SplashKitOnlineIDE_CPPBackend
+            POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E make_directory "${SK_BROWSERIDE}/runtimes/cxx/bin"
+            COMMAND ${CMAKE_COMMAND} -E make_directory "${SK_BROWSERIDE}/compilers/cxx/bin"
+            COMMAND ${CMAKE_COMMAND} -E copy "${SK_OUT}/wasm_cpplib_patched/SplashKitBackendWASMCPP.js" "${SK_BROWSERIDE}/runtimes/cxx/bin/SplashKitBackendWASMCPP.js"
+            COMMAND ${CMAKE_COMMAND} -E copy "${SK_OUT}/wasm_cpplib_patched/SplashKitBackendWASMCPP.worker.js" "${SK_BROWSERIDE}/runtimes/cxx/bin/SplashKitBackendWASMCPP.worker.js"
+            COMMAND ${CMAKE_COMMAND} -E copy "${SK_OUT}/wasm_cpplib_patched/wasi-sysroot.zip" "${SK_BROWSERIDE}/compilers/cxx/bin/wasi-sysroot.zip"
+        )
+
+        add_custom_command(TARGET SplashKitOnlineIDE_CPPBackend POST_BUILD
+                       COMMAND ${CMAKE_COMMAND} -E cmake_echo_color --cyan
+                       "Copied built C++ library to the IDE!")
+
+    endif()
+
 
     # Copy built library to the IDE
-    add_custom_target( SplashKitOnlineIDEComponents ALL DEPENDS SplashKitBackendWASM AutocompleteJSON)
-    add_custom_command(TARGET SplashKitOnlineIDEComponents
+    add_custom_target( SplashKitOnlineIDEAutoComplete ALL DEPENDS AutocompleteJSON)
+    add_custom_command(TARGET SplashKitOnlineIDEAutoComplete
         POST_BUILD COMMAND
-        ${CMAKE_COMMAND} -E copy_directory "${SK_OUT}/wasmlib" "${SK_BROWSERIDE}/splashkit")
+        ${CMAKE_COMMAND} -E copy_directory "${SK_OUT}/api" "${SK_BROWSERIDE}/splashkit")
 
-    add_custom_command(TARGET SplashKitOnlineIDEComponents POST_BUILD
+    add_custom_command(TARGET SplashKitOnlineIDEAutoComplete POST_BUILD
                    COMMAND ${CMAKE_COMMAND} -E cmake_echo_color --cyan
-                   "Copied built library to the IDE!")
-
+                   "Copied auto-complete JSON to the IDE!")
 endif()
 #### END SplashKitBackend WASM LIBRARY ####
 #### sktest EXECUTABLE ####

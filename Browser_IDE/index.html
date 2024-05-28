@@ -40,6 +40,13 @@
 			<li><button id="DownloadProject">Export Project</button></li>
 			<li><button id="UploadProject">Import Project</button></li>
 		</ul>
+        <ul class="sk-menu">
+            <li>
+                <div>Language:&nbsp;</div>
+                <select id="languageSelection">
+                </select>
+            </li>
+        </ul>
 	</div>
 	<div class="sk-main-columns">
 		<div class="sk-column" id="fileViewContainer">
@@ -60,7 +67,7 @@
 					<li data-tab="codeblock_mainloop_tab">codeblock_mainloop.js</li>
 				</ul>
 				<div class="flex-column">
-					<button type="button" id="runInit"><i class="bi bi-upload">Run Current File</i></button>
+					<button type="button" id="runOne"><i class="bi bi-upload">Run Current File</i></button>
 				</div>
 			</div>
 			<div class="sk-contents sk-tab-hidden" id="codeblock_init_tab" data-file="codeblock_init.js">
@@ -93,12 +100,19 @@
 	</div>
 </body>
 
+<script src="splashKitOnlineEnvParams.js"></script>
+<script src="compilers/compiler.js"></script>
+<script src="languageDefinitions.js"></script>
+<script src="HTMLBuilderUtil.js"></script>
 <script src="executionEnvironment.js"></script>
+<script src="AppStorage.js"></script>
 <script src="IDBStoredProject.js"></script>
 <script src="unifiedfs.js"></script>
 <script src="projectInitializer.js"></script>
 <script src="modal.js"></script>
-<script src="editorMain.js"></script>
+<script src="notifications.js"></script>
 <script src="treeview.js"></script>
+<script src="fallibleMessage.js"></script>
+<script src="editorMain.js"></script>
 <script src="fileview.js"></script>
 </html>

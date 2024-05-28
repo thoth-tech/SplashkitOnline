@@ -1,19 +1,41 @@
 "use strict";
 
+const STORED_PROJECT_DB_PREFIX = "SplashKitOnlineProject_";
 
 class IDBStoredProject extends EventTarget{
-    constructor(initializer) {
+    constructor(appStorage, initializer) {
         super();
+        this.appStorage = appStorage;
         this.initializer = initializer;
-        this.projectName = null;
+        this.projectID = null;
         this.lastKnownWriteTime = 0;
     }
 
     // Public Facing Methods
 
     // Project Related
-    async attachToProject(storeName){
-        this.projectName = storeName;
+    async attachToProject(_projectID){
+        if(!_projectID){ // attach to last opened project
+            _projectID = await this.appStorage.access(async (s)=>{
+                return await s.getLastOpenProject();
+            })
+        }
+        this.projectID = _projectID;
+
+
+
+        // check if project with this ID is listed in local interproject database
+        let _project = undefined;
+        if(_projectID){
+            _project = await this.appStorage.access(async (s) => {
+                return await s.getProject(_projectID);
+            });
+        }
+        if(!_project){ // project not listed
+            this.projectID = await this.appStorage.access(async (s) => {
+                return await s.createProject("untitled", _projectID);
+            });
+        }
 
         // Force an init by performing an empty DB operation
         await this.access(function(){});
@@ -22,6 +44,10 @@ class IDBStoredProject extends EventTarget{
         await this.checkForWriteConflicts();
 
         this.dispatchEvent(new Event("attached"));
+
+        await this.appStorage.access(async (s) => {
+            await s.updateLastOpenProject(this.projectID);
+        });
     }
 
     async access(func){
@@ -39,7 +65,7 @@ class IDBStoredProject extends EventTarget{
     }
 
     async checkForWriteConflicts(){
-        if (this.projectName == null) return;
+        if (this.projectID == null) return;
 
         let storedTime = await this.access((project)=>project.getLastWriteTime());
         if (this.lastKnownWriteTime == 0){
@@ -50,18 +76,23 @@ class IDBStoredProject extends EventTarget{
     }
 
     detachFromProject(){
-        this.projectName = null;
+        this.projectID = null;
         this.lastKnownWriteTime = 0;
         this.dispatchEvent(new Event("detached"));
     }
 
-    deleteProject(storeName){
-        return new Promise((resolve, reject) => {
-            let res = indexedDB.deleteDatabase(storeName);
+    async deleteProject(_projectID){
+        await (new Promise((resolve, reject) => {
+            let res = indexedDB.deleteDatabase(STORED_PROJECT_DB_PREFIX + _projectID);
             res.onerror = function(){reject(res.error);};
             res.onsuccess = function(){resolve();};
+        }));
+
+        await this.appStorage.access(async (s) => {
+            await s.updateLastOpenProject(_projectID);
         });
 
+        this.detachFromProject();
     }
 };
 
@@ -78,13 +109,13 @@ class __IDBStoredProjectRW{
         let IDBFS = this;
         return new Promise(function(resolve, reject){
 
-            if (IDBFS.owner.projectName == null)
+            if (IDBFS.owner.projectID == null)
                 return reject();
 
             if (IDBFS.db != null)
                 reject();
 
-            let openRequest = indexedDB.open(IDBFS.owner.projectName, 1);
+            let openRequest = indexedDB.open(STORED_PROJECT_DB_PREFIX + IDBFS.owner.projectID, 1);
 
             openRequest.onupgradeneeded = function(ev) {
                 IDBFS.db = openRequest.result;
@@ -118,6 +149,13 @@ class __IDBStoredProjectRW{
         if (this.db != null)
             this.db.close();
         this.db = null;
+    }
+
+    async renameProject(newProjectName){
+        let IDBSP = this;
+        await IDBSP.owner.appStorage.access(async (s) => {
+            await s.renameProject(IDBSP.owner.projectID, newProjectName);
+        });
     }
 
     async getLastWriteTime(){
@@ -318,10 +356,17 @@ class __IDBStoredProjectRW{
     // Transactions Wrappers - to make them promises
     doTransaction(store, state, func)
     {
-        return new Promise((resolve, reject) => {
+        return new Promise(async (resolve, reject) => {
             let transaction = this.db.transaction(store, state);
             let files = transaction.objectStore(store);
-            let result = func(transaction, files);
+            let result = undefined;
+
+            try {
+                result = await func(transaction, files);
+            } catch(err){
+                reject(err);
+                return;
+            }
 
             transaction.onerror = function(){console.log("error");transaction.abort(); reject(transaction.error);};
             transaction.oncomplete = function(){resolve(result);};
@@ -330,34 +375,41 @@ class __IDBStoredProjectRW{
     request(transaction, func)
     {
         return new Promise((resolve, reject) => {
-            let result = func();
+            let result = undefined;
+            
+            try {
+                result = func();
+            } catch(err){
+                reject(err);
+                return;
+            }
+
             result.onerror = function(){console.log("error");transaction.abort(); reject(result.error);};
-            result.onsuccess = function(){
-            resolve(result.result);};
+            result.onsuccess = function(){resolve(result.result);};
         });
     }
 
     // Basic Node Handling
-    makeNode(transaction, files, name, type, data, parent){
+    async makeNode(transaction, files, name, type, data, parent){
         this.performedWrite = true;
-        return this.request(transaction, function(){
+        return await this.request(transaction, function(){
             return files.add({name:name, type:type, data:data, parent:parent});
         });
     }
-    replaceNode(transaction, files, nodeId, name, type, data, parent){
+    async replaceNode(transaction, files, nodeId, name, type, data, parent){
         this.performedWrite = true;
-        return this.request(transaction, function(){
+        return await this.request(transaction, function(){
             return files.put({nodeId:nodeId, name:name, type:type, data:data, parent:parent});
         });
     }
-    deleteNode(transaction, files, nodeId){
+    async deleteNode(transaction, files, nodeId){
         this.performedWrite = true;
-        return this.request(transaction, function(){
+        return await this.request(transaction, function(){
             return files.delete(nodeId);
         });
     }
-    getNode(transaction, files, nodeId){
-        return this.request(transaction, function(){
+    async getNode(transaction, files, nodeId){
+        return await this.request(transaction, function(){
             return files.get(nodeId);
         });
     }

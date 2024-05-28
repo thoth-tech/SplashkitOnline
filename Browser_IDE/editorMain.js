@@ -35,7 +35,7 @@ editorMainLoop.display.wrapper.classList.add("sk-contents");
 
 let editors = [editorInit, editorMainLoop]
 
-let updateCodeButton = document.getElementById("runInit");
+let updateCodeButton = document.getElementById("runOne");
 
 let runProgramButton = document.getElementById("runProgram");
 let restartProgramButton = document.getElementById("restartProgram");
@@ -120,11 +120,59 @@ for (let i = 0; i < tabElems.length; i++) {
 
 SwitchToTabs(tabs[0].contents.id);
 
+// setup language selection box
+let languageSelectElem = document.getElementById("languageSelection");
+for (let i = 0; i < SplashKitOnlineLanguageDefinitions.length; i++) {
+    let language = SplashKitOnlineLanguageDefinitions[i];
+    languageSelectElem.append(elem("option", {value: language.name}, [language.userVisibleName]));
+}
+
+// switch active language
+// currently just reloads the page with the 'language' parameter set
+// in the future, ideally this will work _without_ reloading the page,
+// by unloading the existing language scripts then loading the new ones
+function switchActiveLanguage(language){
+     let page_url = new URL(window.location.href);
+     page_url.searchParams.set('language', language.replaceAll("+"," ") /* spaces become + in url */);
+     window.location = page_url;
+}
+
+languageSelectElem.addEventListener('change', function(event) {
+    // just switch active language
+    // TODO: store chosen language inside project
+    switchActiveLanguage(event.target.value);
+})
+
 // ------ Setup Project and Execution Environment ------
-let executionEnviroment = new ExecutionEnvironment(document.getElementById("ExecutionEnvironment"));
-let storedProject = new IDBStoredProject(makeNewProject);
+
+// decide which language to use
+let activeLanguage = null;
+let activeLanguageSetup = null;
+if (SKO.language in SplashKitOnlineLanguageAliasMap) {
+    activeLanguage = SplashKitOnlineLanguageAliasMap[SKO.language];
+} else {
+    activeLanguage = SplashKitOnlineLanguageAliasMap["JavaScript"];
+
+    displayEditorNotification("Unable to switch to language "+SKO.language+", defaulting to JavaScript.", NotificationIcons.ERROR, -1);
+    displayEditorNotification("Available languages are: <br/><ul>"+
+        SplashKitOnlineLanguageDefinitions.map(val => `<li>${val.userVisibleName}</li>`).join("")+
+        "</ul>", NotificationIcons.ERROR, -1
+    );
+}
+activeLanguageSetup = activeLanguage.setups[0];
+
+languageSelectElem.value = activeLanguage.name;
+
+// initialize language
+initializeLanguageCompilerFiles(activeLanguageSetup);
+
+// initialize execution environment and project storage objects
+let executionEnviroment = new ExecutionEnvironment(document.getElementById("ExecutionEnvironment"), activeLanguageSetup);
+let appStorage = new AppStorage();
+appStorage.attach();
+let storedProject = new IDBStoredProject(appStorage, activeLanguageSetup.getDefaultProject());
 let unifiedFS = new UnifiedFS(storedProject, executionEnviroment);
-storedProject.attachToProject("Untitled");
+storedProject.attachToProject();
 
 let haveMirrored = false;
 let canMirror = false;
@@ -136,34 +184,91 @@ async function newProject(){
         return;
     makingNewProject = true;
 
+    prepareIDEForLoading();
+
+    let projectID = storedProject.projectID;
+
     disableCodeExecution();
     storedProject.detachFromProject();
     canMirror = false;
     await executionEnviroment.resetEnvironment();
-    await storedProject.deleteProject("Untitled");
+    await storedProject.deleteProject(projectID);
     haveMirrored = false;
-    await storedProject.attachToProject("Untitled");
+    await storedProject.attachToProject(projectID);
+
+    await storedProject.access(async (project) => {
+        await project.renameProject("New Project");
+    });
 
     makingNewProject = false;
 }
 
+function prepareIDEForLoading(){
+    let waitForCompilerReady = new Promise((resolve) => {
+        if (getCompiler(activeLanguageSetup.compilerName))
+            resolve();
+        registeredCompilersEvents.addEventListener("compilerReady", () => {
+            resolve();
+        });
+    });
 
+    let waitForInitialize = new Promise((resolve) => {
+        executionEnviroment.addEventListener("initialized", () => {
+            canMirror = true;
+            resolve();
+        });
+    });
 
-// File System, File System View Initialization
-executionEnviroment.addEventListener("initialized", function() {
-    canMirror = true;
-    MirrorToExecutionEnvironment();
+    let waitForProjectAttach = new Promise((resolve) => {
+        storedProject.addEventListener("attached", async () => {
+            await loadInitialization();
+            await loadMainLoop();
+            resolve();
+        });
+    });
+
+    let waitForMirrorCompletion = new Promise((resolve) => {
+        if (!activeLanguageSetup.persistentFilesystem){
+            resolve();
+            return;
+        }
+        Promise.all([waitForInitialize, waitForProjectAttach]).then(async function() {
+            await MirrorToExecutionEnvironment();
+            resolve();
+        });
+    });
+
+    let waitForCodeExecution = new Promise((resolve) => {
+        Promise.all([waitForCompilerReady, waitForInitialize, waitForMirrorCompletion]).then(function() {
+            enableCodeExecution();
+            resolve();
+        });
+    });
+}
+prepareIDEForLoading();
+
+executionEnviroment.addEventListener("onDownloadFail", function(data) {
+    displayEditorNotification("Failed to load critical part of IDE: "+data.name+". Click for more details.", NotificationIcons.CRITICAL_ERROR, -1,
+         function() {
+            displayEditorNotification("If you are a <i>developer</i>, please ensure you have placed the file '"+data.url.slice(data.url.lastIndexOf("/")+1)+"' inside your /Browser_IDE/splashkit/ folder."+
+                "<hr/>Status: "+data.status+" "+data.statusText, NotificationIcons.CRITICAL_ERROR
+            );
+            displayEditorNotification("If you are a <i>user</i>, please report this issue on our <a href=\"https://github.com/thoth-tech/SplashkitOnline/\">GitHub page</a>!",
+                NotificationIcons.CRITICAL_ERROR
+            );
+        }
+    );
 });
 
-storedProject.addEventListener("attached", async function() {
-    MirrorToExecutionEnvironment();
-    loadInitialization();
-    loadMainLoop();
+executionEnviroment.addEventListener("onCriticalInitializationFail", function(data) {
+    displayEditorNotification("Failed to load critical part of IDE: "+data.message+". ", NotificationIcons.CRITICAL_ERROR);
 });
 
 async function MirrorToExecutionEnvironment(){
     try {
         if (!haveMirrored && canMirror){
+            displayEditorNotification("Loading project files.", NotificationIcons.INFO);
+
             haveMirrored = true;
             let tree = await storedProject.access((project)=>project.getFileTree());
 
@@ -183,7 +288,6 @@ async function MirrorToExecutionEnvironment(){
             }
 
             await mirror(tree, "/");
-            enableCodeExecution();
         }
     } catch(err){
         let errEv = new Event("filesystemError");
@@ -200,6 +304,15 @@ async function MirrorToExecutionEnvironment(){
 // TODO: Generalize to multiple code files better.
 // There is currently a lot of repetition (for instance, runInitialization/runMainLoop, saveInitialization/saveMainLoop, etc)
 
+// temporary hack until the above actually gets done...
+if (activeLanguageSetup.name.includes("C++")) {
+    document.getElementById("codeViewTabs").children[0].innerText = "GeneralCode.cpp";
+    document.getElementById("codeViewTabs").children[1].innerText = "MainCode.cpp";
+}
+if (!activeLanguageSetup.supportHotReloading) {
+    document.getElementById("runOne").children[0].innerText = "Syntax Check File";
+}
+
 let allowExecution = false
 let haveUploadedCodeOnce = false;
 
@@ -213,29 +326,85 @@ function disableCodeExecution(){
     updateButtons();
 }
 function enableCodeExecution(){
+    if (!allowExecution)
+        displayEditorNotification("IDE is ready to run projects!", NotificationIcons.SUCCESS);
+
     allowExecution = true;
     updateButtons();
 }
 
+function reportCompilationError(error){
+    executionEnviroment.reportError(error.name, error.line, error.message, error.formatted);
+}
+
+// Temporary just to avoid _some_ duplication... waiting on other tasks to be completed is fun!
+async function runFile(name, code) {
+    try {
+        clearErrorLines();
+
+        let message = `Preparing ${name}...`;
+        if (activeLanguageSetup.compiled)
+            message = `Compiling ${name}...`
+        displayEditorNotification(message, NotificationIcons.CONSTRUCTION);
+
+        // give the notification a chance to show
+        await asyncSleep();
+
+        let currentCompiler = await getCurrentCompiler();
+        if (currentCompiler == null) return;
+
+        let compiled = await currentCompiler.compileOne(name, code, reportCompilationError);
+
+        if (compiled.output == null)
+            displayEditorNotification(`${name} had errors!`, NotificationIcons.WARNING);
+
+        if (compiled.output != null) {
+            displayEditorNotification(`Reloading ${name}!`, NotificationIcons.CONSTRUCTION);
+            executionEnviroment.hotReloadFile(name, compiled.output);
+        }
+    }
+    catch (err) {
+        displayEditorNotification("Internal error while preparing file! <br/>"+err.toString(), NotificationIcons.CRITICAL_ERROR);
+    }
+}
+async function syntaxCheckFile(name, code) {
+    try {
+        clearErrorLines();
+
+        let message = `Checking ${name}...`;
+        displayEditorNotification(message, NotificationIcons.CONSTRUCTION);
+
+        // give the notification a chance to show
+        await asyncSleep();
+
+        let currentCompiler = await getCurrentCompiler();
+        if (currentCompiler == null) return;
+
+        let okay = await currentCompiler.syntaxCheckOne(name, code, reportCompilationError);
+
+        if (!okay)
+            displayEditorNotification(`${name} had syntax errors!`, NotificationIcons.WARNING);
+        else
+            displayEditorNotification(`${name} is all good!`, NotificationIcons.SUCCESS);
+    }
+    catch (err) {
+        displayEditorNotification("Internal error while syntax checking! <br/>"+err.toString(), NotificationIcons.CRITICAL_ERROR);
+    }
+}
 
 // Functions to run the code blocks
 function runInitialization(){
-    clearErrorLines();
-
-    executionEnviroment.runCodeBlock("GeneralCode", editorInit.getValue());
+    if (activeLanguageSetup.supportHotReloading)
+        runFile("GeneralCode", editorInit.getValue());
+    else
+        syntaxCheckFile("GeneralCode", editorInit.getValue());
 }
 
 function runMainLoop(){
-    clearErrorLines();
-
-    executionEnviroment.runCodeBlock("MainCode", editorMainLoop.getValue());
-}
-
-function runAllCodeBlocks(){
-    executionEnviroment.runCodeBlocks([
-        {name: "GeneralCode", code: editorInit.getValue()},
-        {name: "MainCode", code: editorMainLoop.getValue()}
-    ]);
+    if (activeLanguageSetup.supportHotReloading)
+        runFile("MainCode", editorMainLoop.getValue());
+    else
+        syntaxCheckFile("MainCode", editorMainLoop.getValue());
 }
 
 // Functions to save/load the code blocks
@@ -309,27 +478,77 @@ storedProject.addEventListener('onWriteToFile', function(e) {
 });
 
 
+function asyncSleep(time=0) {
+    return new Promise(resolve => setTimeout(resolve, time));
+}
+
+function getCurrentCompiler() {
+    let currentCompiler = getCompiler(activeLanguageSetup.compilerName);
+
+    if (currentCompiler == null)
+        displayEditorNotification("Failed to start compiler! Maybe it hasn't loaded yet, try again in a bit!", NotificationIcons.ERROR);
+
+    return currentCompiler;
+}
+
 // Functions to run/pause/continue/stop/restart the program itself
-function runProgram(){
-    clearErrorLines();
+async function runProgram(){
+    try {
+        clearErrorLines();
 
-    runAllCodeBlocks();
+        displayEditorNotification(activeLanguageSetup.compiled ? "Compiling project..." : "Building project...", NotificationIcons.CONSTRUCTION);
 
-    executionEnviroment.runProgram();
+        // give the notification a chance to show
+        await asyncSleep();
+
+        let currentCompiler = await getCurrentCompiler();
+        if (currentCompiler == null) return;
+
+        let compiled = await currentCompiler.compileAll([
+            {name:"GeneralCode", source:editorInit.getValue()},
+            {name:"MainCode", source:editorMainLoop.getValue()}
+        ], reportCompilationError);
+
+        if (compiled.output != null) {
+            displayEditorNotification("Running project!", NotificationIcons.SUCCESS);
+
+            executionEnviroment.runProgram(compiled.output);
+        } else {
+            displayEditorNotification("Project has errors! Please see terminal for details.", NotificationIcons.ERROR);
+        }
+    }
+    catch (err) {
+        displayEditorNotification("Failed to run program!<br/>"+err.toString(), NotificationIcons.ERROR);
+    }
 }
 
 async function continueProgram(){
     clearErrorLines();
 
-    await executionEnviroment.continueProgram();
+    try {
+        await executionEnviroment.continueProgram();
+    }
+    catch (err) {
+        displayEditorNotification("Failed to continue program!", NotificationIcons.ERROR);
+    }
 }
 
 async function pauseProgram(){
-    await executionEnviroment.pauseProgram();
+    try {
+        await executionEnviroment.pauseProgram();
+    }
+    catch (err) {
+        displayEditorNotification("Failed to pause program!", NotificationIcons.ERROR);
+    }
 }
 
 async function stopProgram(){
-    await executionEnviroment.stopProgram();
+    try {
+        await executionEnviroment.stopProgram();
+    }
+    catch (err) {
+        displayEditorNotification("Failed to stop program!", NotificationIcons.ERROR);
+    }
 }
 
 async function restartProgram(){
@@ -337,16 +556,9 @@ async function restartProgram(){
 
     if (executionEnviroment.executionStatus != ExecutionStatus.Unstarted)
         await executionEnviroment.stopProgram(); // Make sure we wait for it to stop via await.
-    executionEnviroment.cleanEnvironment();
+    await executionEnviroment.cleanEnvironment();
 
-    // The syntax checking cannot run inside an async function,
-    // so just runAllCodeBlocks (which does syntax checking)
-    // inside a timeout instead. A bit of a cludge, but it works.
-    setTimeout(function(){
-        runAllCodeBlocks();
-
-        executionEnviroment.runProgram();
-    }, 0);
+    runProgram();
 }
 
 // ------ Setup code editor buttons ------
@@ -502,7 +714,7 @@ function uploadFileFromInput(){
         const uint8_view = new Uint8Array(result);
 
         let path = document.getElementById('fileuploader').dataset.uploadDirectory;
-        
+
         try {
             await unifiedFS.writeFile(path+"/"+file.name, uint8_view);
         } catch(err){
@@ -558,6 +770,31 @@ async function FSviewFile(filename) {
         URL.revokeObjectURL(url);
     }, 2000);
 }
+
+async function FSviewFiletran(filename) {
+    let content = undefined;
+    
+    try {
+        content = await executionEnviroment.readFile(filename);
+    } catch(err){
+        let errEv = new Event("filesystemError");
+        errEv.shortMessage = "Open failed";
+        errEv.longMessage = "An error occured and the file could not be opened.\n\nReason:\n" + err;
+        window.dispatchEvent(errEv);
+        return;
+    }
+
+    let mimeType = mime.getType(filename) || 'application/octet-stream';
+    let blob = new Blob([content], {type: mimeType});
+
+    let url = URL.createObjectURL(blob);
+
+    window.open(url+"#"+filename, '_blank');
+    setTimeout(() => {
+        URL.revokeObjectURL(url);
+    }, 2000);
+}
+
 async function FSdownloadFile(filename, mime) {
     let content = undefined;
 
@@ -576,9 +813,9 @@ async function FSdownloadFile(filename, mime) {
 
 
 async function downloadProject(){
-    downloadFileGeneric(await projectToZip(), "project.zip");
+    let projectName = (await appStorage.access((s) => s.getProject(storedProject.projectID))).name;
+    downloadFileGeneric(await projectToZip(), projectName + ".zip");
 }
-
 
 
 // ------ Project Zipping/Unzipping Click Handling ------
@@ -620,11 +857,9 @@ executionEnviroment.addEventListener("programContinued", function(e){
 });
 executionEnviroment.addEventListener("programStopped", function(e){
     updateButtons();
+    displayEditorNotification("Program Stopped!", NotificationIcons.INFO);
 });
 executionEnviroment.addEventListener("programPaused", function(e){
-    updateButtons();
-});
-executionEnviroment.addEventListener("programStopped", function(e){
     updateButtons();
 });
 
@@ -703,7 +938,7 @@ storedProject.addEventListener("timeConflict", async function() {
 window.addEventListener("needConfirmation", async function(ev){
     let confirmLabel = ev.confirmLabel || "Confirm";
     let cancelLabel = ev.cancelLabel || "Cancel";
-    
+
     let confirmationModal = createModal(
         "confirmationModal",
         ev.shortMessage,
