@@ -27,7 +27,7 @@ class CXXCompiler extends Compiler{
 
             let object = await this.compileOne(sourceList[i].name, sourceList[i].source, print);
 
-            if (object.output == null){
+            if (object.output.output == null){
                 hasErrors = true;
                 continue;
             }
