@@ -172,8 +172,6 @@ function ResetExecutionScope(){
     free_all_animation_scripts();
     free_all_bitmaps();
     free_all_fonts();
-    free_all_query_results();
-    free_all_databases();
     //free_all_sprite_packs(); // Calling free_all_sprite_packs makes free_all_sprites attempt to double free and throw warnings
     free_all_sprites();
     close_all_connections();
@@ -497,6 +495,9 @@ window.addEventListener('message', async function(m){
                 callbackID: m.data.callbackID,
                 error: err,
             }, "*");
+        }
+        else {
+            throw err;
         }
 
     }

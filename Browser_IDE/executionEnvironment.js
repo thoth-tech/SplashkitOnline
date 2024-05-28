@@ -189,10 +189,10 @@ class ExecutionEnvironment extends EventTarget{
     // Does a 'best-efforts' attempt to tidy the environment,
     // such as removing global variables.
     // Much faster than resetEnvironment()
-    cleanEnvironment(){
-        this.iFrame.contentWindow.postMessage({
+    async cleanEnvironment(){
+        await postMessageFallible(this.iFrame.contentWindow, {
             type: "CleanEnvironment",
-        }, "*");
+        });
     }
 
     // --- File System Functions ---
