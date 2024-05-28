@@ -44,10 +44,8 @@ class JavascriptPatcher extends Compiler{
     async compileOne(name, source, print){
         let okay = await this.syntaxCheckOne(name, source, print);
 
-        if (!okay) return null;
-
         return {
-            output: this.patchCode(source)
+            output: okay ? this.patchCode(source) : null
         };
     }
 
