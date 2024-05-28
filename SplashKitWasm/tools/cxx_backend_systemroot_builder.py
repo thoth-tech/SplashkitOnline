@@ -42,7 +42,6 @@ with io.BytesIO() as new_zip_buffer:
 
         for file in os.listdir(splashkit_includes_path):
             if ".h" in file and 'raspi_gpio' not in file:
-                #shutil.copy(splashkit_includes_path+file, splashkit_sysroot_includes_path)
                 copy_in_file(new_zip, splashkit_includes_path+file, splashkit_sysroot_includes_path+file);
 
                 global_header += "#include \"splashkit/"+file+"\"\n"
@@ -50,18 +49,6 @@ with io.BytesIO() as new_zip_buffer:
         global_header += """
         // mimic namespacelessness of normal SplashKit Clib-based C++ version
         using namespace splashkit_lib;
-
-        // patch process_events() to receive events from outside world first.
-        // Ideally we'd patch process_events itself, but this allows us to use the same
-        // base library for the C++ and JavaScript backend. Maybe if the JavaScript backend
-        // switches to a WebWorker architecture too, then we can replace this
-        // while keeping everything unified.
-        extern "C" void __sko_process_events();
-        extern "C" inline void _process_events() {
-            __sko_process_events(); // receive events from outside world and pass into SDL
-            process_events(); // normal SplashKit process_events()
-        }
-        #define process_events() _process_events()
         """
 
         new_zip.writestr("include/splashkit.h", global_header)
