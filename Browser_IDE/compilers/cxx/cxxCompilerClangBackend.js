@@ -166,6 +166,8 @@ export const linkObjects = async (objects) => {
                 '--export=stackSave',
                 '--export=__cxa_demangle',
                 '--export=fileno',
+                '--export=__wrap__ZN13splashkit_lib14process_eventsEv',
+                '--export=_ZN13splashkit_lib14process_eventsEv',
             ].concat(objectNames),
             outputName: "main.wasm"
         });

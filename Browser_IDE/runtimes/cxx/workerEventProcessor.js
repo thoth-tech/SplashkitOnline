@@ -70,7 +70,7 @@ function handleEvent([event, args]){
             } else {
                 FS.rmdir(args.path);
             }
-
+            break;
         case "stdin":
             Module.intArrayFromString(args.value).forEach(function(v) {inputBuffer.push(v)});
             inputBuffer.push(null);

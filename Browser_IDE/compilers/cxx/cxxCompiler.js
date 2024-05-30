@@ -27,7 +27,7 @@ class CXXCompiler extends Compiler{
 
             let object = await this.compileOne(sourceList[i].name, sourceList[i].source, print);
 
-            if (object.output == null){
+            if (object.output.output == null){
                 hasErrors = true;
                 continue;
             }
@@ -41,8 +41,29 @@ class CXXCompiler extends Compiler{
         return compiled;
     }
 
+    checkUsageOfIncompleteAPI(source) {
+        let incompleteAPIFunctions = [
+            "read_char",
+            "terminal_has_input",
+            "take_screenshot",
+            "get_pixel",
+            "get_pixel_from_window",
+            "display_dialog",
+        ];
+
+        for(let i = 0; i < incompleteAPIFunctions.length; i ++) {
+            let usageRegex = new RegExp("(?<!\\/\\/.*)"+incompleteAPIFunctions[i]+"\\s*\\(",'g');
+
+            if (usageRegex.test(source)) {
+                displayEditorNotification("Usage of (currently) unsupported function detected: <code>"+incompleteAPIFunctions[i]+"</code>", NotificationIcons.WARNING, 4);
+            }
+        }
+    }
+
     async compileOne(name, source, print){
         this.setPrintFunction(print);
+
+        this.checkUsageOfIncompleteAPI(source);
 
         let object = await this.compileObject(name, source);
 

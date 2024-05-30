@@ -211,8 +211,27 @@ function clearWorkerCommands(command) {
 }
 
 async function registerServiceWorker(){
+    // first try tidying up any erroneous service workers
     try {
-        let worker = await navigator.serviceWorker.register("/SKOservice-worker.js", { scope: "/" });
+        navigator.serviceWorker.getRegistrations().then(registrations => {
+            for (const registration of registrations) {
+                if (registration.scope.includes("executionEnvironment.html"))
+                    registration.unregister();
+            }
+        });
+    }
+    catch(err) {
+        executionEnvironment.reportCriticalInitializationFail(
+            "Error when modifying service workers. <br/>"+
+            err.toString()
+        );
+    }
+
+    try {
+        let path = (new URL(window.location.href)).pathname;
+        let scope = path.slice(0,path.lastIndexOf("/")+1);
+
+        let worker = await navigator.serviceWorker.register("SKOservice-worker.js", { scope: scope });
 
         worker.addEventListener("statechange", (event) => {
             if (this.state == "activated" || this.state == "redundant") {
