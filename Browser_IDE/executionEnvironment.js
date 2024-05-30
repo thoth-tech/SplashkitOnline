@@ -20,92 +20,111 @@ class ExecutionEnvironment extends EventTarget{
         this.hasRunOnce = false;
         this.executionStatus = ExecutionStatus.Unstarted;
 
-        window.addEventListener('message', function(e){
+        window.addEventListener('message', async function(e){
             const key = e.message ? 'message' : 'data';
             const data = e[key];
 
-            if (data.type == "initialized"){
-                EE.dispatchEvent(new Event("initialized"));
-            } else if (data.type == "languageLoaderReady"){
-                EE.dispatchEvent(new Event("languageLoaderReady"));
-            }
-            else if (data.type == "executionEnvironmentGetFilesystemRequest"){
-                EE.dispatchEvent(new Event("getFilesystemRequest"));
-            }
-            else if (data.type == "executionEnvironmentReloadRequest"){
-                EE.resetEnvironment();
-            }
-            else if (data.type == "onDownloadFail"){
-                let ev = new Event("onDownloadFail");
-                ev.name = data.name;
-                ev.url = data.url;
-                ev.status = data.status;
-                ev.statusText = data.statusText;
-                EE.dispatchEvent(ev);
-            }
-            else if (data.type == "onCriticalInitializationFail"){
-                let ev = new Event("onCriticalInitializationFail");
-                ev.message = data.message
-                EE.dispatchEvent(ev);
-            }
-            else if (data.type == "error"){
-                let ev = new Event("error");
-                ev.message = data.message;
-                ev.line = data.line;
-                ev.block = data.block;
-                EE.dispatchEvent(ev);
-            }
-            else if (data.type == "callback"){
-                executeTempCallback(data);
-            }
-            else if (data.type == "programStarted"){
-                EE.hasRunOnce = true;
-                EE.executionStatus = ExecutionStatus.Running;
-
-                let ev = new Event("programStarted");
-                EE.dispatchEvent(ev);
-            }
-            else if (data.type == "programStopped"){
-                EE.executionStatus = ExecutionStatus.Unstarted;
-
-                let ev = new Event("programStopped");
-                EE.dispatchEvent(ev);
-            }
-            else if (data.type == "programPaused"){
-                EE.executionStatus = ExecutionStatus.Paused;
-
-                let ev = new Event("programPaused");
-                EE.dispatchEvent(ev);
-            }
-            else if (data.type == "programContinued"){
-                EE.executionStatus = ExecutionStatus.Running;
-
-                let ev = new Event("programContinued");
-                EE.dispatchEvent(ev);
-            }
-            else if (data.type == "FS")
-            {
-                if (data.message.type == "onMovePath"){
-                    let ev = new Event("onMovePath");
-                    ev.oldPath = data.message.oldPath;
-                    ev.newPath = data.message.newPath;
+            // TODO? Should this be a switch statement like all the other?
+            try {
+                if (data.type == "initialized"){
+                    EE.dispatchEvent(new Event("initialized"));
+                } else if (data.type == "languageLoaderReady"){
+                    EE.dispatchEvent(new Event("languageLoaderReady"));
+                }
+                else if (data.type == "executionEnvironmentGetFilesystemRequest"){
+                    EE.dispatchEvent(new Event("getFilesystemRequest"));
+                }
+                else if (data.type == "executionEnvironmentReloadRequest"){
+                    EE.resetEnvironment();
+                }
+                else if (data.type == "onDownloadFail"){
+                    let ev = new Event("onDownloadFail");
+                    ev.name = data.name;
+                    ev.url = data.url;
+                    ev.status = data.status;
+                    ev.statusText = data.statusText;
                     EE.dispatchEvent(ev);
                 }
-                else if (data.message.type == "onMakeDirectory"){
-                    let ev = new Event("onMakeDirectory");
-                    ev.path = data.message.path;
+                else if (data.type == "onCriticalInitializationFail"){
+                    let ev = new Event("onCriticalInitializationFail");
+                    ev.message = data.message
                     EE.dispatchEvent(ev);
                 }
-                else if (data.message.type == "onDeletePath"){
-                    let ev = new Event("onDeletePath");
-                    ev.path = data.message.path;
+                else if (data.type == "error"){
+                    let ev = new Event("error");
+                    ev.message = data.message;
+                    ev.line = data.line;
+                    ev.block = data.block;
                     EE.dispatchEvent(ev);
                 }
-                else if (data.message.type == "onOpenFile"){
-                    let ev = new Event("onOpenFile");
-                    ev.path = data.message.path;
+                else if (data.type == "callback"){
+                    executeTempCallback(data);
+                }
+                else if (data.type == "programStarted"){
+                    EE.hasRunOnce = true;
+                    EE.executionStatus = ExecutionStatus.Running;
+
+                    let ev = new Event("programStarted");
                     EE.dispatchEvent(ev);
                 }
+                else if (data.type == "programStopped"){
+                    EE.executionStatus = ExecutionStatus.Unstarted;
+
+                    let ev = new Event("programStopped");
+                    EE.dispatchEvent(ev);
+                }
+                else if (data.type == "programPaused"){
+                    EE.executionStatus = ExecutionStatus.Paused;
+
+                    let ev = new Event("programPaused");
+                    EE.dispatchEvent(ev);
+                }
+                else if (data.type == "programContinued"){
+                    EE.executionStatus = ExecutionStatus.Running;
+
+                    let ev = new Event("programContinued");
+                    EE.dispatchEvent(ev);
+                }
+                else if (data.type == "FS")
+                {
+                    if (data.message.type == "onMovePath"){
+                        let ev = new Event("onMovePath");
+                        ev.oldPath = data.message.oldPath;
+                        ev.newPath = data.message.newPath;
+                        EE.dispatchEvent(ev);
+                    }
+                    else if (data.message.type == "onMakeDirectory"){
+                        let ev = new Event("onMakeDirectory");
+                        ev.path = data.message.path;
+                        EE.dispatchEvent(ev);
+                    }
+                    else if (data.message.type == "onDeletePath"){
+                        let ev = new Event("onDeletePath");
+                        ev.path = data.message.path;
+                        EE.dispatchEvent(ev);
+                    }
+                    else if (data.message.type == "onOpenFile"){
+                        let ev = new Event("onOpenFile");
+                        ev.path = data.message.path;
+                        EE.dispatchEvent(ev);
+                    }
+                }
+                else if (data.type == "mirrorRequest"){
+                    await new Promise((resolve, reject) => {
+                        let ev = new Event("mirrorRequest");
+                        ev.resolve = resolve;
+                        ev.reject = reject;
+                        EE.dispatchEvent(ev)
+                    });
+                }
+
+                resolveMessageFallible(e, undefined, EE.iFrame.contentWindow);
+            } catch(err){
+                // TODO: Do anything other than this.
+                err = err.toString();
+
+                rejectMessageFallible(e, err, EE.iFrame.contentWindow);
+                throw err;
             }
         });
     }
@@ -189,10 +208,10 @@ class ExecutionEnvironment extends EventTarget{
     // Does a 'best-efforts' attempt to tidy the environment,
     // such as removing global variables.
     // Much faster than resetEnvironment()
-    cleanEnvironment(){
-        this.iFrame.contentWindow.postMessage({
+    async cleanEnvironment(){
+        await postMessageFallible(this.iFrame.contentWindow, {
             type: "CleanEnvironment",
-        }, "*");
+        });
     }
 
     // --- File System Functions ---
@@ -215,6 +234,13 @@ class ExecutionEnvironment extends EventTarget{
             oldPath: oldPath,
             newPath: newPath,
         });
+    }
+    async readFile(path){
+        let result = await postMessageFallible(this.iFrame.contentWindow, {
+            type: "readFile",
+            path: path,
+        });
+        return result;
     }
     unlink(path){
         this.iFrame.contentWindow.postMessage({

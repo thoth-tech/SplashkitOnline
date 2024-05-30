@@ -24,6 +24,59 @@ function handleEvent([event, args]){
         case "keepAlive":
             lastKeepAlive = performance.now();
             break;
+
+        // TODO: de-duplicate this code and the code in executionEnvironment_Internal.js
+        case "mkdir":
+            FS.mkdir(args.path);
+            break;
+        case "writeFile":
+            if (typeof args.data == 'string')
+                FS.writeFile(args.path, args.data);
+            else
+                FS.writeFile(args.path, new Uint8Array(args.data));
+            break;
+        case "rename":
+            FS.rename(args.oldPath,args.newPath);
+            break;
+        case "unlink":
+            FS.unlink(args.path);
+            break;
+        case "rmdir":
+            if(args.recursive){
+                let deleteContentsRecursive = function(p){
+                    let entries = FS.readdir(p);
+                    for(let entry of entries){
+                        if(entry == "." || entry == "..")
+                            continue;
+                        // All directories contain a reference to themself
+                        // and to their parent directory. Ignore them.
+
+                        let entryPath = p + "/" + entry;
+                        let entryStat = FS.stat(entryPath, false);
+
+                        if(FS.isDir(entryStat.mode)){
+                            deleteContentsRecursive(entryPath);
+                            FS.rmdir(entryPath);
+                        } else if(FS.isFile(entryStat.mode)){
+                            FS.unlink(entryPath);
+                        }
+
+                    }
+                }
+                deleteContentsRecursive(args.path);
+                FS.rmdir(args.path);
+                // FS.rmdir expects the directory to be empty
+                // and will throw an error if it is not.
+            } else {
+                FS.rmdir(args.path);
+            }
+
+        case "stdin":
+            Module.intArrayFromString(args.value).forEach(function(v) {inputBuffer.push(v)});
+            inputBuffer.push(null);
+            break;
+        case "continue":
+            break;
         case "EmEvent":
             switch (args.target) {
                 case 'document': {
@@ -47,12 +100,12 @@ function handleEvent([event, args]){
 
             break;
         default:
-            throw new Error("Unexpected event in workerEventProcessor.js: ", event);
+            throw new Error("Unexpected event in workerEventProcessor.js: " + JSON.stringify(event));
     }
 }
 
 var httpRequest = new XMLHttpRequest();
-let skipNextCommands = true;
+let skipNextCommands = false;
 
 // fetch the latest events
 function fetchEvents() {
@@ -80,6 +133,8 @@ function __sko_process_events(){
 
     let now = performance.now();
 
+    emitAudio(now);
+
     if (now >= nextEventsCheckTime){
         nextEventsCheckTime = now + minimumEventsCheckInterval;
 
@@ -103,10 +158,14 @@ function __sko_process_events(){
 }
 
 // a busy loop for when paused
-function pauseLoop(waitOn, reportContinue=true) {
+function pauseLoop(waitOn, reportContinue=true, handleEvents=true) {
     let paused = true;
     while (paused) {
         let programEvents = fetchEvents();
+        if (handleEvents) {
+            programEvents.forEach(handleEvent);
+        }
+
         for (let i = 0; i < programEvents.length; i ++) {
             if (programEvents[i][0] == waitOn) {
                 lastKeepAlive = performance.now();
@@ -124,6 +183,95 @@ function pauseLoop(waitOn, reportContinue=true) {
         });
 }
 
+// FS Event Forwarding
+function postFSEvent(data){
+    postCustomMessage({type:"FS", message:data});
+}
+
+// TODO: de-duplicate this code and the code in executionEnvironment_Internal.js
+moduleEvents.addEventListener("onRuntimeInitialized", function() {
+    // Attach to file system callbacks
+    FSEvents.addEventListener('onMovePath', function(e) {
+        postFSEvent({type: "onMovePath", oldPath: e.oldPath, newPath: e.newPath});
+    });
+    FSEvents.addEventListener('onMakeDirectory', function(e) {
+        postFSEvent({type: "onMakeDirectory", path: e.path});
+    });
+    FSEvents.addEventListener('onDeletePath', function(e) {
+        postFSEvent({type: "onDeletePath", path: e.path});
+    });
+    FSEvents.addEventListener('onOpenFile', function(e) {
+        if ((e.flags & 64)==0)
+            return;
+
+        postFSEvent({type: "onOpenFile", path: e.path});
+    });
+});
+
+// Audio
+let lastAudioEmitTime = 0;
+let audioEventBuffer = null;
+let globalScriptProcessorNode = null;
+
+// initialize global script processor
+function setGlobalScriptProcessor(bufferSize, numberOfInputChannels, numberOfOutputChannels, node) {
+    if (numberOfOutputChannels != 2) {
+        console.error("Unexpected number of output channels: ", numberOfOutputChannels);
+        return;
+    }
+
+    globalScriptProcessorNode = node;
+    globalScriptProcessorNode.bufferSize = bufferSize;
+
+    // initialize storage
+    audioEventBuffer = {
+        outputBuffer : {
+            numberOfChannels: 2,
+            channelBuffers: [new Float32Array(bufferSize), new Float32Array(bufferSize)],
+            getChannelData : function(channel){
+                return this.channelBuffers[channel]
+            },
+        },
+    };
+
+    // now that we know the buffer size, let the main page know
+    postCustomMessage({
+        type: "InitializeAudioBuffer",
+        bufferSize: bufferSize,
+    });
+}
+
+function emitAudio(now) {
+    // if first run, or too much time has passed, reset ourselves
+    if (lastAudioEmitTime==0 || (now - lastAudioEmitTime)>500)lastAudioEmitTime = now;
+
+    if (globalScriptProcessorNode != null) {
+
+        // how much time passes in the audio buffer sent by one emission
+        let msPerAudioBufferSize = (globalScriptProcessorNode.bufferSize / AudioContextExt.sampleRate)*1000;
+
+        // loop until caught up
+        for(; lastAudioEmitTime <= now; lastAudioEmitTime += msPerAudioBufferSize) {
+            // process audio and send to main page
+            globalScriptProcessorNode.onaudioprocess(audioEventBuffer);
+            postCustomMessage({
+                type: "Audio",
+                channelBuffers: audioEventBuffer.outputBuffer.channelBuffers,
+            });
+        }
+    }
+}
+
+// ensure we're up to date on events before runnning.
+// this way, even if the user's program never calls
+// process_events(), we'll still have processed all the
+// file commands at least.
+Module['onRuntimeInitialized'] = function() {
+    moduleEvents.dispatchEvent(new Event("onRuntimeInitialized"));
+
+    __sko_process_events();
+}
+
 // setup user program exit event
 Module['noExitRuntime'] = false;
 Module['onExit'] = function() {
@@ -132,7 +280,17 @@ Module['onExit'] = function() {
     });
 }
 
-// Clear event buffer
-// Skip first set of commands, they may be old data
-skipNextCommands = true;
-__sko_process_events();
+let inputBuffer = new Array(0);
+let inputBufferWasFull = false;
+
+Module['stdin'] = function() {
+    if (inputBuffer.length == 0) {
+        postCustomMessage({ type: "stdinAwait" });
+
+        pauseLoop('stdin', false, true);
+    }
+
+    let character = inputBuffer.splice(0, 1);
+
+    return character[0];
+}

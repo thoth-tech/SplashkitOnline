@@ -15,6 +15,9 @@ let SplashKitOnlineLanguageDefinitions = [
         name: "JavaScript",
         userVisibleName: "JavaScript",
         aliases: ['JS'],
+        sourceExtensions: ['js', 'jsx', 'ts', 'mjs'],
+        compilableExtensions: ['js', 'jsx', 'ts', 'mjs'],
+        defaultSourceExtension: "js",
         setups: [{
             name: "JavaScript Native",
             runtimeFiles: [
@@ -24,7 +27,6 @@ let SplashKitOnlineLanguageDefinitions = [
                 "fsevents.js",
                 "executionEnvironment_CodeProcessor.js", //intention is to make this a compilerFile instead
                 "executionEnvironment_Internal.js", // and this should be based on ExecutionEnvironmentInternal.js
-                "executionEnvironment_Page.js",
             ],
             runtimeDependencies: [
                 "runtimes/javascript/bin/SplashKitBackendWASM.js",
@@ -45,19 +47,25 @@ let SplashKitOnlineLanguageDefinitions = [
         name: "C++",
         userVisibleName: "C++ (Experimental)",
         aliases: ['CXX','C'],
+        sourceExtensions: ['c', 'h', 'cpp', 'hpp', 'cc'],
+        compilableExtensions: ['cpp', 'c', 'cc'],
+        defaultSourceExtension: "cpp",
         setups: [{
             name: "C++ (Clang)",
             runtimeFiles: [
+                "fallibleMessage.js",
                 "runtimes/ExecutionEnvironmentInternal.js",
                 "runtimes/cxx/cxxRuntime.js",
                 "runtimes/cxx/bin/SplashKitBackendWASMCPP.js",
-                "executionEnvironment_Page.js",
             ],
             runtimeDependencies: [
                 "runtimes/cxx/bin/SplashKitBackendWASMCPP.js",
                 "runtimes/cxx/bin/SplashKitBackendWASMCPP.worker.js",
             ],
             compilerFiles: [
+                "external/js-lzma/src/wlzma.js",
+                "external/js-lzma/src/lzma.shim.js",
+                "downloadHandler.js",
                 "compilers/cxx/cxxCompiler.js",
             ],
             compilerName: "cxxCompiler",

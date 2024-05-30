@@ -1,5 +1,22 @@
+let SKO = null;
+
 importScripts('./../../jszip/jszip.min.js');
 importScripts('./../../fallibleMessage.js');
+importScripts('./../../external/js-lzma/src/wlzma.js');
+importScripts('./../../external/js-lzma/src/lzma.shim.js');
+
+self.wlzmaCustomPath = "./../../external/js-lzma/src/wlzma.wrk.js";
+importScripts('./../../downloadHandler.js');
+
+// function to load the system libraries zip file
+async function loadSystemRootFiles(){
+    try {
+        return await downloadFile("bin/wasi-sysroot.zip", null, true);
+    }
+    catch(err) {
+        throw new Error("Failed to load compiler system root files: \""+err.toString()+"\"</br> Please check that the files are installed correctly.");
+    }
+}
 
 // function to load in the system root files from a zip file
 async function preloadSysroot(FS, sysroot){
@@ -57,7 +74,7 @@ function print(message){
 }
 
 // initial settings for the modules
-function initSettings() {
+function initSettings(binary) {
     return {
         noExitRuntime: true,
         printErr: print,
@@ -65,6 +82,7 @@ function initSettings() {
         locateFile: function(file){
             return "bin/"+file;
         },
+        wasmBinary: binary,
     }
 }
 
@@ -77,6 +95,8 @@ onmessage = async function(event){
     try {
         switch (event.data.type) {
             case "initialize":
+                SKO = event.data.SKO;
+
                 try { importScripts('./bin/clang++.js'); }
                 catch(err) {
                     throw new Error("Failed to load Clang++: \""+err.toString()+"\"</br> Please check that the files are installed correctly.");
@@ -87,8 +107,9 @@ onmessage = async function(event){
                     throw new Error("Failed to load Wasm-ld: \""+err.toString()+"\"</br> Please check that the files are installed correctly.");
                 }
 
-                await initializeCompiler();
-                await initializeSystemRoot(event.data.sysroot);
+                let [ , rootFiles] = await Promise.all([initializeCompiler(), loadSystemRootFiles()]);
+                await initializeSystemRoot(rootFiles);
+
                 resolveMessageFallible(event);
                 break;
             case "setupUserCode":
@@ -121,9 +142,15 @@ onmessage = async function(event){
 
 // initialize the compilers, and tidy their output
 async function initializeCompiler(){
-    clang = await Clang(initSettings());
-    lld = await Lld(initSettings());
+    await Promise.all([
+        downloadFile("bin/clang.wasm", null, true)
+            .then((binary) => Clang(initSettings(binary)))
+            .then((result) => {clang = result;}),
 
+        downloadFile("bin/lld.wasm", null, true)
+            .then((binary) => Lld(initSettings(binary)))
+            .then((result) => {lld = result;})
+    ]);
     // Lld and Clang doesn't really like us re-running their mains over and over,
     // and ask us to submit a bug report - let's let them get it out of their system once here
     // so the user doesn't need to see it...this feels wrong (´；ω；`)ｳｩｩ
@@ -154,6 +181,7 @@ async function initializeSystemRoot(sysroot){
 // write user code files
 function setupUserCode(codeFiles){
     for(let i = 0; i < codeFiles.length; i ++){
+        clang.FS.createPath("", codeFiles[i].name.slice(0, codeFiles[i].name.lastIndexOf("/")));
         clang.FS.writeFile(codeFiles[i].name, codeFiles[i].source);
     }
 }
@@ -177,6 +205,7 @@ async function compileObject(arguments, outputName){
 // write user object files
 function setupUserObjects(objects){
     for(let i = 0; i < objects.length; i ++){
+        lld.FS.createPath("", objects[i].name.slice(0, objects[i].name.lastIndexOf("/")));
         lld.FS.writeFile(objects[i].name, objects[i].output);
     }
 }

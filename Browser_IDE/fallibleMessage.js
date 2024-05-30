@@ -1,3 +1,4 @@
+"use strict";
 // Temporary callbacks for inter-window messaging
 
 let __tempCallbacks = new Map();
@@ -11,16 +12,16 @@ function registerTempCallback(callbackFn){
 
 async function executeTempCallback(eventData){
     try {
-        await __tempCallbacks[eventData.callbackID](eventData.result, eventData.error);
+        await __tempCallbacks[eventData.responseCallbackID](eventData.result, eventData.error);
     } catch(e){
         throw e;
     } finally {
-        __tempCallbacks.delete(eventData.callbackID);
+        __tempCallbacks.delete(eventData.responseCallbackID);
     }
 }
 
 function isWorker(oWindow){
-    return (oWindow instanceof Worker);
+    return (oWindow instanceof Worker) || (oWindow instanceof ServiceWorker);
 }
 
 function isInWorker(){
@@ -39,22 +40,22 @@ async function postMessageFallible(oWindow, message){
     });
 }
 
-function resolveMessageFallible(m, result){
-    if('callbackID' in m.data){
-        postMessage({
+function resolveMessageFallible(m, result, oWindow=self){
+    if(typeof m.data == 'object' && 'callbackID' in m.data){
+        oWindow.postMessage({
             type: "callback",
-            callbackID: m.data.callbackID,
+            responseCallbackID: m.data.callbackID,
             result: result,
             error: undefined,
         }, isInWorker() ? null : "*");
     }
 }
 
-function rejectMessageFallible(m, err){
-    if('callbackID' in m.data){
-        postMessage({
+function rejectMessageFallible(m, err, oWindow=self){
+    if(typeof m.data == 'object' && 'callbackID' in m.data){
+        oWindow.postMessage({
             type: "callback",
-            callbackID: m.data.callbackID,
+            responseCallbackID: m.data.callbackID,
             result: null,
             error: err,
         }, isInWorker() ? null : "*");

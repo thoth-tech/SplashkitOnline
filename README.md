@@ -89,7 +89,7 @@ The SplashKit API has been exposed to the global scope of Javascript, allowing t
 The SplashKit library handles all input, graphics, audio and file handling, and is invoked by the user's Javascript. The library has been compiled into a WebAssembly (Wasm) module via Emscripten. This module is loaded into the page as soon as the IDE starts, and the functions in it exported as Javascript functions.
 
 # Experimental C++ Support
-It is also possible to use C++ within SplashKit Online! This is still experimental, and as such certain features such as file access and audio don't work yet. However, the majority of graphics and input functionality works, and you can still use it to compile and test regular C++ programs too!
+It is also possible to use C++ within SplashKit Online! This is still experimental, and as such is missing some features and can be a bit unstable. However, the majority of graphics, audio, and input functionality works, and you can use it to compile and test regular C++ programs too!
 
 Assuming the IDE is set up correctly, installation of the C++ side involves three more steps:
 

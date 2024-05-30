@@ -1,5 +1,19 @@
 "use strict";
 
+moduleEvents.addEventListener("onDownloadProgress", function(progress) {
+    updateLoadingProgress((progress.downloadIndex - 1 + progress.downloadProgress) / progress.downloadCount);
+});
+
+moduleEvents.addEventListener("onDownloadFail", function(progress) {
+    showDownloadFailure();
+});
+
+moduleEvents.addEventListener('onRuntimeInitialized', function(event) {
+    hideLoadingContainer();
+});
+
+showLoadingContainer();
+
 var Module = {
     onRuntimeInitialized: (function() {
         moduleEvents.dispatchEvent(new Event("onRuntimeInitialized"));
@@ -27,9 +41,6 @@ var Module = {
         ENV.SDL_EMSCRIPTEN_KEYBOARD_ELEMENT = "canvas";
     }),
 };
-
-
-
 
 
 

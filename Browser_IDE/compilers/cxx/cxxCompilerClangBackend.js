@@ -1,23 +1,3 @@
-// function to load the system libraries zip file
-async function loadSystemRootFiles(){
-    return new Promise((resolve, reject) => {
-        var xhr = new XMLHttpRequest();
-        xhr.responseType = 'arraybuffer';
-        xhr.onreadystatechange = function(){
-            if (xhr.readyState === 4) {
-                if (xhr.status === 0 || xhr.status === 200) {
-                    resolve(xhr.response);
-                }
-                else{
-                    reject(new Error("Couldn't load the compiler system root files!"));
-                }
-            }
-        };
-        xhr.open("GET", "compilers/cxx/bin/wasi-sysroot.zip", true);
-        xhr.send(null);
-    });
-}
-
 // utility functions for reporting errors from Clang
 function removeAnsiFromString(text){
     return text.replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '');
@@ -36,7 +16,7 @@ function reportCompilerError(err){
         let message = error[4];
 
         printCompilerMessage({
-            name: fileName.slice(0,-4),
+            name: fileName,
             line: line,
             message: "",
             formatted: true
@@ -85,7 +65,7 @@ w.onmessage = function(event){
 // initialize the compilers
 await postMessageFallible(w, {
     type: "initialize",
-    sysroot: await loadSystemRootFiles()
+    SKO: SKO,
 });
 
 // export functions to compile and link objects - this is used in the main cxxCompiler.js
@@ -96,13 +76,13 @@ export const compileObject = async (name, source) => {
         await postMessageFallible(w, {
             type: "setupUserCode",
             codeFiles : [{
-                name: name+".cpp",
+                name: name,
                 source: source
             }]
         });
         output = await postMessageFallible(w, {
             type: "compileObject",
-            arguments: ['-idirafter/lib/clang/16.0.4/include/', '-fdiagnostics-color=always', '-c', name+".cpp"],
+            arguments: ['-idirafter/lib/clang/16.0.4/include/', '-fdiagnostics-color=always', '-c', name, "-o", name+".o"],
             outputName: name+".o"
         });
     }
@@ -159,9 +139,9 @@ export const linkObjects = async (objects) => {
                 '-lsockets',
                 '--no-entry',
 
+                '--wrap=_ZN13splashkit_lib14process_eventsEv',
                 '-lSplashKitBackend',
 
-                //'main.o',
                 '-o',
                 'main.wasm',
 

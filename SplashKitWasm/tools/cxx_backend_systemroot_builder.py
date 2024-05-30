@@ -13,6 +13,11 @@ splashkit_includes_path = sys.argv[2]
 sysroot_path = sys.argv[3]
 output_archive_path = sys.argv[4]
 
+assert sys.argv[5]=="stored" or sys.argv[5] == "compressed"
+compression = zipfile.ZIP_DEFLATED if sys.argv[5] == "compressed" else zipfile.ZIP_STORED
+
+in_memory_in_place = compression != zipfile.ZIP_STORED # we can't do this in place anymore, since the original zip may already be compresed
+
 splashkit_sysroot_library_path = "lib/"
 splashkit_sysroot_includes_path = "include/splashkit/"
 
@@ -33,7 +38,18 @@ with io.BytesIO() as new_zip_buffer:
     new_zip_buffer.write(original_zip_content)
 
     # access it as a zip, and add files to it
-    with zipfile.ZipFile(new_zip_buffer, 'a', compression=zipfile.ZIP_DEFLATED) as new_zip:
+    with zipfile.ZipFile(new_zip_buffer, 'a', compression=compression) as original_zip:
+
+        # are we doing this in place?
+        if in_memory_in_place:
+            new_zip = original_zip
+        else:
+            new_zip = zipfile.ZipFile(output_archive_path, mode='w', compression=compression)
+            # if not, copy in the original files
+            for file in original_zip.namelist():
+                new_zip.writestr(file, original_zip.read(file));
+
+
         copy_in_file(new_zip, splashkit_library_path, splashkit_sysroot_library_path+"libSplashKitBackend.a");
 
 
@@ -42,7 +58,6 @@ with io.BytesIO() as new_zip_buffer:
 
         for file in os.listdir(splashkit_includes_path):
             if ".h" in file and 'raspi_gpio' not in file:
-                #shutil.copy(splashkit_includes_path+file, splashkit_sysroot_includes_path)
                 copy_in_file(new_zip, splashkit_includes_path+file, splashkit_sysroot_includes_path+file);
 
                 global_header += "#include \"splashkit/"+file+"\"\n"
@@ -50,24 +65,16 @@ with io.BytesIO() as new_zip_buffer:
         global_header += """
         // mimic namespacelessness of normal SplashKit Clib-based C++ version
         using namespace splashkit_lib;
-
-        // patch process_events() to receive events from outside world first.
-        // Ideally we'd patch process_events itself, but this allows us to use the same
-        // base library for the C++ and JavaScript backend. Maybe if the JavaScript backend
-        // switches to a WebWorker architecture too, then we can replace this
-        // while keeping everything unified.
-        extern "C" void __sko_process_events();
-        extern "C" inline void _process_events() {
-            __sko_process_events(); // receive events from outside world and pass into SDL
-            process_events(); // normal SplashKit process_events()
-        }
-        #define process_events() _process_events()
         """
 
         new_zip.writestr("include/splashkit.h", global_header)
 
     new_zip_buffer.seek(0)
 
-    # now write it out!
-    with open(output_archive_path, 'wb') as f:
-        f.write(new_zip_buffer.getvalue())
+    if in_memory_in_place:
+        # now write it out!
+        with open(output_archive_path, 'wb') as f:
+            f.write(new_zip_buffer.getvalue())
+    else:
+        # we already wrote it out!
+        pass

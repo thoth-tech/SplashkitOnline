@@ -36,6 +36,8 @@ option(ENABLE_JS_BACKEND "Enable compiling SplashKit for use in SplashKit Online
 
 option(ENABLE_CPP_BACKEND "Enable compiling SplashKit for use in SplashKit Online C++ Projects" OFF)
 
+option(COMPRESS_BACKENDS "Enable LZMA compression of the backend files - good for releases" OFF)
+
 
 if (WIN32 OR MSYS OR MINGW)
   SET(MSYS "true")
@@ -202,6 +204,7 @@ include_directories("${SK_EXT}/hash-library")
 include_directories("${SK_EXT}/json")
 include_directories("${SK_EXT}/sqlite")
 include_directories("${SK_EXT}/catch")
+include_directories("${SK_WASMEXT}/src/lib")
 
 # MAC OS AND WINDOWS DIRECTORY INCLUDES
 if (APPLE OR MSYS OR EMSCRIPTEN)
@@ -230,8 +233,14 @@ add_definitions(-DELPP_THREAD_SAFE)
 #### END SETUP ####
 #### SplashKitBackend STATIC LIBRARY ####
 add_library(SplashKitBackend STATIC ${SOURCE_FILES} ${INCLUDE_FILES})
+#### SplashKitBackendCXX STATIC LIBRARY ####
+# IMPORTANT NOTE: This library does _not _ get linked anywhere in this file.
+# Instead, it is linked only during in-browser compilation.
+# It will not link without specific linker parameters (i.e --wrap=_ZN13splashkit_lib14process_eventsEv)
+add_library(SplashKitBackendCXX STATIC "${SK_WASMEXT}/src/cxxbackend/patched_functions.cpp" ${SOURCE_FILES} ${INCLUDE_FILES})
 
 target_link_libraries(SplashKitBackend ${LIB_FLAGS})
+target_link_libraries(SplashKitBackendCXX ${LIB_FLAGS})
 
 if (EMSCRIPTEN)
     # Ensure the 'generated' folder exists
@@ -326,6 +335,10 @@ set_target_properties(SplashKitBackend
     PROPERTIES
     ARCHIVE_OUTPUT_DIRECTORY "${SK_OUT}/lib"
 )
+set_target_properties(SplashKitBackendCXX
+    PROPERTIES
+    ARCHIVE_OUTPUT_DIRECTORY "${SK_OUT}/lib"
+)
 
 #### END SplashKitBackend STATIC LIBRARY ####
 #### SplashKitBackend WASM LIBRARY ####
@@ -333,7 +346,7 @@ if (EMSCRIPTEN)
     if (ENABLE_JS_BACKEND)
         add_executable(SplashKitBackendWASM "${SK_WASMEXT}/generated/SplashKitWasmGlue.cpp")
         set_target_properties(SplashKitBackendWASM PROPERTIES LINK_FLAGS "-sALLOW_TABLE_GROWTH -s MAXIMUM_MEMORY=1gb -sALLOW_MEMORY_GROWTH -s EXPORTED_RUNTIME_METHODS=addFunction -s EXPORTED_FUNCTIONS=\"['_malloc','stackAlloc','stackSave','stackRestore','_free']\" -s EXPORT_ALL=1 -sFS_DEBUG --post-js ${SK_WASMEXT}/generated/SplashKitWasmGlue.js")
-        target_link_libraries(SplashKitBackendWASM SplashKitBackend)
+        target_link_libraries(SplashKitBackendWASM SplashKitBackend) #NOTE: deliberately using SplashKitBackend rather than SplashKitBackendCXX - we don't care about the final linked output, we just want Emscripten to give us its JS runtime
         set_target_properties(SplashKitBackendWASM
             PROPERTIES
             RUNTIME_OUTPUT_DIRECTORY "${SK_OUT}/wasmlib_javascript"
@@ -354,7 +367,7 @@ if (EMSCRIPTEN)
     endif()
     if (ENABLE_CPP_BACKEND)
         add_executable(SplashKitBackendWASMCPP "${SK_WASMEXT}/src/cxxbackend/stubs/dummy.cpp")
-        set_target_properties(SplashKitBackendWASMCPP PROPERTIES LINK_FLAGS " -sDEMANGLE_SUPPORT --proxy-to-worker --pre-js=${SK_WASMEXT}/src/cxxbackend/cxx_preamble.js -sINCLUDE_FULL_LIBRARY  -sALLOW_TABLE_GROWTH -s MAXIMUM_MEMORY=1gb -sALLOW_MEMORY_GROWTH -sEXPORTED_RUNTIME_METHODS=['addFunction'] -s EXPORTED_FUNCTIONS=\"['_malloc','stackAlloc','stackSave','stackRestore','_free']\" -s EXPORT_ALL=1 -sFS_DEBUG" LINK_DEPENDS "${SK_WASMEXT}/src/cxxbackend/cxx_preamble.js")
+        set_target_properties(SplashKitBackendWASMCPP PROPERTIES LINK_FLAGS " -sWASM_BIGINT -sDEMANGLE_SUPPORT --proxy-to-worker --pre-js=${SK_WASMEXT}/src/cxxbackend/cxx_preamble.js -sINCLUDE_FULL_LIBRARY  -sALLOW_TABLE_GROWTH -s MAXIMUM_MEMORY=1gb -sALLOW_MEMORY_GROWTH -sEXPORTED_RUNTIME_METHODS=['addFunction'] -s EXPORTED_FUNCTIONS=\"['_malloc','stackAlloc','stackSave','stackRestore','_free']\" -s EXPORT_ALL=1 -sFS_DEBUG" LINK_DEPENDS "${SK_WASMEXT}/src/cxxbackend/cxx_preamble.js")
 
         target_link_libraries(SplashKitBackendWASMCPP SplashKitBackend)
         set_target_properties(SplashKitBackendWASMCPP
@@ -365,7 +378,7 @@ if (EMSCRIPTEN)
         set_target_properties(SplashKitBackendWASMCPP PROPERTIES SUFFIX ".js")
 
         # Patch generated JavaScript runtime
-        add_custom_target( SplashKitBackendWASMCPPPatched ALL DEPENDS SplashKitBackendWASMCPP "${SK_WASMEXT}/out/wasm_cpplib_patched/SplashKitBackendWASMCPP.worker.js" "${SK_WASMEXT}/out/wasm_cpplib_patched/SplashKitBackendWASMCPP.js")
+        add_custom_target( SplashKitBackendWASMCPPPatched ALL DEPENDS SplashKitBackendWASMCPP "${SK_WASMEXT}/out/cxx/runtime/SplashKitBackendWASMCPP.worker.js" "${SK_WASMEXT}/out/cxx/runtime/SplashKitBackendWASMCPP.js")
 
         add_custom_command(
             DEPENDS
@@ -373,46 +386,113 @@ if (EMSCRIPTEN)
                 "${SK_WASMEXT}/out/wasm_cpplib/SplashKitBackendWASMCPP.worker.js"
                 "${SK_WASMEXT}/tools/cxx_backend_emscripten_glue_patcher.py"
             OUTPUT
-                "${SK_WASMEXT}/out/wasm_cpplib_patched/SplashKitBackendWASMCPP.worker.js"
-                "${SK_WASMEXT}/out/wasm_cpplib_patched/SplashKitBackendWASMCPP.js"
+                "${SK_WASMEXT}/out/cxx/runtime/SplashKitBackendWASMCPP.worker.js"
+                "${SK_WASMEXT}/out/cxx/runtime/SplashKitBackendWASMCPP.js"
             COMMENT "Patching generated Emscripten glue JavaScript for C++ Backend..."
-            COMMAND ${CMAKE_COMMAND} -E make_directory "${SK_WASMEXT}/out/wasm_cpplib_patched/"
+            COMMAND ${CMAKE_COMMAND} -E make_directory "${SK_WASMEXT}/out/cxx/runtime/"
+            COMMAND ${CMAKE_COMMAND} -E make_directory "${SK_WASMEXT}/out/cxx/compiler/"
             COMMAND python "${SK_WASMEXT}/tools/cxx_backend_emscripten_glue_patcher.py"
                 "${SK_WASMEXT}/out/wasm_cpplib/SplashKitBackendWASMCPP.worker.js"
-                "${SK_WASMEXT}/out/wasm_cpplib_patched/SplashKitBackendWASMCPP.worker.js"
+                "${SK_WASMEXT}/out/cxx/runtime/SplashKitBackendWASMCPP.worker.js"
                 "${SK_WASMEXT}/out/wasm_cpplib/SplashKitBackendWASMCPP.js"
-                "${SK_WASMEXT}/out/wasm_cpplib_patched/SplashKitBackendWASMCPP.js"
+                "${SK_WASMEXT}/out/cxx/runtime/SplashKitBackendWASMCPP.js"
             )
 
         # Generate compilation system root files
-        add_custom_target( CPPCompilationSystemRoot ALL DEPENDS SplashKitBackendWASM "${SK_OUT}/wasm_cpplib_patched/wasi-sysroot.zip")
+        add_custom_target( CPPCompilationSystemRoot ALL DEPENDS SplashKitBackendCXX "${SK_OUT}/cxx/compiler/wasi-sysroot.zip")
+
+        if (COMPRESS_BACKENDS)
+            set(ZIP_COMPRESSION_FLAG "stored") #make the zip easily compressible later
+        else()
+            set(ZIP_COMPRESSION_FLAG "compressed")
+        endif()
 
         add_custom_command(
             DEPENDS
-                "${SK_WASMEXT}/prebuilt/sysroot.zip"
+                "${SK_WASMEXT}/prebuilt/cxx/compiler/sysroot.zip"
                 "${SK_WASMEXT}/tools/cxx_backend_systemroot_builder.py"
-                SplashKitBackendWASM
+                SplashKitBackendCXX
             OUTPUT
-                "${SK_OUT}/wasm_cpplib_patched/wasi-sysroot.zip"
+                "${SK_OUT}/cxx/compiler/wasi-sysroot.zip"
             COMMENT "Bundling C++ Compilation System Root..."
             COMMAND python "${SK_WASMEXT}/tools/cxx_backend_systemroot_builder.py"
-                $<TARGET_FILE:SplashKitBackend>
+                $<TARGET_FILE:SplashKitBackendCXX>
                 "${SK_SRC}/coresdk/"
-                "${SK_WASMEXT}/prebuilt/sysroot.zip"
-                "${SK_OUT}/wasm_cpplib_patched/wasi-sysroot.zip"
+                "${SK_WASMEXT}/prebuilt/cxx/compiler/sysroot.zip"
+                "${SK_OUT}/cxx/compiler/wasi-sysroot.zip"
+                ${ZIP_COMPRESSION_FLAG}
             )
 
+        # RUNTIME FILES
+        set(UNCOMPRESSED_RUNTIME_FILES
+            "${SK_WASMEXT}/out/cxx/runtime/SplashKitBackendWASMCPP.js"
+            "${SK_WASMEXT}/out/cxx/runtime/SplashKitBackendWASMCPP.worker.js"
+        )
+
+        # COMPILER Root FILES
+        set(UNCOMPRESSED_COMPILER_ROOT_FILES
+            "${SK_WASMEXT}/out/cxx/compiler/wasi-sysroot.zip"
+        )
+
+        # COMPILER FILES
+        set(UNCOMPRESSED_COMPILER_SCRIPT_FILES
+            "${SK_WASMEXT}/prebuilt/cxx/compiler/clang++.js"
+            "${SK_WASMEXT}/prebuilt/cxx/compiler/wasm-ld.js"
+        )
+
+        # COMPILER FILES
+        set(UNCOMPRESSED_COMPILER_BINARY_FILES
+            "${SK_WASMEXT}/prebuilt/cxx/compiler/clang.wasm"
+            "${SK_WASMEXT}/prebuilt/cxx/compiler/lld.wasm"
+        )
+
+        if (COMPRESS_BACKENDS)
+            set(COMPRESSED_COMPILER_ROOT_FILES ${UNCOMPRESSED_COMPILER_ROOT_FILES})
+            list(TRANSFORM COMPRESSED_COMPILER_ROOT_FILES APPEND ".lzma")
+
+            set(COMPRESSED_COMPILER_BINARY_FILES ${UNCOMPRESSED_COMPILER_BINARY_FILES})
+            list(TRANSFORM COMPRESSED_COMPILER_BINARY_FILES APPEND ".lzma")
+            list(TRANSFORM COMPRESSED_COMPILER_BINARY_FILES REPLACE "/prebuilt/" "/out/")
+
+            # Compress compilation system root files
+            add_custom_command(
+                DEPENDS ${UNCOMPRESSED_COMPILER_ROOT_FILES} "${SK_WASMEXT}/tools/backend_binary_compressor.py"
+                OUTPUT ${COMPRESSED_COMPILER_ROOT_FILES}
+                COMMENT "Compressing C++ Compiler Root Files..."
+                COMMAND python "${SK_WASMEXT}/tools/backend_binary_compressor.py" ${UNCOMPRESSED_COMPILER_ROOT_FILES} ${COMPRESSED_COMPILER_ROOT_FILES}
+            )
+
+            # Compress compiler binaries
+            add_custom_command(
+                DEPENDS ${UNCOMPRESSED_COMPILER_BINARY_FILES} "${SK_WASMEXT}/tools/backend_binary_compressor.py"
+                OUTPUT ${COMPRESSED_COMPILER_BINARY_FILES}
+                COMMENT "Compressing C++ Compiler Binaries..."
+                COMMAND python "${SK_WASMEXT}/tools/backend_binary_compressor.py" ${UNCOMPRESSED_COMPILER_BINARY_FILES} ${COMPRESSED_COMPILER_BINARY_FILES}
+            )
+
+            set(CXX_RUNTIME_FILES ${UNCOMPRESSED_RUNTIME_FILES})
+            set(CXX_COMPILER_FILES ${UNCOMPRESSED_COMPILER_SCRIPT_FILES} ${COMPRESSED_COMPILER_BINARY_FILES} ${COMPRESSED_COMPILER_ROOT_FILES})
+        else()
+            set(CXX_RUNTIME_FILES ${UNCOMPRESSED_RUNTIME_FILES})
+            set(CXX_COMPILER_FILES ${UNCOMPRESSED_COMPILER_SCRIPT_FILES} ${UNCOMPRESSED_COMPILER_BINARY_FILES} ${UNCOMPRESSED_COMPILER_ROOT_FILES})
+        endif()
 
         # Copy built library to the IDE
-        add_custom_target( SplashKitOnlineIDE_CPPBackend ALL DEPENDS SplashKitBackendWASMCPPPatched CPPCompilationSystemRoot)
+        add_custom_target( SplashKitOnlineIDE_CPPBackend ALL DEPENDS SplashKitBackendWASMCPPPatched CPPCompilationSystemRoot ${CXX_RUNTIME_FILES} ${CXX_COMPILER_FILES})
+
         add_custom_command(TARGET SplashKitOnlineIDE_CPPBackend
             POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E make_directory "${SK_BROWSERIDE}/runtimes/cxx/bin"
             COMMAND ${CMAKE_COMMAND} -E make_directory "${SK_BROWSERIDE}/compilers/cxx/bin"
-            COMMAND ${CMAKE_COMMAND} -E copy "${SK_OUT}/wasm_cpplib_patched/SplashKitBackendWASMCPP.js" "${SK_BROWSERIDE}/runtimes/cxx/bin/SplashKitBackendWASMCPP.js"
-            COMMAND ${CMAKE_COMMAND} -E copy "${SK_OUT}/wasm_cpplib_patched/SplashKitBackendWASMCPP.worker.js" "${SK_BROWSERIDE}/runtimes/cxx/bin/SplashKitBackendWASMCPP.worker.js"
-            COMMAND ${CMAKE_COMMAND} -E copy "${SK_OUT}/wasm_cpplib_patched/wasi-sysroot.zip" "${SK_BROWSERIDE}/compilers/cxx/bin/wasi-sysroot.zip"
         )
+
+        foreach(current_file IN LISTS CXX_RUNTIME_FILES)
+            add_custom_command(TARGET SplashKitOnlineIDE_CPPBackend POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${current_file} "${SK_BROWSERIDE}/runtimes/cxx/bin/" COMMENT "Copying file: ${current_file}")
+        endforeach()
+
+        foreach(current_file IN LISTS CXX_COMPILER_FILES)
+            add_custom_command(TARGET SplashKitOnlineIDE_CPPBackend POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${current_file} "${SK_BROWSERIDE}/compilers/cxx/bin/" COMMENT "Copying file: ${current_file}")
+        endforeach()
 
         add_custom_command(TARGET SplashKitOnlineIDE_CPPBackend POST_BUILD
                        COMMAND ${CMAKE_COMMAND} -E cmake_echo_color --cyan

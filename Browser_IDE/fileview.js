@@ -20,7 +20,9 @@ myTreeView.addEventListener("nodeMoveRequest", async function(e){
 
 myTreeView.addEventListener("nodeDoubleClick", function(e){
     if (e.FS.includes("persistent"))
-        FSviewFile(e.path);
+        openProjectFile(e.path);
+    else if (e.FS.includes("transient"))
+        FSviewFiletran(e.path);
 });
 
 myTreeView.addEventListener("folderUploadRequest", function(e){

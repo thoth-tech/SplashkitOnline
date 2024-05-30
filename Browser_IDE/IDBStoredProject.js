@@ -258,6 +258,14 @@ class __IDBStoredProjectRW{
         });
     }
 
+    async exists(path){
+        let IDBSP = this;
+        return this.doTransaction("files", "readonly", async function(t, files){
+            let node = await IDBSP.getNodeFromPath(t, files, path);
+            return node != null;
+        });
+    }
+
     async unlink(path){
         let IDBSP = this;
         await this.doTransaction("files", "readwrite", async function(t, files){
@@ -348,6 +356,26 @@ class __IDBStoredProjectRW{
             }
             return _internal(IDBSP.ROOT);
         });
+    }
+
+    async getFlatFileList(){
+        let fileTree = await this.getFileTree();
+        let files = [];
+
+        function internal(path, node){
+            if (node.children == null){ // leaf
+                files.push(path+node.label);
+                return;
+            }
+
+            // directory
+            for(let i = 0; i < node.children.length; i ++)
+                internal(path + node.label + "/", node.children[i]);
+        }
+
+        internal("", {children: fileTree, label: ""});
+
+        return files;
     }
 
 
