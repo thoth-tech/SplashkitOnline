@@ -9,15 +9,17 @@ function XMLHttpRequestPromise(url, progressCallback, type="GET") {
 
         if (progressCallback != null)
             req.addEventListener("progress", function(event) {
-                if (event.lengthComputable)
+                if (event.lengthComputable && event.target.status == 200)
                     progressCallback(event.loaded / event.total);
             }, false);
 
         req.addEventListener("loadend", function(event) {
             if (event.target.status != 200){
                 reject(event.target);
+                progressCallback(-1);
+                return;
             }
-
+            progressCallback(1);
             resolve(event.target);
         }, false);
 
@@ -33,7 +35,7 @@ async function downloadFile(url, progressCallback = null, maybeLZMACompressed = 
     if (wlzma && maybeLZMACompressed && SKO.useCompressedBinaries) {
         let exists = false;
         try {
-            await XMLHttpRequestPromise(url+".lzma", progressCallback, "HEAD");
+            await XMLHttpRequestPromise(url+".lzma", null, "HEAD");
             exists = true;
         }
         catch (err) {}
@@ -73,14 +75,17 @@ class DownloadSet {
         this.reportProgress();
 
         return (progress) => {
-            this.downloads[index].progress = Math.max(this.downloads[index].progress, progress);
+            this.downloads[index].progress = progress;
             this.reportProgress();
         }
     }
 
     reportProgress(){
+        // Force to -1 if any downloads have failed
+        if (this.downloads.length > 0 && this.downloads.some((x) => x < 0))
+            this.progressCallback(-1);
         // Force to 1 when all downloads are complete, in case of rounding errors
-        if (this.downloads.length > 0 && this.downloads.every((x) => x == 1))
+        else if (this.downloads.length > 0 && this.downloads.every((x) => x == 1))
             this.progressCallback(1);
         else
             this.progressCallback(this.downloads.reduce((x,y) => x+y.progress*y.size, 0) / Math.max(this.expectedTotalSize, this.downloads.reduce((x,y) => x+y.size, 0)));

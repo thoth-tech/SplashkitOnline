@@ -11,7 +11,11 @@ window.addEventListener('message', function(m){
         hasInitializedLanguage = true;
 
         globalLoadingBarDownloadSet = new DownloadSet((progress) => {
-            if (progress < 1) {
+            if (progress < 0) {
+                showLoadingContainer();
+                showDownloadFailure();
+            }
+            else if (progress < 1) {
                 showLoadingContainer();
                 updateLoadingProgress(progress);
             } else {
