@@ -1,8 +1,5 @@
 // Setup module settings - used later on in bin/SplashKitBackendWASMCPP.js
 var Module = {
-    onRuntimeInitialized: (function() {
-        moduleEvents.dispatchEvent(new Event("onRuntimeInitialized"));
-    }),
     print: (function() {
         return function(text) {
             if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
@@ -245,6 +242,7 @@ async function registerServiceWorker(){
             currentServiceWorker = worker.active;
             serviceWorkerChannel = new PromiseChannel(navigator.serviceWorker, currentServiceWorker);
 
+            runtimeLoadingProgress(1);
             executionEnvironment.signalReady();
         }
     }
@@ -384,3 +382,5 @@ terminalInput.addEventListener("keydown", function(event){
         setTerminalInputAwaitState(false);
     }
 });
+
+runtimeLoadingProgress(0.5);

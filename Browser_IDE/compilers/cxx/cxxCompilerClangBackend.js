@@ -66,7 +66,9 @@ w.onmessage = function(event){
 }
 
 // initialize the compilers
-await promiseChannel.postMessage("initialize", {SKO});
+await promiseChannel.postMessage("initialize", {SKO}, {
+    downloadProgress: (data) => executionEnviroment.updateCompilerLoadProgress(data.progress)
+});
 
 // export functions to compile and link objects - this is used in the main cxxCompiler.js
 export const compileObject = async (name, source) => {

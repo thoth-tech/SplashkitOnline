@@ -10,6 +10,18 @@ window.addEventListener('message', function(m){
         }
         hasInitializedLanguage = true;
 
+        globalLoadingBarDownloadSet = new DownloadSet((progress) => {
+            if (progress < 1) {
+                showLoadingContainer();
+                updateLoadingProgress(progress);
+            } else {
+                hideLoadingContainer();
+            }
+        }, 0);
+
+        runtimeLoadingProgress = globalLoadingBarDownloadSet.addManualReporter(m.data.runtimeSizeAprox);
+        compilerLoadingProgress = globalLoadingBarDownloadSet.addManualReporter(m.data.compilerSizeAprox);
+
         console.log("Initializing with " + m.data.languageName);
         for (let script of m.data.runtimeFiles){
             var s = document.createElement("script");
@@ -18,6 +30,9 @@ window.addEventListener('message', function(m){
             s.async = false;
             document.documentElement.appendChild(s);
         }
+    }
+    if (m.data.type == "UpdateCompilerLoadProgress"){
+        compilerLoadingProgress(m.data.progress);
     }
 }, false);
 

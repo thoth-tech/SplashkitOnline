@@ -9,12 +9,12 @@ self.wlzmaCustomPath = "./../../external/js-lzma/src/wlzma.wrk.js";
 importScripts('./../../downloadHandler.js');
 
 // function to load the system libraries zip file
-async function loadSystemRootFiles(){
+async function loadSystemRootFiles(downloadSet){
     try {
-        return await downloadFile("bin/wasi-sysroot.zip", null, true);
+        return await downloadSet.downloadFile("bin/wasi-sysroot.zip", 40, true);
     }
     catch(err) {
-        throw new Error("Failed to load compiler system root files: \""+err.responseURL+" "+err.statusText+"\"</br> Please check that the files are installed correctly.");
+        throw new Error("Failed to load compiler system root files: \""+err.toString() + " " + err.responseURL+" "+err.statusText+"\"</br> Please check that the files are installed correctly.");
     }
 }
 
@@ -93,7 +93,7 @@ let lld = null;
 // main event handling for the worker
 let promiseChannel = new PromiseChannel(self, self);
 
-promiseChannel.setEventListener("initialize", async function(data){
+promiseChannel.setEventListener("initialize", async function(data, signal){
     SKO = data.SKO;
 
     try { importScripts('./bin/clang++.js'); }
@@ -106,7 +106,9 @@ promiseChannel.setEventListener("initialize", async function(data){
         throw new Error("Failed to load Wasm-ld: \""+err.toString()+"\"</br> Please check that the files are installed correctly.");
     }
 
-    let [ , rootFiles] = await Promise.all([initializeCompiler(), loadSystemRootFiles()]);
+    let downloadSet = new DownloadSet((progress) => signal("downloadProgress", {progress}), 230);
+
+    let [ , rootFiles] = await Promise.all([initializeCompiler(downloadSet), loadSystemRootFiles(downloadSet)]);
     await initializeSystemRoot(rootFiles);
 });
 promiseChannel.setEventListener("setupUserCode", async function(data){
@@ -123,13 +125,15 @@ promiseChannel.setEventListener("linkObjects", async function(data){
 });
 
 // initialize the compilers, and tidy their output
-async function initializeCompiler(){
+async function initializeCompiler(downloadSet){
+    let finalizer = downloadSet.addManualReporter(10);
+
     await Promise.all([
-        downloadFile("bin/clang.wasm", null, true)
+        downloadSet.downloadFile("bin/clang.wasm", 100, true)
             .then((binary) => Clang(initSettings(binary)))
             .then((result) => {clang = result;}),
 
-        downloadFile("bin/lld.wasm", null, true)
+        downloadSet.downloadFile("bin/lld.wasm", 80, true)
             .then((binary) => Lld(initSettings(binary)))
             .then((result) => {lld = result;})
     ]);
@@ -144,6 +148,8 @@ async function initializeCompiler(){
         tidyClang();
         tidyLld();
     silenceCompilerOutput = false;
+
+    finalizer(1);
 }
 
 // initialize the system files for both compilers

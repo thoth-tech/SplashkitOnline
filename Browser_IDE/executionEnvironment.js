@@ -165,6 +165,13 @@ class ExecutionEnvironment extends EventTarget{
         });
     }
 
+    async updateCompilerLoadProgress(progress){
+        this.iFrame.contentWindow.postMessage({
+            type: "UpdateCompilerLoadProgress",
+            progress: progress,
+        }, "*");
+    }
+
 
     // --- Environment Functions ---
 
@@ -270,6 +277,8 @@ class ExecutionEnvironment extends EventTarget{
                 type: "InitializeLanguage",
                 languageName: language.name,
                 runtimeFiles: language.runtimeFiles,
+                runtimeSizeAprox: language.runtimeSizeAprox,
+                compilerSizeAprox: language.compilerSizeAprox,
             }, "*");
         }
         this.addEventListener("languageLoaderReady", f);
