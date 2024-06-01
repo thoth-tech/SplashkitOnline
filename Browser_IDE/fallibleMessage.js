@@ -10,11 +10,18 @@ class PromiseChannel {
         this.listener = listener;
         this.events = new Map();
 
+        this.dummySignalFunction = function(signalName, data){};
+
         if (this.listener != null) {
             this.listener.addEventListener("message", (m) => {
                 if (m.data.type == "callback"){
                     m.stopPropagation()
                     this.executeTempCallback(m.data);
+                    return;
+                }
+                if (m.data.type == "signalCallback"){
+                    m.stopPropagation()
+                    this.executeSignalCallback(m.data);
                     return;
                 }
 
@@ -31,7 +38,7 @@ class PromiseChannel {
 
                 if (isAwaited) {
                     try {
-                        Promise.resolve(eventFn(m.data)).then((result) => {
+                        Promise.resolve(eventFn(m.data, (signalName, data) => this.signalMessageFallible(m, signalName, data))).then((result) => {
                             this.resolveMessageFallible(m, result);
                         }).catch((err) => {
                             this.rejectMessageFallible(m, err);
@@ -41,7 +48,7 @@ class PromiseChannel {
                         this.rejectMessageFallible(m, err);
                     }
                 } else {
-                    eventFn(m.data);
+                    eventFn(m.data, this.dummySignalFunction /*can't send back anyway*/);
                 }
 
             }, true);
@@ -62,14 +69,20 @@ class PromiseChannel {
         }
     }
 
-    async postMessage(eventType, message){
+    async executeSignalCallback(eventData){
+        let signalFunc = __tempCallbacks.get(eventData.responseCallbackID).signalFns[eventData.signalName];
+        if (signalFunc)
+            await signalFunc(eventData.data);
+    }
+
+    async postMessage(eventType, message, signals){
         let self = this;
         return new Promise((resolve, reject) => {
             let _message = structuredClone(message ?? {});
             _message.callbackID = registerTempCallback((result, error) => {
                 if(error !== undefined) reject(error);
                 else resolve(result);
-            });
+            }, signals);
             _message.type = eventType;
 
             self.receiver.postMessage(_message, isWorker(self.receiver) ? null : "*");
@@ -78,6 +91,15 @@ class PromiseChannel {
 
     setEventListener(eventName, eventFn){
         this.events.set(eventName, eventFn);
+    }
+
+    signalMessageFallible(m, signalName, data){
+        this.receiver.postMessage({
+            type: "signalCallback",
+            responseCallbackID: m.data.callbackID,
+            signalName: signalName,
+            data: data,
+        }, isInWorker() ? null : "*");
     }
 
     resolveMessageFallible(m, result){
@@ -99,9 +121,9 @@ class PromiseChannel {
     }
 }
 
-function registerTempCallback(callbackFn){
+function registerTempCallback(callbackFn, signalFns){
     let callbackID = __nextTempCallbackID++;
-    __tempCallbacks.set(callbackID, {callbackFn});
+    __tempCallbacks.set(callbackID, {callbackFn, signalFns});
     return callbackID;
 }
 

@@ -57,6 +57,8 @@ w.onmessage = function(event){
             break;
         case "callback":
             break;
+        case "signalCallback":
+            break;
         default:
             console.log(event);
             throw new Error("Unexpected event in cxxCompilerClangBackend.js: "+JSON.stringify(event.data, null, 2));
