@@ -1,19 +1,5 @@
 "use strict";
 
-moduleEvents.addEventListener("onDownloadProgress", function(progress) {
-    updateLoadingProgress((progress.downloadIndex - 1 + progress.downloadProgress) / progress.downloadCount);
-});
-
-moduleEvents.addEventListener("onDownloadFail", function(progress) {
-    showDownloadFailure();
-});
-
-moduleEvents.addEventListener('onRuntimeInitialized', function(event) {
-    hideLoadingContainer();
-});
-
-showLoadingContainer();
-
 var Module = {
     onRuntimeInitialized: (function() {
         moduleEvents.dispatchEvent(new Event("onRuntimeInitialized"));
@@ -44,68 +30,26 @@ var Module = {
 
 
 
-function LoadSplashKitWASMDependency(pieceURL, pieceName, pieceIndex, pieceCount){
-    return new Promise(function (resolve, reject) {
+let downloadSet = new DownloadSet(runtimeLoadingProgress, 15);
 
-        let req = new XMLHttpRequest();
-        req.responseType = 'arraybuffer';
+// Start both downloads
+let wasmDownload = downloadSet.downloadFile("runtimes/javascript/bin/SplashKitBackendWASM.wasm", 10, false)
+let jsRuntime = downloadSet.downloadFile("runtimes/javascript/bin/SplashKitBackendWASM.js", 5, false)
 
-        let progressEvent = new Event("onDownloadProgress");
+// Handle assigning the downloaded WASM binary once it downloads
+let wasmAssign = wasmDownload.then((binary) => {
+    Module.wasmBinary = binary;
+});
 
-        progressEvent.downloadName = pieceName;
-        progressEvent.downloadIndex = pieceIndex;
-        progressEvent.downloadCount = pieceCount;
-        progressEvent.downloadProgress = 0;
+// Once both are downloaded and the WASM binary is assigned, add the script and load
+Promise.all([wasmDownload, jsRuntime]).then(([, jsRuntimeBinary]) => {
+    // Attach the downloaded script to the page
+    var s = document.createElement("script");
 
-        req.addEventListener("progress", function(event) {
-            progressEvent.info = event.target;
-
-            if (event.lengthComputable)
-                progressEvent.downloadProgress = event.loaded / event.total;
-
-            moduleEvents.dispatchEvent(progressEvent);
-        }, false);
-
-        req.addEventListener("loadend", function(event) {
-            if (event.target.status != 200 || !event.target.response.byteLength){
-                let failEvent = new Event("onDownloadFail");
-
-                failEvent.info = event.target;
-                failEvent.downloadName = pieceName;
-                failEvent.downloadIndex = pieceIndex;
-                failEvent.downloadCount = pieceCount;
-
-                moduleEvents.dispatchEvent(failEvent);
-                reject(event.target);
-            }
-
-            resolve(event.target);
-        }, false);
-
-        req.open("GET", pieceURL);
-        req.send();
+    var blob = new Blob([jsRuntimeBinary], {
+        type: "text/javascript"
     });
-}
 
-// First, load the WebAssembly
-LoadSplashKitWASMDependency("runtimes/javascript/bin/SplashKitBackendWASM.wasm", "SplashKit Library", 1, 2).then(function(e){
-
-    // Pre-set the module's binary with our manually downloaded one
-    Module.wasmBinary = e.response;
-
-    // Next, load the Emscripten generated JS runtime
-    LoadSplashKitWASMDependency("runtimes/javascript/bin/SplashKitBackendWASM.js", "Runtime", 2, 2).then(function(e){
-
-        // Attach the downloaded script to the page
-        var s = document.createElement("script");
-
-        var blob = new Blob([e.response], {
-            type: "text/javascript"
-        });
-
-        s.src = window.URL.createObjectURL(blob);
-        document.documentElement.appendChild(s);
-
-    }).catch(function(){});
-
-}).catch(function(){});
+    s.src = window.URL.createObjectURL(blob);
+    document.documentElement.appendChild(s);
+});

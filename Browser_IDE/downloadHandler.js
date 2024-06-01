@@ -9,15 +9,19 @@ function XMLHttpRequestPromise(url, progressCallback, type="GET") {
 
         if (progressCallback != null)
             req.addEventListener("progress", function(event) {
-                if (event.lengthComputable)
+                if (event.lengthComputable && event.target.status == 200)
                     progressCallback(event.loaded / event.total);
             }, false);
 
         req.addEventListener("loadend", function(event) {
             if (event.target.status != 200){
                 reject(event.target);
+                if (progressCallback != null)
+                    progressCallback(-1);
+                return;
             }
-
+            if (progressCallback != null)
+                progressCallback(1);
             resolve(event.target);
         }, false);
 
@@ -26,14 +30,14 @@ function XMLHttpRequestPromise(url, progressCallback, type="GET") {
     });
 }
 
-let wlzma = new WLZMA.Manager(0, wlzmaPath);
+let wlzma = (self.WLZMA != undefined) ? new WLZMA.Manager(0, wlzmaPath) : null;
 
 async function downloadFile(url, progressCallback = null, maybeLZMACompressed = false){
     // First try downloading the LZMA version
-    if (maybeLZMACompressed && SKO.useCompressedBinaries) {
+    if (wlzma && maybeLZMACompressed && SKO.useCompressedBinaries) {
         let exists = false;
         try {
-            await XMLHttpRequestPromise(url+".lzma", progressCallback, "HEAD");
+            await XMLHttpRequestPromise(url+".lzma", null, "HEAD");
             exists = true;
         }
         catch (err) {}
@@ -52,4 +56,40 @@ async function downloadFile(url, progressCallback = null, maybeLZMACompressed = 
     }
 
     return new Uint8Array((await XMLHttpRequestPromise(url, progressCallback, "GET")).response);
+}
+
+class DownloadSet {
+    constructor(progressCallback, expectedTotalSize) {
+        this.progressCallback = progressCallback;
+        this.expectedTotalSize = expectedTotalSize;
+        this.downloads = [];
+        this.reportProgress();
+    }
+
+    async downloadFile(url, aproxSizeMB, maybeLZMACompressed = false) {
+        return downloadFile(url, this.addManualReporter(aproxSizeMB), maybeLZMACompressed);
+    }
+
+    addManualReporter(aproxSizeMB) {
+        this.downloads.push({progress: 0, size: aproxSizeMB});
+
+        let index = this.downloads.length - 1;
+        this.reportProgress();
+
+        return (progress) => {
+            this.downloads[index].progress = progress;
+            this.reportProgress();
+        }
+    }
+
+    reportProgress(){
+        // Force to -1 if any downloads have failed
+        if (this.downloads.length > 0 && this.downloads.some((x) => x < 0))
+            this.progressCallback(-1);
+        // Force to 1 when all downloads are complete, in case of rounding errors
+        else if (this.downloads.length > 0 && this.downloads.every((x) => x == 1))
+            this.progressCallback(1);
+        else
+            this.progressCallback(this.downloads.reduce((x,y) => x+y.progress*y.size, 0) / Math.max(this.expectedTotalSize, this.downloads.reduce((x,y) => x+y.size, 0)));
+    }
 }
