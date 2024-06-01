@@ -19,6 +19,7 @@ window.addEventListener('message', function(m){
                 showLoadingContainer();
                 updateLoadingProgress(progress);
             } else {
+                updateLoadingProgress(progress);
                 hideLoadingContainer();
             }
         }, 0);

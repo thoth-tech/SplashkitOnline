@@ -16,10 +16,12 @@ function XMLHttpRequestPromise(url, progressCallback, type="GET") {
         req.addEventListener("loadend", function(event) {
             if (event.target.status != 200){
                 reject(event.target);
-                progressCallback(-1);
+                if (progressCallback != null)
+                    progressCallback(-1);
                 return;
             }
-            progressCallback(1);
+            if (progressCallback != null)
+                progressCallback(1);
             resolve(event.target);
         }, false);
 
