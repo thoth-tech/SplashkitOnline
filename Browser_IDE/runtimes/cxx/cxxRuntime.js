@@ -122,7 +122,7 @@ class ExecutionEnvironmentInternalCXX extends ExecutionEnvironmentInternal{
         // be run as soon as the program starts, and before
         // entering main.
         try {
-            await postMessageFallible(parent, {type: "mirrorRequest"});
+            await this.channel.postMessage("mirrorRequest");
         }
         catch(err){
             // should we abort running the program if this fails?
@@ -178,6 +178,7 @@ let executionEnvironment = null;
 // heavily inspired by the work here: https://blog.persistent.info/2021/08/worker-loop.html
 
 let currentServiceWorker = null;
+let serviceWorkerChannel = null;
 
 function serviceWorkerSanityCheck() {
     if (!currentServiceWorker)
@@ -200,7 +201,7 @@ async function sendAwaitableWorkerCommand(command, args) {
     if (!serviceWorkerSanityCheck())
         return;
 
-    await postMessageFallible(currentServiceWorker, {type: "programEvent", command, args});
+    await serviceWorkerChannel.postMessage("programEvent", {command, args});
 }
 
 function clearWorkerCommands(command) {
@@ -242,13 +243,7 @@ async function registerServiceWorker(){
 
         if (worker.active) {
             currentServiceWorker = worker.active;
-            navigator.serviceWorker.addEventListener('message', async function(m){
-                switch(m.data.type){
-                    case "callback":
-                        executeTempCallback(m.data);
-                        break;
-                }
-            });
+            serviceWorkerChannel = new PromiseChannel(navigator.serviceWorker, currentServiceWorker);
 
             executionEnvironment.signalReady();
         }

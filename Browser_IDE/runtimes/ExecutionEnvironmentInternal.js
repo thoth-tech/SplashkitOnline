@@ -6,73 +6,50 @@ let userCodeBlockIdentifier = "__USERCODE__";
 class ExecutionEnvironmentInternal {
     constructor(listenOn) {
         const self = this;
+
         // ------ Message Listening ------
-        listenOn.addEventListener('message', async function(m){
-            try {
-                switch(m.data.type){
-                    // --- Code Execution Functions ---
-                    case "HotReloadFile":
-                        self.hotReloadFile(m.data.name, m.data.code);
-                        break;
+        this.channel = new PromiseChannel(listenOn, parent);
+        // --- FS Handling ---
+        this.channel.setEventListener("mkdir", async function (data){
+            await self.mkdir(data.path);
+        });
+        this.channel.setEventListener("writeFile", async function (data){
+            await self.writeFile(data.path, data.data);
+        });
+        this.channel.setEventListener("rename", async function (data){
+            await self.rename(data.oldPath, data.newPath);
+        });
+        this.channel.setEventListener("rmdir", async function (data){
+            await self.rmdir(data.path, data.recursive);
+        });
+        this.channel.setEventListener("unlink", async function (data){
+            await self.unlink(data.path);
+        });
 
-                    case "ReportError":
-                        self.ReportError(userCodeBlockIdentifier + m.data.block, m.data.message, m.data.line, m.data.stackTrace, m.data.formatted);
-                        break;
-
-                    case "WriteToTerminal":
-                        self.WriteToTerminal(m.data.message);
-                        break;
-
-                    case "CleanEnvironment":
-                        self.resetExecutionScope();
-                        break;
-
-                    case "RunProgram":
-                        await self.runProgram(m.data.program);
-                        break;
-                    case "PauseProgram":
-                        await self.pauseProgram();
-                        break;
-                    case "ContinueProgram":
-                        await self.continueProgram();
-                        break;
-                    case "StopProgram":
-                        await self.stopProgram();
-                        break;
-
-                    case "callback":
-                        executeTempCallback(m.data);
-                        break;
-
-                    // --- FS Handling ---
-                    case "mkdir":
-                        await self.mkdir(m.data.path);
-                        break;
-
-                    case "writeFile":
-                        await self.writeFile(m.data.path,m.data.data);
-                        break;
-
-                    case "rename":
-                        await self.rename(m.data.oldPath,m.data.newPath);
-                        break;
-
-                    case "rmdir":
-                        await self.rmdir(m.data.path, m.data.recursive);
-                        break;
-
-                    case "unlink":
-                        await self.unlink(m.data.path);
-                        break;
-                }
-
-                resolveMessageFallible(m, undefined, parent);
-            } catch(err){
-                // TODO: Do anything other than this.
-                err = err.toString();
-                rejectMessageFallible(m, err, parent);
-                throw err;
-            }
+        // --- Code Execution Functions ---
+        this.channel.setEventListener("CleanEnvironment", async function (data){
+            await self.resetExecutionScope();
+        });
+        this.channel.setEventListener("HotReloadFile", async function (data){
+            self.hotReloadFile(data.name, data.code);
+        });
+        this.channel.setEventListener("ReportError", async function (data){
+            self.ReportError(userCodeBlockIdentifier + data.block, data.message, data.line, data.stackTrace, data.formatted);
+        });
+        this.channel.setEventListener("WriteToTerminal", async function (data){
+            self.WriteToTerminal(data.message);
+        });
+        this.channel.setEventListener("RunProgram", async function (data){
+            await self.runProgram(data.program);
+        });
+        this.channel.setEventListener("PauseProgram", async function (data){
+            await self.pauseProgram();
+        });
+        this.channel.setEventListener("ContinueProgram", async function (data){
+            await self.continueProgram();
+        });
+        this.channel.setEventListener("StopProgram", async function (data){
+            await self.stopProgram();
         });
     }
 

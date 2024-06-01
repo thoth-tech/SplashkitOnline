@@ -21,6 +21,7 @@ let SplashKitOnlineLanguageDefinitions = [
         setups: [{
             name: "JavaScript Native",
             runtimeFiles: [
+                "fallibleMessage.js",
                 "babel/babel.js", //intention is to make this a compilerFile instead
                 "moduleEventTarget.js",
                 "loadsplashkit.js",

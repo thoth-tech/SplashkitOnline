@@ -384,124 +384,85 @@ function stopProgram(){
 }
 
 // ------ Message Listening ------
-window.addEventListener('message', async function(m){
+let promiseChannel = new PromiseChannel(window, parent);
 
-    try {
+// --- FS Handling ---
+function mkdir(ev) {
+    FS.mkdir(ev.path);
+}
+function writeFile(ev) {
+    FS.writeFile(ev.path, ev.data);
+}
+function rename(ev) {
+    FS.rename(ev.oldPath, ev.newPath);
+}
+function readFile(ev) {
+    return FS.readFile(ev.path);
+}
+function unlink(ev) {
+    FS.unlink(ev.path);
+}
+function rmdir(ev) {
+    if(ev.recursive){
+        let deleteContentsRecursive = function(p){
+            let entries = FS.readdir(p);
+            for(let entry of entries){
+                if(entry == "." || entry == "..")
+                    continue;
+                // All directories contain a reference to themself
+                // and to their parent directory. Ignore them.
 
-        // --- Code Execution Functions ---
-        if (m.data.type == "HotReloadFile"){
-            await tryProcessAndRunCode(m.data.name, m.data.code);
-        }
+                let entryPath = p + "/" + entry;
+                let entryStat = FS.stat(entryPath, false);
 
-        if (m.data.type == "ReportError"){
-            ReportError(userCodeBlockIdentifier + m.data.block, m.data.message, m.data.line,m.data.stackTrace);
-        }
-
-        if (m.data.type == "CleanEnvironment"){
-            ResetExecutionScope();
-        }
-
-        if (m.data.type == "RunProgram"){
-            runProgram(m.data.program);
-        }
-        if (m.data.type == "PauseProgram"){
-            pauseProgram();
-        }
-        if (m.data.type == "ContinueProgram"){
-            continueProgram();
-        }
-        if (m.data.type == "StopProgram"){
-            stopProgram();
-        }
-
-        // --- FS Handling ---
-        if (m.data.type == "mkdir"){
-            FS.mkdir(m.data.path);
-        }
-
-        if (m.data.type == "writeFile"){
-            FS.writeFile(m.data.path,m.data.data);
-        }
-
-        if (m.data.type == "rename"){
-            FS.rename(m.data.oldPath,m.data.newPath);
-        }
-        
-        if (m.data.type == "readFile"){
-            let fileData= FS.readFile(m.data.path);
-            console.log(fileData);
-            parent.postMessage({
-                type: "callback",
-                responseCallbackID: m.data.callbackID,
-                result: fileData,
-                error: undefined,
-            }, "*");
-            return;
-        }
-        
-        if (m.data.type == "unlink"){
-            FS.unlink(m.data.path);
-        }
-
-        if (m.data.type == "rmdir"){
-            if(m.data.recursive){
-                let deleteContentsRecursive = function(p){
-                    let entries = FS.readdir(p);
-                    for(let entry of entries){
-                        if(entry == "." || entry == "..")
-                            continue;
-                        // All directories contain a reference to themself
-                        // and to their parent directory. Ignore them.
-
-                        let entryPath = p + "/" + entry;
-                        let entryStat = FS.stat(entryPath, false);
-
-                        if(FS.isDir(entryStat.mode)){
-                            deleteContentsRecursive(entryPath);
-                            FS.rmdir(entryPath);
-                        } else if(FS.isFile(entryStat.mode)){
-                            FS.unlink(entryPath);
-                        }
-
-                    }
+                if(FS.isDir(entryStat.mode)){
+                    deleteContentsRecursive(entryPath);
+                    FS.rmdir(entryPath);
+                } else if(FS.isFile(entryStat.mode)){
+                    FS.unlink(entryPath);
                 }
-                deleteContentsRecursive(m.data.path);
-                FS.rmdir(m.data.path);
-                // FS.rmdir expects the directory to be empty
-                // and will throw an error if it is not.
-            } else {
-                FS.rmdir(m.data.path);
+
             }
         }
+        deleteContentsRecursive(ev.path);
+        FS.rmdir(ev.path);
+        // FS.rmdir expects the directory to be empty
+        // and will throw an error if it is not.
+    } else {
+        FS.rmdir(ev.path);
+    }
+}
 
-        if('callbackID' in m.data){
-            parent.postMessage({
-                type: "callback",
-                responseCallbackID: m.data.callbackID,
-                error: undefined,
-            }, "*");
-        }
+promiseChannel.setEventListener('mkdir', mkdir);
+promiseChannel.setEventListener('writeFile', writeFile);
+promiseChannel.setEventListener('rename', rename);
+promiseChannel.setEventListener('readFile', readFile);
+promiseChannel.setEventListener('unlink', unlink);
+promiseChannel.setEventListener('rmdir', rmdir);
+promiseChannel.setEventListener('CleanEnvironment', ResetExecutionScope);
 
-    } catch(err){
-
-        // For good reason, postMessage cannot transfer function references.
-        // We need to sanitise err to avoid that.
-        // TODO: Do anything other than this.
-        err = err.toString();
-
-        if('callbackID' in m.data){
-            parent.postMessage({
-                type: "callback",
-                responseCallbackID: m.data.callbackID,
-                error: err,
-            }, "*");
-        }
-        else {
-            throw err;
-        }
-
+window.addEventListener('message', async function(m){
+    // --- Code Execution Functions ---
+    if (m.data.type == "HotReloadFile"){
+        await tryProcessAndRunCode(m.data.name, m.data.code);
     }
 
+    if (m.data.type == "ReportError"){
+        ReportError(userCodeBlockIdentifier + m.data.block, m.data.message, m.data.line,m.data.stackTrace);
+    }
+
+    if (m.data.type == "RunProgram"){
+        runProgram(m.data.program);
+    }
+    if (m.data.type == "PauseProgram"){
+        pauseProgram();
+    }
+    if (m.data.type == "ContinueProgram"){
+        continueProgram();
+    }
+    if (m.data.type == "StopProgram"){
+        stopProgram();
+    }
 }, false);
 
 // FS Event Forwarding

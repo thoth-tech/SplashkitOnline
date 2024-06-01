@@ -596,7 +596,7 @@ async function MirrorToExecutionEnvironment(){
                 let abs_path = path+""+node.label;
                 if (node.children != null){
                     promises.push(executionEnviroment.mkdir(abs_path));
-                    promises.push(await mirror(node.children, abs_path+"/"));
+                    await mirror(node.children, abs_path+"/");
                 }
                 else{
                     promises.push(executionEnviroment.writeFile(abs_path, await storedProject.access((project)=>project.readFile(abs_path))));
