@@ -38,14 +38,13 @@ function reportCompilerError(err){
 // create the worker - this is where Clang will run, so the main page doesn't pause
 // as it compiles.
 let w = new Worker("./compilers/cxx/cxxCompilerClangWebWorker.js");
+let promiseChannel = new PromiseChannel(w, w);
+
 export let printCompilerMessage = console.log;
 export const setPrintFunction = (func) => {printCompilerMessage = func;};
 
 w.onmessage = function(event){
     switch (event.data.type) {
-        case "callback":
-            executeTempCallback(event.data);
-            break;
         case "print":
             // Tidy up the returned messages a little
             if (event.data.message.includes("__syscall_prlimit64"))
@@ -56,6 +55,10 @@ w.onmessage = function(event){
             // output
             reportCompilerError(event.data.message);
             break;
+        case "callback":
+            break;
+        case "signalCallback":
+            break;
         default:
             console.log(event);
             throw new Error("Unexpected event in cxxCompilerClangBackend.js: "+JSON.stringify(event.data, null, 2));
@@ -63,9 +66,8 @@ w.onmessage = function(event){
 }
 
 // initialize the compilers
-await postMessageFallible(w, {
-    type: "initialize",
-    SKO: SKO,
+await promiseChannel.postMessage("initialize", {SKO}, {
+    downloadProgress: (data) => executionEnviroment.updateCompilerLoadProgress(data.progress)
 });
 
 // export functions to compile and link objects - this is used in the main cxxCompiler.js
@@ -73,15 +75,13 @@ export const compileObject = async (name, source) => {
     let output = null;
 
     try {
-        await postMessageFallible(w, {
-            type: "setupUserCode",
+        await promiseChannel.postMessage("setupUserCode", {
             codeFiles : [{
                 name: name,
                 source: source
             }]
         });
-        output = await postMessageFallible(w, {
-            type: "compileObject",
+        output = await promiseChannel.postMessage("compileObject", {
             arguments: ['-idirafter/lib/clang/16.0.4/include/', '-fdiagnostics-color=always', '-c', name, "-o", name+".o"],
             outputName: name+".o"
         });
@@ -111,13 +111,11 @@ export const linkObjects = async (objects) => {
             objectNames.push(objects[i].name+".o");
         }
 
-        await postMessageFallible(w, {
-            type: "setupUserObjects",
+        await promiseChannel.postMessage("setupUserObjects", {
             objects : objectOutputs
         });
 
-        output = await postMessageFallible(w, {
-            type: "linkObjects",
+        output = await promiseChannel.postMessage("linkObjects", {
             arguments: [
                 '-flavor',
                 'wasm',

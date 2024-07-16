@@ -35,6 +35,8 @@ let SplashKitOnlineLanguageDefinitions = [
             compilerFiles: [
                 "compilers/javascript/javascriptCompiler.js",
             ],
+            runtimeSizeAprox: 20,
+            compilerSizeAprox: 1,
             compilerName: "javascriptPatcher",
             supportHotReloading: true,
             getDefaultProject: ()=>{return makeNewProject_JavaScript;},
@@ -53,7 +55,6 @@ let SplashKitOnlineLanguageDefinitions = [
         setups: [{
             name: "C++ (Clang)",
             runtimeFiles: [
-                "fallibleMessage.js",
                 "runtimes/ExecutionEnvironmentInternal.js",
                 "runtimes/cxx/cxxRuntime.js",
                 "runtimes/cxx/bin/SplashKitBackendWASMCPP.js",
@@ -65,9 +66,10 @@ let SplashKitOnlineLanguageDefinitions = [
             compilerFiles: [
                 "external/js-lzma/src/wlzma.js",
                 "external/js-lzma/src/lzma.shim.js",
-                "downloadHandler.js",
                 "compilers/cxx/cxxCompiler.js",
             ],
+            runtimeSizeAprox: 10,
+            compilerSizeAprox: 150,
             compilerName: "cxxCompiler",
             supportHotReloading: false,
             getDefaultProject: ()=>{return makeNewProject_CXX;},

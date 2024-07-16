@@ -525,6 +525,12 @@ function prepareIDEForLoading(){
         });
     });
 
+    let waitForLanguageLoaderReady = new Promise((resolve) => {
+        executionEnviroment.addEventListener("languageLoaderReady", () => {
+            resolve();
+        });
+    });
+
     let waitForProjectAttach = new Promise((resolve) => {
         storedProject.addEventListener("attached", async () => {
             resolve();
@@ -552,6 +558,13 @@ function prepareIDEForLoading(){
     let waitForCodeExecution = new Promise((resolve) => {
         Promise.all([waitForCompilerReady, waitForInitialize, waitForMirrorCompletion]).then(function() {
             enableCodeExecution();
+            resolve();
+        });
+    });
+
+    new Promise((resolve) => {
+        Promise.all([waitForCompilerReady, waitForLanguageLoaderReady]).then(function() {
+            executionEnviroment.updateCompilerLoadProgress(1);
             resolve();
         });
     });
@@ -596,7 +609,7 @@ async function MirrorToExecutionEnvironment(){
                 let abs_path = path+""+node.label;
                 if (node.children != null){
                     promises.push(executionEnviroment.mkdir(abs_path));
-                    promises.push(await mirror(node.children, abs_path+"/"));
+                    await mirror(node.children, abs_path+"/");
                 }
                 else{
                     promises.push(executionEnviroment.writeFile(abs_path, await storedProject.access((project)=>project.readFile(abs_path))));

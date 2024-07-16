@@ -9,12 +9,12 @@ self.wlzmaCustomPath = "./../../external/js-lzma/src/wlzma.wrk.js";
 importScripts('./../../downloadHandler.js');
 
 // function to load the system libraries zip file
-async function loadSystemRootFiles(){
+async function loadSystemRootFiles(downloadSet){
     try {
-        return await downloadFile("bin/wasi-sysroot.zip", null, true);
+        return await downloadSet.downloadFile("bin/wasi-sysroot.zip", 40, true);
     }
     catch(err) {
-        throw new Error("Failed to load compiler system root files: \""+err.toString()+"\"</br> Please check that the files are installed correctly.");
+        throw new Error("Failed to load compiler system root files: \""+err.toString() + " " + err.responseURL+" "+err.statusText+"\"</br> Please check that the files are installed correctly.");
     }
 }
 
@@ -91,63 +91,49 @@ let clang = null;
 let lld = null;
 
 // main event handling for the worker
-onmessage = async function(event){
-    try {
-        switch (event.data.type) {
-            case "initialize":
-                SKO = event.data.SKO;
+let promiseChannel = new PromiseChannel(self, self);
 
-                try { importScripts('./bin/clang++.js'); }
-                catch(err) {
-                    throw new Error("Failed to load Clang++: \""+err.toString()+"\"</br> Please check that the files are installed correctly.");
-                }
+promiseChannel.setEventListener("initialize", async function(data, signal){
+    SKO = data.SKO;
 
-                try { importScripts('./bin/wasm-ld.js'); }
-                catch(err) {
-                    throw new Error("Failed to load Wasm-ld: \""+err.toString()+"\"</br> Please check that the files are installed correctly.");
-                }
-
-                let [ , rootFiles] = await Promise.all([initializeCompiler(), loadSystemRootFiles()]);
-                await initializeSystemRoot(rootFiles);
-
-                resolveMessageFallible(event);
-                break;
-            case "setupUserCode":
-                await setupUserCode(event.data.codeFiles);
-                resolveMessageFallible(event);
-                break;
-            case "compileObject":
-                resolveMessageFallible(event, await compileObject(event.data.arguments, event.data.outputName));
-                break;
-            case "setupUserObjects":
-                await setupUserObjects(event.data.objects);
-                resolveMessageFallible(event);
-                break;
-            case "linkObjects":
-                resolveMessageFallible(event, await linkObjects(event.data.arguments, event.data.outputName));
-                break;
-            default:
-                throw new Error("Unexpected event in cxxCompilerClangWebWorker.js: "+JSON.stringify(event.data, null, 2));
-        }
-
-    } catch(err){
-        // For good reason, postMessage cannot transfer function references.
-        // We need to sanitise err to avoid that.
-        // TODO: Do anything other than this.
-        err = err.toString();
-        rejectMessageFallible(event, err);
-        throw err;
+    try { importScripts('./bin/clang++.js'); }
+    catch(err) {
+        throw new Error("Failed to load Clang++: \""+err.toString()+"\"</br> Please check that the files are installed correctly.");
     }
-};
+
+    try { importScripts('./bin/wasm-ld.js'); }
+    catch(err) {
+        throw new Error("Failed to load Wasm-ld: \""+err.toString()+"\"</br> Please check that the files are installed correctly.");
+    }
+
+    let downloadSet = new DownloadSet((progress) => signal("downloadProgress", {progress}), 230);
+
+    let [ , rootFiles] = await Promise.all([initializeCompiler(downloadSet), loadSystemRootFiles(downloadSet)]);
+    await initializeSystemRoot(rootFiles);
+});
+promiseChannel.setEventListener("setupUserCode", async function(data){
+    await setupUserCode(data.codeFiles);
+});
+promiseChannel.setEventListener("compileObject", async function(data){
+    return await compileObject(data.arguments, data.outputName);
+});
+promiseChannel.setEventListener("setupUserObjects", async function(data){
+    await setupUserObjects(data.objects);
+});
+promiseChannel.setEventListener("linkObjects", async function(data){
+    return await linkObjects(data.arguments, data.outputName);
+});
 
 // initialize the compilers, and tidy their output
-async function initializeCompiler(){
+async function initializeCompiler(downloadSet){
+    let finalizer = downloadSet.addManualReporter(10);
+
     await Promise.all([
-        downloadFile("bin/clang.wasm", null, true)
+        downloadSet.downloadFile("bin/clang.wasm", 100, true)
             .then((binary) => Clang(initSettings(binary)))
             .then((result) => {clang = result;}),
 
-        downloadFile("bin/lld.wasm", null, true)
+        downloadSet.downloadFile("bin/lld.wasm", 80, true)
             .then((binary) => Lld(initSettings(binary)))
             .then((result) => {lld = result;})
     ]);
@@ -162,6 +148,8 @@ async function initializeCompiler(){
         tidyClang();
         tidyLld();
     silenceCompilerOutput = false;
+
+    finalizer(1);
 }
 
 // initialize the system files for both compilers

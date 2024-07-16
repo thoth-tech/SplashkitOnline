@@ -16,7 +16,7 @@ self.addEventListener("message", (event) => {
     if (event.data.type == "clearEvents")
         programEvents = [];
 
-    resolveMessageFallible(event, undefined, event.source);
+    resolveMessageFallibleManual(event, undefined, event.source);
 });
 
 // when /programEvents.js is accessed, return all the events
