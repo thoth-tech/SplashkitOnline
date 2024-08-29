@@ -13,11 +13,9 @@ With it you can immediately get started programming in Javascript (and experimen
 
 - [Installation](#installation)
     - [Setting up the IDE](#setting-up-the-ide)
-    - [Installing SplashKit Wasm Library](#installing-splashkit-wasm-library)
-	    - [For Pre-Built Files](#for-pre-built-files)
-	    - [For Manual Compilation](#for-manual-compilation)
 - [Project Goals and Structure](#project-goals-and-structure)
     - [Technology Used](#technology-used)
+- [SplashKit Wasm Library Manual Compilation](#splashkit-wasm-library-manual-compilation)
 - [Experimental C++ Support](#experimental-c-support)
     - [Setup](#setup)
 	    - [Installing the Compilers](#installing-the-compilers)
@@ -40,38 +38,13 @@ The IDE is just a simple node project with few dependencies, and can be setup wi
 git clone --recursive https://github.com/thoth-tech/SplashkitOnline.git
 cd SplashkitOnline/Browser_IDE/
 npm install
+```
+However, we also need to import the SplashKit library, as its not included in the repository by default. The Node server will import the necessary files automatically on start-up, but this can also be achieved with the included `setup.py` script.
+```bash
+py setup.py # optional
 npm run server
 ```
-Now you'll be able to load up `localhost:8000` in a browser and see the IDE! However, we also need to import the SplashKit library, as its not included in the repository by default. 
-
-### Installing SplashKit Wasm Library
-Installing the SplashKit library involves:
-1. Getting the SplashKit Wasm Libraries - two files called `SplashKitBackendWASM.js`, `SplashKitBackendWASM.wasm` - and copying them into `Browser_IDE/runtimes/javascript/bin/`
-3. Getting the SplashKit Autocomplete file `splashkit_autocomplete.json`, and copying it into  `Browser_IDE/splashkit/`
-
-For getting those three files, you can either [compile them yourself](#for-manual-compilation) or get [pre-built](#for-pre-built-files) ones.
-
-#### For Pre-Built Files
-You can find unofficial pre-built files for `SplashKitBackendWASM.js`, `SplashKitBackendWASM.wasm` and `splashkit_autocomplete.json` [here](https://github.com/thoth-tech/SplashkitOnline/tree/binaries/Browser_IDE/splashkit).
-
-1. Download `SplashKitBackendWASM.js` and `SplashKitBackendWASM.wasm` and copy them into `Browser_IDE/runtimes/javascript/bin/`.
-2. Next, download `splashkit_autocomplete.json`, and place it in `Browser_IDE/splashkit/`.
-
-Having done that, you're good to go! They're WebAssembly(Wasm) files so they'll run on any OS.
-
-#### For Manual Compilation
-Manual compilation is a little more involved.
-First you'll need to install Emscripten, which will be used to compile SplashKit to Wasm so it can be used in the browser. The easiest way to do this is via the `emsdk`. Installation instructions are here - [Getting Started](https://emscripten.org/docs/getting_started/downloads.html)
-
-Once you've got Emscripten installed and activated, you can compile the SplashKit Wasm library! We've included SplashKit's source code as a submodule, along with the scripts to compile it as a Wasm library, directly in this repo.
-
-Currently only cmake builds are supported, so navigate to the cmake project and build it using Emscripten's `emcmake` and `emmake` wrappers.
-```bash
-cd SplashkitOnline\SplashKitWasm\cmake
-emcmake cmake -G "Unix Makefiles" .
-emmake make
-```
-If all goes well, you should find the three files built and copied to inside `Browser_IDE/runtimes/javascript/bin/` and `Browser_IDE/splashkit/` - if so, you're done!
+Now you'll be able to load up `localhost:8000` in a browser and see the IDE!
 
 ## Project Goals and Structure
 The goal of the SplashKit Online IDE is to provide a beginner friendly programming environment targeted towards using the SplashKit library. It has REPL like functionality to allow rapid feedback, with emphasis on game related functionality like interactivity, graphics rendering and audio playback. To support this, code execution should definitely happen in the browser (hence compiling SplashKit to run in the browser), and ideally compilation does as well. Currently Javascript is the only language supported (as it is quite easy to execute in a browser), however work on involving other languages is also under way.
@@ -87,6 +60,19 @@ The SplashKit API has been exposed to the global scope of Javascript, allowing t
 
 ### SplashKit Library
 The SplashKit library handles all input, graphics, audio and file handling, and is invoked by the user's Javascript. The library has been compiled into a WebAssembly (Wasm) module via Emscripten. This module is loaded into the page as soon as the IDE starts, and the functions in it exported as Javascript functions.
+
+## SplashKit Wasm Library Manual Compilation
+First you'll need to install Emscripten, which will be used to compile SplashKit to Wasm so it can be used in the browser. The easiest way to do this is via the `emsdk`. Installation instructions are here - [Getting Started](https://emscripten.org/docs/getting_started/downloads.html)
+
+Once you've got Emscripten installed and activated, you can compile the SplashKit Wasm library! We've included SplashKit's source code as a submodule, along with the scripts to compile it as a Wasm library, directly in this repo.
+
+Currently only cmake builds are supported, so navigate to the cmake project and build it using Emscripten's `emcmake` and `emmake` wrappers.
+```bash
+cd SplashkitOnline\SplashKitWasm\cmake
+emcmake cmake -G "Unix Makefiles" .
+emmake make
+```
+If all goes well, you should find the three files built and copied to inside `Browser_IDE/runtimes/javascript/bin/` and `Browser_IDE/splashkit/` - if so, you're done!
 
 # Experimental C++ Support
 It is also possible to use C++ within SplashKit Online! This is still experimental, and as such is missing some features and can be a bit unstable. However, the majority of graphics, audio, and input functionality works, and you can use it to compile and test regular C++ programs too!
@@ -105,10 +91,7 @@ Currently the binaries for the compilers can be found unoficially [here](https:/
 2. Extract the files in it, and place them all inside `/Browser_IDE/compilers/cxx/bin/`
 3. You'll also need [wasi-sysroot.zip](https://github.com/WhyPenguins/SplashkitOnline/blob/cxx_language_backend_binaries/Browser_IDE/compilers/cxx/bin/wasi-sysroot.zip) - this goes in the same directory (don't unzip it!)
 
-### Installing the C++ Runtime
-1. Download the files `SplashKitBackendWASMCPP.js` and `SplashKitBackendWASMCPP.worker.js` from [here](https://github.com/WhyPenguins/SplashkitOnline/tree/cxx_language_backend_binaries/Browser_IDE/runtimes/cxx/bin), and place them in `Browser_IDE/runtimes/cxx/bin/`
-
-#### (Optional) For Manual Compilation
+####  Manual Compilation
 If you want to compile some of this yourself, currently the repository supports building both the C++/JavaScript runtimes, and the Compiler System Root Files (partially).
 
 To compile these:
