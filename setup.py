@@ -1,3 +1,6 @@
+#
+#   NOTE: ENSURE /Browser_IDE/setup.js MAINTAINS PARITY
+#
 
 import zipfile
 import urllib.request
@@ -13,7 +16,6 @@ cxx_runtime_dir = "./Browser_IDE/runtimes/cxx/bin/"
 def download(repo_path, src, dst):
     print("Downloading " + src + "...")
     urllib.request.urlretrieve(repo_path + src, dst + os.path.basename(src))
-    pass
 
 # Language-agnostic files
 download(thoth_tech_repo_path, "binaries/Browser_IDE/splashkit/splashkit_autocomplete.json", "./Browser_IDE/splashkit/")
