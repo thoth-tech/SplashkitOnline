@@ -1,5 +1,5 @@
 /*
-    NOTE: MAINTAIN PARITY WITH ../setup.py
+    NOTE: MAINTAIN PARITY WITH /Browser_IDE/setup.py
 */
 
 const request = require('request');
