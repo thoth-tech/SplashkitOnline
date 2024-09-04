@@ -51,7 +51,8 @@
 	<div class="sk-main-columns">
 		<div class="sk-column" id="fileViewContainer">
 			<div class="sk-header sk-header-indent">
-				FILES
+				<button id="collapseFiles" type="button"><i class="bi bi-upload"></i></button>
+				<span>FILES</span>
 			</div>
 			<input type="file" id="fileuploader" onchange="uploadFileFromInput()" style="display:none;">
 			<input type="file" id="projectuploader" onchange="uploadProjectFromInput()" style="display:none;">
@@ -79,9 +80,10 @@
 		<div class="sk-column" id="runtimeContainer">
 			<div class="sk-header sk-header-indent">
 				<div class="flex-column">
-					PROGRAM
+					<button id="collapseProgram" type="button"><i class="bi bi-upload"></i></button>
+					<span>PROGRAM</span>
 				</div>
-				<div class="flex-column">
+				<div id="programButtonsGroup" class="flex-column">
 					<button type="button" id="restartProgram" style="display:none"><i class="bi bi-arrow-repeat">Restart</i></button>
 					<button type="button" id="continueProgram" style="display:none"><i class="bi bi-play-fill">Continue</i></button>
 					<button type="button" id="runProgram"><i style="position: absolute; font-size: 0.5em; margin-left: -0.1em; margin-top: 0.64em; opacity: 0.5;" class="bi bi-gear-fill"></i><i class="bi bi-play-fill">Build and Run</i></button>

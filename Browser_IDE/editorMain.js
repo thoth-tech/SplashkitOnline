@@ -105,6 +105,11 @@ class CodeViewer {
             }
         });
 
+        // TODO: this works, but i need to find a permanent place for it
+        if (SKO.useMinifiedInterface) {
+            document.body.classList.add("sk-minified");
+        }
+
         editor.display.wrapper.classList.add("sk-contents");
         return editor;
     }
@@ -360,6 +365,9 @@ let runProgramButton = document.getElementById("runProgram");
 let restartProgramButton = document.getElementById("restartProgram");
 let stopProgramButton = document.getElementById("stopProgram");
 let continueProgramButton = document.getElementById("continueProgram");
+
+let collapseFilesButton = document.getElementById("collapseFiles");
+let collapseProgramButton = document.getElementById("collapseProgram");
 
 var sizes = localStorage.getItem('sk-online-split-sizes')
 
@@ -866,6 +874,102 @@ updateCodeButton.addEventListener("click", function () {
     else
         currentEditor.syntaxCheck();
 });
+
+function collapseFilesView() {
+    // Get the file view container
+    let fileViewContainer = document.getElementById("fileViewContainer");
+    // Toggle collapsed class
+    fileViewContainer.classList.toggle('collapsed');
+    // Get the header and contents
+    let fileViewHeader = fileViewContainer.querySelector('.sk-header');
+    let fileViewContents = fileViewContainer.querySelector('.sk-contents');
+    // Get the header text
+    let headerText = fileViewHeader.querySelector('span');
+
+    // Get original fileViewContainer width
+    let originalWidth = fileViewContainer.style.width;
+    // Store the original width into a property of the element
+    if (!fileViewContainer.originalWidth) {
+        fileViewContainer.originalWidth = originalWidth;
+    }
+
+    // Hide the contents
+    if (fileViewContainer.classList.contains('collapsed')) {
+        fileViewContents.style.display = 'none';
+        headerText.style.display = 'none';
+        fileViewHeader.style.padding = '0';
+        fileViewContainer.style.width = 'auto';
+        fileViewContainer.style.flexGrow = '0';
+    } else {
+        fileViewContents.style.display = '';
+        headerText.style.display = '';
+        fileViewHeader.style.padding = '';
+        fileViewContainer.style.width = fileViewContainer.originalWidth;
+        // Remove the property
+        delete fileViewContainer.originalWidth;
+    }
+}
+
+if (SKO.useMinifiedInterface) {
+    collapseFilesView();
+}
+
+// fileViewContainer is the id of the file view container
+collapseFilesButton.addEventListener("click", collapseFilesView);
+
+function collapseProgramView() {
+    // Get #ExecutionEnvironment
+    let runtimeContainer = document.getElementById("runtimeContainer");
+    // Get the div with the id of ExecutionEnvironment
+    let executionEnvironment = document.getElementById("ExecutionEnvironment");
+    // Get original runtimeContainer width
+    let originalWidth = runtimeContainer.style.width;
+    // Store the original width into a property of the element
+    if (!runtimeContainer.originalWidth) {
+        runtimeContainer.originalWidth = originalWidth;
+    }
+    // Get the .sk-header under #ExecutionEnvironment
+    let runtimeHeader = runtimeContainer.querySelector('.sk-header');
+    // Get the span text
+    let headerText = runtimeHeader.querySelector('span');
+    // Get #programButtonsGroup
+    let programButtonsGroup = document.getElementById("programButtonsGroup");
+    // Toggle collapsed class
+    runtimeContainer.classList.toggle('collapsed');
+    // Hide runtimeContainer
+    if (runtimeContainer.classList.contains('collapsed')) {
+        executionEnvironment.style.display = 'none';
+        // Hide programButtonsGroup
+        programButtonsGroup.style.display = 'none';
+        // 0 padding for runtimeHeader
+        runtimeHeader.style.padding = '0';
+        // Set width to auto
+        runtimeContainer.style.width = 'auto';
+        // Set flex-grow to 0
+        runtimeContainer.style.flexGrow = '0';
+        // Hide the header text
+        headerText.style.display = 'none';
+    } else {
+        executionEnvironment.style.display = '';
+        programButtonsGroup.style.display = '';
+        runtimeHeader.style.padding = '';
+        // Set width to originalWidth
+        runtimeContainer.style.width = runtimeContainer.originalWidth;
+        // Remove the property
+        delete runtimeContainer.originalWidth;
+        // Reset flex-grow
+        runtimeContainer.style.flexGrow = '';
+        // Show the header text
+        headerText.style.display = '';
+    }
+}
+
+if (SKO.useMinifiedInterface) {
+    collapseProgramView();
+}
+
+// runtimeContainer is the id of the runtime container
+collapseProgramButton.addEventListener("click", collapseProgramView);
 
 // Add events to new file source file button
 document.getElementById("addSourceFile").addEventListener("click", function (event) {
