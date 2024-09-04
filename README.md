@@ -41,7 +41,7 @@ npm install
 ```
 However, we also need to import the SplashKit library, as its not included in the repository by default. The Node server will import the necessary files automatically on start-up, but this can also be achieved with the included `setup.py` script.
 ```bash
-py setup.py # optional
+python3 setup.py # optional
 npm run server
 ```
 Now you'll be able to load up `localhost:8000` in a browser and see the IDE!
