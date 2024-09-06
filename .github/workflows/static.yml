@@ -39,13 +39,34 @@ jobs:
         working-directory: ./Browser_IDE
         run: |
           npm install
+      - name: shuffle folders
+        working-directory: ./Browser_IDE
+        run: |
+          mv node_modules/codemirror codemirror-5.65.15
+          mv node_modules/jszip/dist jszip
+          mv node_modules/@babel/standalone babel
+          mv node_modules/split.js/dist split.js
+          mv node_modules/mime/dist mime
+      - name: download binaries #(hacky, please improve!) See https://github.com/thoth-tech/SplashkitOnline/pull/85
+        working-directory: ./Browser_IDE
+        run: |
+          wget -O splashkit/splashkit_autocomplete.json https://raw.githubusercontent.com/WhyPenguins/SplashkitOnline/github-live/Browser_IDE/splashkit/splashkit_autocomplete.json
+          wget -O runtimes/javascript/bin/SplashKitBackendWASM.js https://raw.githubusercontent.com/WhyPenguins/SplashkitOnline/github-live/Browser_IDE/runtimes/javascript/bin/SplashKitBackendWASM.js
+          wget -O runtimes/javascript/bin/SplashKitBackendWASM.wasm https://raw.githubusercontent.com/WhyPenguins/SplashkitOnline/github-live/Browser_IDE/runtimes/javascript/bin/SplashKitBackendWASM.wasm
+          wget -O compilers/cxx/bin/wasi-sysroot.zip.lzma https://raw.githubusercontent.com/WhyPenguins/SplashkitOnline/github-live/Browser_IDE/compilers/cxx/bin/wasi-sysroot.zip.lzma
+          wget -O compilers/cxx/bin/clang++.js https://raw.githubusercontent.com/WhyPenguins/SplashkitOnline/github-live/Browser_IDE/compilers/cxx/bin/clang++.js
+          wget -O compilers/cxx/bin/clang.wasm.lzma https://raw.githubusercontent.com/WhyPenguins/SplashkitOnline/github-live/Browser_IDE/compilers/cxx/bin/clang.wasm.lzma
+          wget -O compilers/cxx/bin/wasm-ld.js https://raw.githubusercontent.com/WhyPenguins/SplashkitOnline/github-live/Browser_IDE/compilers/cxx/bin/wasm-ld.js
+          wget -O compilers/cxx/bin/lld.wasm.lzma https://raw.githubusercontent.com/WhyPenguins/SplashkitOnline/github-live/Browser_IDE/compilers/cxx/bin/lld.wasm.lzma
+          wget -O runtimes/cxx/bin/SplashKitBackendWASMCPP.js https://raw.githubusercontent.com/WhyPenguins/SplashkitOnline/github-live/Browser_IDE/runtimes/cxx/bin/SplashKitBackendWASMCPP.js
+          wget -O runtimes/cxx/bin/SplashKitBackendWASMCPP.worker.js https://raw.githubusercontent.com/WhyPenguins/SplashkitOnline/github-live/Browser_IDE/runtimes/cxx/bin/SplashKitBackendWASMCPP.worker.js
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # Upload entire repository
-          path: '.'
+          # Upload IDE site
+          path: './Browser_IDE'
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
