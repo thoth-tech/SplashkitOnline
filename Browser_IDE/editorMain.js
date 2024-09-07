@@ -1104,6 +1104,14 @@ function openProjectFile(filename) {
     }
 }
 
+async function loadProjectFromURL(url){
+    return fetch(url).then(res => res.blob()).then(async blob => {
+        await newProject(function(){});
+        await projectFromZip(blob);
+        openCodeEditors();
+    });
+}
+
 // ------ Project Zipping/Unzipping Click Handling ------
 async function uploadProjectFromInput(){
     let reader = new FileReader();
@@ -1123,6 +1131,13 @@ document.getElementById("UploadProject").addEventListener("click", function (e) 
 });
 document.getElementById("NewProject").addEventListener("click", async function (e) {
     newProject(activeLanguageSetup.getDefaultProject());
+    e.stopPropagation();
+});
+document.getElementById("LoadDemo").addEventListener("click", async function (e) {
+    if (activeLanguage.name == "JavaScript")
+        loadProjectFromURL('https://raw.githubusercontent.com/thoth-tech/SplashkitOnline/main/DemoProjects/CaveEscape.zip');
+    else
+        loadProjectFromURL('https://raw.githubusercontent.com/thoth-tech/SplashkitOnline/main/DemoProjects/CaveEscapeCXX.zip');
     e.stopPropagation();
 });
 
@@ -1274,4 +1289,3 @@ window.addEventListener("filesystemError", async function(ev){
         errorModal.dispose();
     });
 });
-
