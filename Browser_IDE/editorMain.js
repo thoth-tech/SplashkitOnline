@@ -880,11 +880,9 @@ function collapseFilesView() {
     let fileViewContainer = document.getElementById("fileViewContainer");
     // Toggle collapsed class
     fileViewContainer.classList.toggle('collapsed');
-    // Get the header and contents
-    let fileViewHeader = fileViewContainer.querySelector('.sk-header');
-    let fileViewContents = fileViewContainer.querySelector('.sk-contents');
-    // Get the header text
-    let headerText = fileViewHeader.querySelector('span');
+
+    // Get #filesGroup
+    let filesGroup = document.getElementById("filesGroup");
 
     // Get original fileViewContainer width
     let originalWidth = fileViewContainer.style.width;
@@ -893,26 +891,36 @@ function collapseFilesView() {
         fileViewContainer.originalWidth = originalWidth;
     }
 
+    // Get the sibling element before runtimeContainer
+    let gutter = fileViewContainer.nextElementSibling;
+
     // Hide the contents
     if (fileViewContainer.classList.contains('collapsed')) {
-        fileViewContents.style.display = 'none';
-        headerText.style.display = 'none';
-        fileViewHeader.style.padding = '0';
+        // Set pointer events to none for the gutter
+        gutter.style.pointerEvents = 'none';
+        // Hide filesGroup
+        filesGroup.style.display = 'none';
         fileViewContainer.style.width = 'auto';
-        fileViewContainer.style.flexGrow = '0';
+        // If the file view container is collapsed, make sure the file collapse button bi-chevron-double-right is shown and the bi-chevron-double-left is hidden
+        document.getElementById("collapseFiles").children[0].classList.remove('bi-chevron-double-left');
+        document.getElementById("collapseFiles").children[0].classList.add('bi-chevron-double-right');
     } else {
-        fileViewContents.style.display = '';
-        headerText.style.display = '';
-        fileViewHeader.style.padding = '';
+        // Reset pointer events
+        gutter.style.pointerEvents = '';
+        // Show filesGroup
+        filesGroup.style.display = '';
         fileViewContainer.style.width = fileViewContainer.originalWidth;
         // Remove the property
         delete fileViewContainer.originalWidth;
+        // If the file view container is not collapsed, make sure the file collapse button bi-chevron-double-right is hidden and the bi-chevron-double-left is shown
+        document.getElementById("collapseFiles").children[0].classList.remove('bi-chevron-double-right');
+        document.getElementById("collapseFiles").children[0].classList.add('bi-chevron-double-left');
     }
 }
 
-if (SKO.useMinifiedInterface) {
-    collapseFilesView();
-}
+// if (SKO.useMinifiedInterface) {
+//     collapseFilesView();
+// }
 
 // fileViewContainer is the id of the file view container
 collapseFilesButton.addEventListener("click", collapseFilesView);
@@ -920,53 +928,55 @@ collapseFilesButton.addEventListener("click", collapseFilesView);
 function collapseProgramView() {
     // Get #ExecutionEnvironment
     let runtimeContainer = document.getElementById("runtimeContainer");
-    // Get the div with the id of ExecutionEnvironment
-    let executionEnvironment = document.getElementById("ExecutionEnvironment");
     // Get original runtimeContainer width
     let originalWidth = runtimeContainer.style.width;
     // Store the original width into a property of the element
     if (!runtimeContainer.originalWidth) {
         runtimeContainer.originalWidth = originalWidth;
     }
-    // Get the .sk-header under #ExecutionEnvironment
-    let runtimeHeader = runtimeContainer.querySelector('.sk-header');
-    // Get the span text
-    let headerText = runtimeHeader.querySelector('span');
-    // Get #programButtonsGroup
-    let programButtonsGroup = document.getElementById("programButtonsGroup");
     // Toggle collapsed class
     runtimeContainer.classList.toggle('collapsed');
+
+    // Get id programGroup
+    let programGroup = document.getElementById("programGroup");
+
+    // Get the sibling element after fileViewContainer
+    let gutter = runtimeContainer.previousElementSibling;
+
     // Hide runtimeContainer
     if (runtimeContainer.classList.contains('collapsed')) {
-        executionEnvironment.style.display = 'none';
-        // Hide programButtonsGroup
-        programButtonsGroup.style.display = 'none';
-        // 0 padding for runtimeHeader
-        runtimeHeader.style.padding = '0';
+        // Set pointer events to none for the gutter
+        gutter.style.pointerEvents = 'none';
+
+        // If the runtimeContainer is collapsed, make sure the program collapse button bi-chevron-double-left is shown and the bi-chevron-double-right is hidden
+        document.getElementById("collapseProgram").children[0].classList.remove('bi-chevron-double-right');
+        document.getElementById("collapseProgram").children[0].classList.add('bi-chevron-double-left');
+
         // Set width to auto
         runtimeContainer.style.width = 'auto';
-        // Set flex-grow to 0
-        runtimeContainer.style.flexGrow = '0';
-        // Hide the header text
-        headerText.style.display = 'none';
+        // Hide programGroup
+        programGroup.style.display = 'none';
     } else {
-        executionEnvironment.style.display = '';
-        programButtonsGroup.style.display = '';
-        runtimeHeader.style.padding = '';
+        // Reset pointer events
+        gutter.style.pointerEvents = '';
+
         // Set width to originalWidth
         runtimeContainer.style.width = runtimeContainer.originalWidth;
         // Remove the property
         delete runtimeContainer.originalWidth;
-        // Reset flex-grow
-        runtimeContainer.style.flexGrow = '';
-        // Show the header text
-        headerText.style.display = '';
+        // Show programGroup
+        programGroup.style.display = '';
+
+        // If the runtimeContainer is not collapsed, make sure the program collapse button bi-chevron-double-left is hidden and the bi-chevron-double-right is shown
+        document.getElementById("collapseProgram").children[0].classList.remove('bi-chevron-double-left');
+        document.getElementById("collapseProgram").children[0].classList.add('bi-chevron-double-right');
     }
 }
 
-if (SKO.useMinifiedInterface) {
-    collapseProgramView();
-}
+// TODO: there is a bug where if you start it collapsed, for some reason resizing doesn't work
+// if (SKO.useMinifiedInterface) {
+//     collapseProgramView();
+// }
 
 // runtimeContainer is the id of the runtime container
 collapseProgramButton.addEventListener("click", collapseProgramView);
