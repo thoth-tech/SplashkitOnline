@@ -1134,10 +1134,7 @@ document.getElementById("NewProject").addEventListener("click", async function (
     e.stopPropagation();
 });
 document.getElementById("LoadDemo").addEventListener("click", async function (e) {
-    if (activeLanguage.name == "JavaScript")
-        loadProjectFromURL('https://raw.githubusercontent.com/thoth-tech/SplashkitOnline/main/DemoProjects/CaveEscape.zip');
-    else
-        loadProjectFromURL('https://raw.githubusercontent.com/thoth-tech/SplashkitOnline/main/DemoProjects/CaveEscapeCXX.zip');
+    ShowProjectLoader("Choose a demo project:", LoadDemoProjects);
     e.stopPropagation();
 });
 

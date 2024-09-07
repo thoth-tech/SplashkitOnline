@@ -25,3 +25,15 @@ function elem(tag, attrs = {}, childElems = []){
 function elemFromText(text) {
     return new DOMParser().parseFromString(text, "text/html").body;
 }
+
+// Thanks alvarodms!
+// https://stackoverflow.com/a/33424474
+function removeFadeOut( el, speed ) {
+    var seconds = speed/1000;
+    el.style.transition = "opacity "+seconds+"s ease";
+
+    el.style.opacity = 0;
+    setTimeout(function() {
+        el.parentNode.removeChild(el);
+    }, speed);
+}
