@@ -49,6 +49,7 @@ jobs:
           mv node_modules/@babel/standalone babel
           mv node_modules/split.js/dist split.js
           mv node_modules/mime/dist mime
+          mv ../DemoProjects DemoProjects
       - name: download binaries #(hacky, please improve!) See https://github.com/thoth-tech/SplashkitOnline/pull/85
         working-directory: ./Browser_IDE
         run: |
