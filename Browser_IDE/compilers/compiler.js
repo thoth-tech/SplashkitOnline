@@ -32,7 +32,7 @@ class Compiler{
         this.name = "";
     }
 
-    async compileAll(sourceList, print){throw new Error("CompileAll not supported in current compiler!");}
+    async compileAll(compileList, sourceList, print){throw new Error("CompileAll not supported in current compiler!");}
     async compileOne(name, source, print){throw new Error("CompileOne not supported in current compiler!");}
     async syntaxCheckOne(name, source, print){throw new Error("SyntaxCheckOne not supported in current compiler!");}
 

@@ -772,6 +772,7 @@ async function runProgram(){
             };
         }
         let compilableFiles = await findAllCompilableFiles();
+        let sourceFiles = await findAllSourceFiles();
         if (compilableFiles.length == 0) {
             displayEditorNotification("Project has no source files! In a "+activeLanguage.name+" project, valid source files end with:</br><ul>"+
                 activeLanguage.compilableExtensions.map((s)=>"<li>."+s+"</li>").join("")+"</ul>",
@@ -780,7 +781,7 @@ async function runProgram(){
             return;
         }
 
-        let compiled = await currentCompiler.compileAll(await Promise.all(compilableFiles.map(mapBit)), reportCompilationError);
+        let compiled = await currentCompiler.compileAll(await Promise.all(compilableFiles.map(mapBit)), await Promise.all(sourceFiles.map(mapBit)), reportCompilationError);
 
         if (compiled.output != null) {
             executionEnviroment.runProgram(compiled.output);
