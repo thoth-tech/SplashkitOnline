@@ -1,6 +1,14 @@
 [
 	[
 		{
+			"title": "Under the Surface",
+			"language": "C++",
+			"file": "DemoProjects/UnderTheSurface.zip",
+			"thumbnail": "DemoProjects/metadata/UnderTheSurface.png"
+		}
+	],
+	[
+		{
 			"title": "Cave Escape (JavaScript)",
 			"language": "JavaScript",
 			"file": "DemoProjects/CaveEscape.zip",
