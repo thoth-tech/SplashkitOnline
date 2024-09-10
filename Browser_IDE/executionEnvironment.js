@@ -6,6 +6,17 @@ const ExecutionStatus = {
   Paused: 'Paused'
 };
 
+// useful util functions from Claude - https://stackoverflow.com/a/70789108, thanks!
+function getPromiseFromEvent(item, event) {
+  return new Promise((resolve) => {
+    const listener = () => {
+      item.removeEventListener(event, listener);
+      resolve();
+    }
+    item.addEventListener(event, listener);
+  })
+}
+
 class ExecutionEnvironment extends EventTarget{
 
     constructor(container, language) {
@@ -13,12 +24,16 @@ class ExecutionEnvironment extends EventTarget{
 
         this.language = language;
         this.container = container;
-        this.iFrame = this._constructiFrame(container, language);
-
-        let EE = this;
 
         this.hasRunOnce = false;
         this.executionStatus = ExecutionStatus.Unstarted;
+        this.readyForExecution = false;
+    }
+
+    async initialize(){
+        this.iFrame = this._constructiFrame(this.container, this.language);
+
+        let EE = this;
         this.channel = new PromiseChannel(window, this.iFrame.contentWindow);
 
         this.channel.setEventListener('mirrorRequest', async function(ev) {
@@ -116,6 +131,9 @@ class ExecutionEnvironment extends EventTarget{
                 }
             }
         });
+
+        await getPromiseFromEvent(this, "initialized");
+        this.readyForExecution = true;
     }
 
     // Public Facing Methods
@@ -179,9 +197,14 @@ class ExecutionEnvironment extends EventTarget{
     resetEnvironment(language=null){
         return new Promise((resolve,reject) => {
 
+            this.readyForExecution = false;
             this.iFrame.remove();
 
-            let f = function(ev){this.removeEventListener("initialized", f);resolve();}
+            let f = function(ev){
+                this.removeEventListener("initialized", f);
+                this.readyForExecution = true;
+                resolve();
+            }
             this.addEventListener("initialized", f);
 
             if (language)
@@ -240,26 +263,27 @@ class ExecutionEnvironment extends EventTarget{
         }, "*");
     }
 
-	reportError(file, lineNumber, message, formatted=false) {
-		this.iFrame.contentWindow.postMessage({
-			type: "ReportError",
-			block: file,
-			line: lineNumber,
-			message: message,
-			formatted: formatted,
-		}, "*");
-	}
-	writeToTerminal(message) {
-		this.iFrame.contentWindow.postMessage({
-			type: "WriteToTerminal",
-			message: message,
-		}, "*");
-	}
+    reportError(file, lineNumber, message, formatted=false) {
+        this.iFrame.contentWindow.postMessage({
+            type: "ReportError",
+            block: file,
+            line: lineNumber,
+            message: message,
+            formatted: formatted,
+        }, "*");
+    }
+    writeToTerminal(message) {
+        this.iFrame.contentWindow.postMessage({
+            type: "WriteToTerminal",
+            message: message,
+        }, "*");
+    }
 
     _constructiFrame(container, language){
-
+        this.readyForExecution = false;
         var iframe = document.createElement('iframe');
-        iframe.id="iframetest";
+
+        iframe.id="iframetest"; // this code is primordial...
         if (language.needsSandbox)
             iframe.sandbox = 'allow-scripts allow-modals';
 

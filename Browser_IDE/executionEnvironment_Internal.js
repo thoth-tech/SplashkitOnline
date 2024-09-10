@@ -145,12 +145,7 @@ moduleEvents.addEventListener("onRuntimeInitialized", function() {
         free_notifier_callbacks.clear();
         sprite_event_callbacks.clear();
     }
-
-
-    isInitialized = true;
 });
-
-
 
 // ------ Code Running ------
 let finishResetNextRun = false;
@@ -496,5 +491,6 @@ moduleEvents.addEventListener("onRuntimeInitialized", function() {
         postFSEvent({type: "onOpenFile", path: e.path});
     });
 
+    isInitialized = true;
     parent.postMessage({type:"initialized"},"*");
 });

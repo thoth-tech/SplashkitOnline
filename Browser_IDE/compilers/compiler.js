@@ -2,6 +2,8 @@
 
 // Utility function to instantiate a language's compiler scripts
 function initializeLanguageCompilerFiles(language){
+    let ret = getPromiseFromEvent(registeredCompilersEvents, "compilerReady");
+
     // load in the script files for this language/setup
     for (let script of language.compilerFiles){
         var s = document.createElement("script");
@@ -10,6 +12,8 @@ function initializeLanguageCompilerFiles(language){
         s.async = false;
         document.documentElement.appendChild(s);
     }
+
+    return ret;
 }
 
 // Compiler registry
