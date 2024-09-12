@@ -105,11 +105,6 @@ class CodeViewer {
             }
         });
 
-        // TODO: this works, but i need to find a permanent place for it
-        if (SKO.useMinifiedInterface) {
-            document.body.classList.add("sk-minified");
-        }
-
         editor.display.wrapper.classList.add("sk-contents");
         return editor;
     }
@@ -357,7 +352,9 @@ async function saveAllOpenCode() {
     await Promise.all(promises);
 }
 
-
+// Add the sk-minified class to the body if the minified interface option is enabled
+// that way we can style the interface differently
+if (SKO.useMinifiedInterface) document.body.classList.add("sk-minified");
 
 let updateCodeButton = document.getElementById("runOne");
 
