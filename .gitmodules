@@ -4,4 +4,4 @@
 	ignore = dirty
 [submodule "Browser_IDE/external/js-lzma"]
 	path = Browser_IDE/external/js-lzma
-	url = https://github.com/jcmellado/js-lzma
+	url = https://github.com/WhyPenguins/js-lzma
