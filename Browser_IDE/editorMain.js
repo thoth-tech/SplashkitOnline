@@ -366,8 +366,10 @@ let restartProgramButton = document.getElementById("restartProgram");
 let stopProgramButton = document.getElementById("stopProgram");
 let continueProgramButton = document.getElementById("continueProgram");
 
-let collapseFilesButton = document.getElementById("collapseFiles");
-let collapseProgramButton = document.getElementById("collapseProgram");
+let collapsedRunProgramButton = document.getElementById("collapsedRunProgram");
+let collapsedRestartProgramButton = document.getElementById("collapsedRestartProgram");
+let collapsedStopProgramButton = document.getElementById("collapsedStopProgram");
+let collapsedContinueProgramButton = document.getElementById("collapsedContinueProgram");
 
 var sizes = localStorage.getItem('sk-online-split-sizes')
 
@@ -860,6 +862,17 @@ function updateButtons(){
     continueProgramButton.style.display = !continueProgramButtonOn?"none":"";
     restartProgramButton.style.display = !restartProgramButtonOn?"none":"";
     stopProgramButton.style.display = !stopProgramButtonOn?"none":"";
+
+    // Collapsed view buttons also need to be updated
+    collapsedRunProgramButton.disabled = !(allowExecution && runProgramButtonOn);
+    collapsedContinueProgramButton.disabled = !(allowExecution && continueProgramButtonOn);
+    collapsedRestartProgramButton.disabled = !(allowExecution && restartProgramButtonOn);
+    collapsedStopProgramButton.disabled = !(allowExecution && stopProgramButtonOn);
+
+    collapsedRunProgramButton.style.display = !runProgramButtonOn?"none":"";
+    collapsedContinueProgramButton.style.display = !continueProgramButtonOn?"none":"";
+    collapsedRestartProgramButton.style.display = !restartProgramButtonOn?"none":"";
+    collapsedStopProgramButton.style.display = !stopProgramButtonOn?"none":"";
 }
 updateButtons();
 
@@ -875,111 +888,60 @@ updateCodeButton.addEventListener("click", function () {
         currentEditor.syntaxCheck();
 });
 
-function collapseFilesView() {
-    // Get the file view container
-    let fileViewContainer = document.getElementById("fileViewContainer");
-    // Toggle collapsed class
-    fileViewContainer.classList.toggle('collapsed');
+/*
+Toggle collapsed view
 
-    // Get #filesGroup
-    let filesGroup = document.getElementById("filesGroup");
+Example HTML for a collapsible view:
+    <div id="viewContainer">
+        <div class="sk-column">
+            <!-- Main view -->
+        </div>
+        <div class="sk-collapsed-column sk-hidden">
+            <!-- Collapsed view -->
+        </div>
+    </div>
+*/
+function collapseViewToggle(containerId) {
+    // Get the container, the main view, and the collapsed view
+    let viewContainer = document.getElementById(containerId);
+    // The first child should be the main view, the second should be the collapsed view
+    let view = viewContainer.firstElementChild;
+    let collapsedView = viewContainer.lastElementChild;
 
-    // Get original fileViewContainer width
-    let originalWidth = fileViewContainer.style.width;
-    // Store the original width into a property of the element
-    if (!fileViewContainer.originalWidth) {
-        fileViewContainer.originalWidth = originalWidth;
-    }
+    // Toggle the visibility of the main view and the collapsed view
+    view.classList.toggle("sk-hidden");
+    collapsedView.classList.toggle("sk-hidden");
 
-    // Get the sibling element before runtimeContainer
-    let gutter = fileViewContainer.nextElementSibling;
-
-    // Hide the contents
-    if (fileViewContainer.classList.contains('collapsed')) {
-        // Set pointer events to none for the gutter
-        gutter.style.pointerEvents = 'none';
-        // Hide filesGroup
-        filesGroup.style.display = 'none';
-        fileViewContainer.style.width = 'auto';
-        // If the file view container is collapsed, make sure the file collapse button bi-chevron-double-right is shown and the bi-chevron-double-left is hidden
-        document.getElementById("collapseFiles").children[0].classList.remove('bi-chevron-double-left');
-        document.getElementById("collapseFiles").children[0].classList.add('bi-chevron-double-right');
+    // Restore the original width of the view container if it was saved
+    // Otherwise, save the original width and set the width to auto
+    if (viewContainer.dataset.originalWidth) {
+        viewContainer.style.width = viewContainer.dataset.originalWidth;
+        delete viewContainer.dataset.originalWidth;
     } else {
-        // Reset pointer events
-        gutter.style.pointerEvents = '';
-        // Show filesGroup
-        filesGroup.style.display = '';
-        fileViewContainer.style.width = fileViewContainer.originalWidth;
-        // Remove the property
-        delete fileViewContainer.originalWidth;
-        // If the file view container is not collapsed, make sure the file collapse button bi-chevron-double-right is hidden and the bi-chevron-double-left is shown
-        document.getElementById("collapseFiles").children[0].classList.remove('bi-chevron-double-right');
-        document.getElementById("collapseFiles").children[0].classList.add('bi-chevron-double-left');
+        viewContainer.dataset.originalWidth = viewContainer.style.width;
+        viewContainer.style.width = "auto";
     }
+
+    // Prevent the user from being able to resize the view when the view is collapsed
+    // The gutter is placed either before or after the view container depending on which side of the screen the view is on
+    let gutter = viewContainer.previousElementSibling || viewContainer.nextElementSibling;
+    if (!gutter.firstChild.classList.contains("gutter")) gutter = viewContainer.previousElementSibling || viewContainer.nextElementSibling;
+    gutter.style.pointerEvents = view.classList.contains("sk-hidden") ? "none" : "";
 }
 
-// if (SKO.useMinifiedInterface) {
-//     collapseFilesView();
-// }
-
-// fileViewContainer is the id of the file view container
-collapseFilesButton.addEventListener("click", collapseFilesView);
-
-function collapseProgramView() {
-    // Get #ExecutionEnvironment
-    let runtimeContainer = document.getElementById("runtimeContainer");
-    // Get original runtimeContainer width
-    let originalWidth = runtimeContainer.style.width;
-    // Store the original width into a property of the element
-    if (!runtimeContainer.originalWidth) {
-        runtimeContainer.originalWidth = originalWidth;
-    }
-    // Toggle collapsed class
-    runtimeContainer.classList.toggle('collapsed');
-
-    // Get id programGroup
-    let programGroup = document.getElementById("programGroup");
-
-    // Get the sibling element after fileViewContainer
-    let gutter = runtimeContainer.previousElementSibling;
-
-    // Hide runtimeContainer
-    if (runtimeContainer.classList.contains('collapsed')) {
-        // Set pointer events to none for the gutter
-        gutter.style.pointerEvents = 'none';
-
-        // If the runtimeContainer is collapsed, make sure the program collapse button bi-chevron-double-left is shown and the bi-chevron-double-right is hidden
-        document.getElementById("collapseProgram").children[0].classList.remove('bi-chevron-double-right');
-        document.getElementById("collapseProgram").children[0].classList.add('bi-chevron-double-left');
-
-        // Set width to auto
-        runtimeContainer.style.width = 'auto';
-        // Hide programGroup
-        programGroup.style.display = 'none';
-    } else {
-        // Reset pointer events
-        gutter.style.pointerEvents = '';
-
-        // Set width to originalWidth
-        runtimeContainer.style.width = runtimeContainer.originalWidth;
-        // Remove the property
-        delete runtimeContainer.originalWidth;
-        // Show programGroup
-        programGroup.style.display = '';
-
-        // If the runtimeContainer is not collapsed, make sure the program collapse button bi-chevron-double-left is hidden and the bi-chevron-double-right is shown
-        document.getElementById("collapseProgram").children[0].classList.remove('bi-chevron-double-left');
-        document.getElementById("collapseProgram").children[0].classList.add('bi-chevron-double-right');
-    }
+function collapseFileViewToggle() {
+    collapseViewToggle("fileViewContainer");
 }
 
-// TODO: there is a bug where if you start it collapsed, for some reason resizing doesn't work
-// if (SKO.useMinifiedInterface) {
-//     collapseProgramView();
-// }
+function collapseProgramViewToggle() {
+    collapseViewToggle("runtimeContainer");
+}
 
-// runtimeContainer is the id of the runtime container
-collapseProgramButton.addEventListener("click", collapseProgramView);
+// If the minification option is enabled, the files and program view should be collapsed by default
+if (SKO.useMinifiedInterface) {
+    collapseFileViewToggle();
+    collapseProgramViewToggle();
+}
 
 // Add events to new file source file button
 document.getElementById("addSourceFile").addEventListener("click", function (event) {
@@ -987,9 +949,14 @@ document.getElementById("addSourceFile").addEventListener("click", function (eve
     event.stopPropagation();
 });
 
-
 // Add events for the main program buttons
 runProgramButton.addEventListener("click", async function () {
+    await saveAllOpenCode();
+    runProgram();
+});
+
+collapsedRunProgramButton.addEventListener("click", async function () {
+    collapseProgramViewToggle();
     await saveAllOpenCode();
     runProgram();
 });
@@ -998,12 +965,29 @@ stopProgramButton.addEventListener("click", function () {
     pauseProgram();
 });
 
+collapsedStopProgramButton.addEventListener("click", function () {
+    collapseProgramViewToggle();
+    pauseProgram();
+});
+
 restartProgramButton.addEventListener("click", async function () {
     await saveAllOpenCode();
     restartProgram();
 });
 
+collapsedRestartProgramButton.addEventListener("click", async function () {
+    collapseProgramViewToggle();
+    await saveAllOpenCode();
+    restartProgram();
+});
+
 continueProgramButton.addEventListener("click", async function () {
+    await saveAllOpenCode();
+    continueProgram();
+});
+
+collapsedContinueProgramButton.addEventListener("click", async function () {
+    collapseProgramViewToggle();
     await saveAllOpenCode();
     continueProgram();
 });
