@@ -356,58 +356,71 @@ async function saveAllOpenCode() {
 // that way we can style the interface differently
 if (SKO.useMinifiedInterface) document.body.classList.add("sk-minified");
 
-let updateCodeButton = document.getElementById("runOne");
+let updateCodeButton;
 
-let runProgramButton = document.getElementById("runProgram");
-let restartProgramButton = document.getElementById("restartProgram");
-let stopProgramButton = document.getElementById("stopProgram");
-let continueProgramButton = document.getElementById("continueProgram");
+let runProgramButton;
+let restartProgramButton;
+let stopProgramButton;
+let continueProgramButton;
 
-let collapsedRunProgramButton = document.getElementById("collapsedRunProgram");
-let collapsedRestartProgramButton = document.getElementById("collapsedRestartProgram");
-let collapsedStopProgramButton = document.getElementById("collapsedStopProgram");
-let collapsedContinueProgramButton = document.getElementById("collapsedContinueProgram");
+let collapsedRunProgramButton;
+let collapsedRestartProgramButton;
+let collapsedStopProgramButton;
+let collapsedContinueProgramButton;
 
-var sizes = localStorage.getItem('sk-online-split-sizes')
+function setupIDEExecutionButtons(){
+    updateCodeButton = document.getElementById("runOne");
 
-if (sizes) {
-    sizes = JSON.parse(sizes)
-} else {
-    sizes = [20, 50, 30]
-}
-// Create the splitters.
-// One problem is that they are too visible.
-// The 'gutter' option lets you provide a function that handles
-// creating the gutter, but unfortunately it adds the events
-// on whatever you return, making it difficult to create a wrapper
-// that lets the events pass through to the real gutter
-let gutterWidth = 6;
-Split(['#fileViewContainer', '#codeViewContainer', '#runtimeContainer'], {
-    gutterSize: gutterWidth,
-    sizes: sizes,
-    onDragEnd: function (sizes) {
-        localStorage.setItem('sk-online-split-sizes', JSON.stringify(sizes));
-    },
-});
-// So just wrap them and hide them afterwards instead
-const gutters = document.getElementsByClassName("gutter");
-for (let i = 0; i < gutters.length; i++) {
-    let gutterwrap = document.createElement('div')//wrapper
-    gutterwrap.style.position = 'relative';
+    runProgramButton = document.getElementById("runProgram");
+    restartProgramButton = document.getElementById("restartProgram");
+    stopProgramButton = document.getElementById("stopProgram");
+    continueProgramButton = document.getElementById("continueProgram");
 
-    // wrap
-    gutters[i].parentNode.insertBefore(gutterwrap, gutters[i]);
-    gutterwrap.appendChild(gutters[i]);
-
-    // fix position
-    gutters[i].style.position = 'absolute';
-    gutters[i].style.left = "-"+(gutterWidth/2).toString()+"px";
-    gutters[i].style.height = '100%';
+    collapsedRunProgramButton = document.getElementById("collapsedRunProgram");
+    collapsedRestartProgramButton = document.getElementById("collapsedRestartProgram");
+    collapsedStopProgramButton = document.getElementById("collapsedStopProgram");
+    collapsedContinueProgramButton = document.getElementById("collapsedContinueProgram");
 }
 
+function createGutterSplitters(){
+    var sizes = localStorage.getItem('sk-online-split-sizes')
+
+    if (sizes) {
+        sizes = JSON.parse(sizes)
+    } else {
+        sizes = [20, 50, 30]
+    }
+    // Create the splitters.
+    // One problem is that they are too visible.
+    // The 'gutter' option lets you provide a function that handles
+    // creating the gutter, but unfortunately it adds the events
+    // on whatever you return, making it difficult to create a wrapper
+    // that lets the events pass through to the real gutter
+    let gutterWidth = 6;
+    Split(['#fileViewContainer', '#codeViewContainer', '#runtimeContainer'], {
+        gutterSize: gutterWidth,
+        sizes: sizes,
+        onDragEnd: function (sizes) {
+            localStorage.setItem('sk-online-split-sizes', JSON.stringify(sizes));
+        },
+    });
+    // So just wrap them and hide them afterwards instead
+    const gutters = document.getElementsByClassName("gutter");
+    for (let i = 0; i < gutters.length; i++) {
+        let gutterwrap = document.createElement('div')//wrapper
+        gutterwrap.style.position = 'relative';
+
+        // wrap
+        gutters[i].parentNode.insertBefore(gutterwrap, gutters[i]);
+        gutterwrap.appendChild(gutters[i]);
+
+        // fix position
+        gutters[i].style.position = 'absolute';
+        gutters[i].style.left = "-"+(gutterWidth/2).toString()+"px";
+        gutters[i].style.height = '100%';
+    }
+}
 // -------------------- Setup Tabs --------------------
-// Right now this is all a bit hardcoded, but in the near future hopefully
-// this will be abstracted out, and be dynamically openable/closeable
 let currentEditor = null;
 
 function SwitchToTab(editor){
@@ -429,13 +442,6 @@ function SwitchToTab(editor){
     }
 }
 
-// setup language selection box
-let languageSelectElem = document.getElementById("languageSelection");
-for (let i = 0; i < SplashKitOnlineLanguageDefinitions.length; i++) {
-    let language = SplashKitOnlineLanguageDefinitions[i];
-    languageSelectElem.append(elem("option", {value: language.name}, [language.userVisibleName]));
-}
-
 // switch active language
 // currently just reloads the page with the 'language' parameter set
 // in the future, ideally this will work _without_ reloading the page,
@@ -446,162 +452,99 @@ function switchActiveLanguage(language){
      window.location = page_url;
 }
 
-languageSelectElem.addEventListener('change', function(event) {
-    // just switch active language
-    // TODO: store chosen language inside project
-    switchActiveLanguage(event.target.value);
-})
+let languageSelectElem = null;
+function setupLanguageSelectionBox(){
+    // setup language selection box
+    languageSelectElem = document.getElementById("languageSelection");
+    for (let i = 0; i < SplashKitOnlineLanguageDefinitions.length; i++) {
+        let language = SplashKitOnlineLanguageDefinitions[i];
+        languageSelectElem.append(elem("option", {value: language.name}, [language.userVisibleName]));
+    }
+
+    languageSelectElem.addEventListener('change', function(event) {
+        // just switch active language
+        // TODO: store chosen language inside project
+        switchActiveLanguage(event.target.value);
+    });
+}
 
 // ------ Setup Project and Execution Environment ------
 
 // decide which language to use
 let activeLanguage = null;
 let activeLanguageSetup = null;
-if (SKO.language in SplashKitOnlineLanguageAliasMap) {
-    activeLanguage = SplashKitOnlineLanguageAliasMap[SKO.language];
-} else {
-    activeLanguage = SplashKitOnlineLanguageAliasMap["JavaScript"];
 
-    displayEditorNotification("Unable to switch to language "+SKO.language+", defaulting to JavaScript.", NotificationIcons.ERROR, -1);
-    displayEditorNotification("Available languages are: <br/><ul>"+
-        SplashKitOnlineLanguageDefinitions.map(val => `<li>${val.userVisibleName}</li>`).join("")+
-        "</ul>", NotificationIcons.ERROR, -1
-    );
+
+function setupActiveLanguage(){
+    if (SKO.language in SplashKitOnlineLanguageAliasMap) {
+        activeLanguage = SplashKitOnlineLanguageAliasMap[SKO.language];
+    } else {
+        activeLanguage = SplashKitOnlineLanguageAliasMap["JavaScript"];
+
+        displayEditorNotification("Unable to switch to language "+SKO.language+", defaulting to JavaScript.", NotificationIcons.ERROR, -1);
+        displayEditorNotification("Available languages are: <br/><ul>"+
+            SplashKitOnlineLanguageDefinitions.map(val => `<li>${val.userVisibleName}</li>`).join("")+
+            "</ul>", NotificationIcons.ERROR, -1
+        );
+    }
+    activeLanguageSetup = activeLanguage.setups[0];
+
+    languageSelectElem.value = activeLanguage.name;
 }
-activeLanguageSetup = activeLanguage.setups[0];
 
-languageSelectElem.value = activeLanguage.name;
 
-// initialize language
-initializeLanguageCompilerFiles(activeLanguageSetup);
 
-// initialize execution environment and project storage objects
-let executionEnviroment = new ExecutionEnvironment(document.getElementById("ExecutionEnvironment"), activeLanguageSetup);
-let appStorage = new AppStorage();
-appStorage.attach();
-let storedProject = new IDBStoredProject(appStorage, activeLanguageSetup.getDefaultProject());
-let unifiedFS = new UnifiedFS(storedProject, executionEnviroment);
-storedProject.attachToProject();
-
-let haveMirrored = false;
-let canMirror = false;
+let executionEnviroment = null;
+let appStorage = null;
+let storedProject = null;
+let unifiedFS = null;
 
 let makingNewProject = false;
+
 async function newProject(initializer){
     // Guard against re-entry on double click
     if (makingNewProject)
         return;
     makingNewProject = true;
 
-    let preparationPromises = prepareIDEForLoading();
-
     let projectID = storedProject.projectID;
 
     disableCodeExecution();
     storedProject.detachFromProject();
     closeAllCodeEditors();
-    canMirror = false;
-    executionEnviroment.resetEnvironment();
-    await storedProject.deleteProject(projectID);
-    haveMirrored = false;
-    storedProject.initializer = initializer;
-    await storedProject.attachToProject(projectID);
 
-    await storedProject.access(async (project) => {
-        await project.renameProject("New Project");
-    });
+    await Promise.all([
+        executionEnviroment.resetEnvironment(),
+        (async () => {
+            await storedProject.deleteProject(projectID);
+            await appStorage.attach();
+
+            storedProject.initializer = initializer;
+            await storedProject.attachToProject();
+
+            await storedProject.access(async (project) => {
+                await project.renameProject("New Project");
+            });
+        })()
+    ])
+
+    await mirrorProject();
+    updateCodeExecutionState();
 
     makingNewProject = false;
-
-    await preparationPromises.waitForMirrorCompletion;
 }
 
-function prepareIDEForLoading(){
-    let waitForCompilerReady = new Promise((resolve) => {
-        if (getCompiler(activeLanguageSetup.compilerName))
-            resolve();
-        registeredCompilersEvents.addEventListener("compilerReady", () => {
-            resolve();
-        });
-    });
+async function mirrorProject(){
+    if (!activeLanguageSetup.persistentFilesystem)
+        return;
 
-    let waitForInitialize = new Promise((resolve) => {
-        executionEnviroment.addEventListener("initialized", () => {
-            canMirror = true;
-            resolve();
-        });
-    });
+    // Mirror project to execution environment
+    displayEditorNotification("Loading project files...", NotificationIcons.INFO);
 
-    let waitForLanguageLoaderReady = new Promise((resolve) => {
-        executionEnviroment.addEventListener("languageLoaderReady", () => {
-            resolve();
-        });
-    });
-
-    let waitForProjectAttach = new Promise((resolve) => {
-        storedProject.addEventListener("attached", async () => {
-            resolve();
-        });
-    });
-
-    waitForProjectAttach.then(openCodeEditors);
-
-    let waitForMirrorCompletion = new Promise((resolve) => {
-        if (!activeLanguageSetup.persistentFilesystem){
-            resolve();
-            return;
-        }
-        Promise.all([waitForInitialize, waitForProjectAttach]).then(async function() {
-            if (!haveMirrored && canMirror){
-                displayEditorNotification("Loading project files.", NotificationIcons.INFO);
-
-                haveMirrored = true;
-                await MirrorToExecutionEnvironment();
-            }
-            resolve();
-        });
-    });
-
-    let waitForCodeExecution = new Promise((resolve) => {
-        Promise.all([waitForCompilerReady, waitForInitialize, waitForMirrorCompletion]).then(function() {
-            enableCodeExecution();
-            resolve();
-        });
-    });
-
-    new Promise((resolve) => {
-        Promise.all([waitForCompilerReady, waitForLanguageLoaderReady]).then(function() {
-            executionEnviroment.updateCompilerLoadProgress(1);
-            resolve();
-        });
-    });
-
-    return {
-        waitForCompilerReady,
-        waitForInitialize,
-        waitForProjectAttach,
-        waitForMirrorCompletion,
-        waitForCodeExecution
-    };
+    // Now wait for the project to be fully mirrored,
+    // then allow code execution.
+    await MirrorToExecutionEnvironment();
 }
-prepareIDEForLoading();
-
-executionEnviroment.addEventListener("onDownloadFail", function(data) {
-    displayEditorNotification("Failed to load critical part of IDE: "+data.name+". Click for more details.", NotificationIcons.CRITICAL_ERROR, -1,
-         function() {
-            displayEditorNotification("If you are a <i>developer</i>, please ensure you have placed the file '"+data.url.slice(data.url.lastIndexOf("/")+1)+"' inside your /Browser_IDE/splashkit/ folder."+
-                "<hr/>Status: "+data.status+" "+data.statusText, NotificationIcons.CRITICAL_ERROR
-            );
-            displayEditorNotification("If you are a <i>user</i>, please report this issue on our <a href=\"https://github.com/thoth-tech/SplashkitOnline/\">GitHub page</a>!",
-                NotificationIcons.CRITICAL_ERROR
-            );
-        }
-    );
-});
-
-executionEnviroment.addEventListener("onCriticalInitializationFail", function(data) {
-    displayEditorNotification("Failed to load critical part of IDE: "+data.message+". ", NotificationIcons.CRITICAL_ERROR);
-});
 
 async function MirrorToExecutionEnvironment(){
     try {
@@ -635,30 +578,14 @@ async function MirrorToExecutionEnvironment(){
         return;
     }
 }
-
-executionEnviroment.addEventListener("mirrorRequest", async function(e){
-    try {
-        displayEditorNotification("Loading project files...", NotificationIcons.INFO);
-        await MirrorToExecutionEnvironment();
-        e.resolve();
-    }
-    catch(err) {
-        e.reject(err);
-    }
-});
-
-
-
 // ------ Code Execution + Saving ------
-if (!activeLanguageSetup.supportHotReloading) {
-    document.getElementById("runOne").children[0].innerText = "Syntax Check File";
-}
 
-let allowExecution = false
+
+let allowExecution = false;
 let haveUploadedCodeOnce = false;
 
 // Functions to disable/enable code-execution
-disableCodeExecution();
+
 function disableCodeExecution(){
     if (executionEnviroment.executionStatus != ExecutionStatus.Unstarted)
         stopProgram();
@@ -673,9 +600,34 @@ function enableCodeExecution(){
     allowExecution = true;
     updateButtons();
 }
+// automatically enable/disable based on IDE state
+function updateCodeExecutionState(){
+    if (getCompiler(activeLanguageSetup.compilerName))
+        executionEnviroment.updateCompilerLoadProgress(1);
+
+    if (getCompiler(activeLanguageSetup.compilerName) && executionEnviroment.readyForExecution) {
+        enableCodeExecution();
+    }
+    else
+        disableCodeExecution();
+}
 
 function reportCompilationError(error){
     executionEnviroment.reportError(error.name, error.line, error.message, error.formatted);
+}
+
+function setupCodeEditorCallbacks() {
+    storedProject.addEventListener('onWriteToFile', function(e) {
+        let editor = getCodeEditor(e.path);
+        if (editor)
+            editor.load();
+    });
+
+    storedProject.addEventListener('onDeletePath', function(e) {
+        let editor = getCodeEditor(e.path);
+        if (editor)
+            closeCodeEditor(editor, false);
+    });
 }
 
 async function runFile(name, code) {
@@ -732,18 +684,6 @@ async function syntaxCheckFile(name, code) {
     }
 }
 
-storedProject.addEventListener('onWriteToFile', function(e) {
-    let editor = getCodeEditor(e.path);
-    if (editor)
-        editor.load();
-});
-
-storedProject.addEventListener('onDeletePath', function(e) {
-    let editor = getCodeEditor(e.path);
-    if (editor)
-        closeCodeEditor(editor, false);
-});
-
 
 function asyncSleep(time=0) {
     return new Promise(resolve => setTimeout(resolve, time));
@@ -779,6 +719,7 @@ async function runProgram(){
             };
         }
         let compilableFiles = await findAllCompilableFiles();
+        let sourceFiles = await findAllSourceFiles();
         if (compilableFiles.length == 0) {
             displayEditorNotification("Project has no source files! In a "+activeLanguage.name+" project, valid source files end with:</br><ul>"+
                 activeLanguage.compilableExtensions.map((s)=>"<li>."+s+"</li>").join("")+"</ul>",
@@ -787,7 +728,7 @@ async function runProgram(){
             return;
         }
 
-        let compiled = await currentCompiler.compileAll(await Promise.all(compilableFiles.map(mapBit)), reportCompilationError);
+        let compiled = await currentCompiler.compileAll(await Promise.all(compilableFiles.map(mapBit)), await Promise.all(sourceFiles.map(mapBit)), reportCompilationError);
 
         if (compiled.output != null) {
             executionEnviroment.runProgram(compiled.output);
@@ -871,19 +812,91 @@ function updateButtons(){
     collapsedRestartProgramButton.style.display = !restartProgramButtonOn?"none":"";
     collapsedStopProgramButton.style.display = !stopProgramButtonOn?"none":"";
 }
-updateButtons();
+
+function SetupIDEButtonEvents() {
+    // Add events for the code view
+    updateCodeButton.addEventListener("click", function () {
+        if (currentEditor == null) return;
+
+        currentEditor.save();
+        if (activeLanguageSetup.supportHotReloading)
+            currentEditor.runOne();
+        else
+            currentEditor.syntaxCheck();
+    });
+
+    // Add events to new file source file button
+    document.getElementById("addSourceFile").addEventListener("click", function (event) {
+        openUntitledCodeEditor();
+        event.stopPropagation();
+    });
 
 
-// Add events for the code view
-updateCodeButton.addEventListener("click", function () {
-    if (currentEditor == null) return;
+    // Add events for the main program buttons
+    runProgramButton.addEventListener("click", async function () {
+        await saveAllOpenCode();
+        runProgram();
+    });
 
-    currentEditor.save();
-    if (activeLanguageSetup.supportHotReloading)
-        currentEditor.runOne();
-    else
-        currentEditor.syntaxCheck();
-});
+    stopProgramButton.addEventListener("click", function () {
+        pauseProgram();
+    });
+
+    restartProgramButton.addEventListener("click", async function () {
+        await saveAllOpenCode();
+        restartProgram();
+    });
+
+    continueProgramButton.addEventListener("click", async function () {
+        await saveAllOpenCode();
+        continueProgram();
+    });
+
+    collapsedRunProgramButton.addEventListener("click", async function () {
+        collapseProgramViewToggle();
+        await saveAllOpenCode();
+        runProgram();
+    });
+    
+    collapsedStopProgramButton.addEventListener("click", function () {
+        collapseProgramViewToggle();
+        pauseProgram();
+    });
+    
+    collapsedRestartProgramButton.addEventListener("click", async function () {
+        collapseProgramViewToggle();
+        await saveAllOpenCode();
+        restartProgram();
+    });
+    
+    collapsedContinueProgramButton.addEventListener("click", async function () {
+        collapseProgramViewToggle();
+        await saveAllOpenCode();
+        continueProgram();
+    });
+
+    document.getElementById("DownloadProject").addEventListener("click", async function (e) {
+        downloadProject();
+        e.stopPropagation();
+    });
+    document.getElementById("UploadProject").addEventListener("click", function (e) {
+        document.getElementById("projectuploader").click();
+        e.stopPropagation();
+    });
+    document.getElementById("NewProject").addEventListener("click", async function (e) {
+        newProject(activeLanguageSetup.getDefaultProject());
+        e.stopPropagation();
+    });
+    document.getElementById("LoadDemo").addEventListener("click", async function (e) {
+        ShowProjectLoader("Choose a demo project:", LoadDemoProjects);
+        e.stopPropagation();
+    });
+
+
+    if (!activeLanguageSetup.supportHotReloading) {
+        updateCodeButton.children[0].innerText = "Syntax Check File";
+    }
+}
 
 /*
 Toggle collapsed view
@@ -939,56 +952,6 @@ if (SKO.useMinifiedInterface) {
     collapseFileViewToggle();
     collapseProgramViewToggle();
 }
-
-// Add events to new file source file button
-document.getElementById("addSourceFile").addEventListener("click", function (event) {
-    openUntitledCodeEditor();
-    event.stopPropagation();
-});
-
-// Add events for the main program buttons
-runProgramButton.addEventListener("click", async function () {
-    await saveAllOpenCode();
-    runProgram();
-});
-
-collapsedRunProgramButton.addEventListener("click", async function () {
-    collapseProgramViewToggle();
-    await saveAllOpenCode();
-    runProgram();
-});
-
-stopProgramButton.addEventListener("click", function () {
-    pauseProgram();
-});
-
-collapsedStopProgramButton.addEventListener("click", function () {
-    collapseProgramViewToggle();
-    pauseProgram();
-});
-
-restartProgramButton.addEventListener("click", async function () {
-    await saveAllOpenCode();
-    restartProgram();
-});
-
-collapsedRestartProgramButton.addEventListener("click", async function () {
-    collapseProgramViewToggle();
-    await saveAllOpenCode();
-    restartProgram();
-});
-
-continueProgramButton.addEventListener("click", async function () {
-    await saveAllOpenCode();
-    continueProgram();
-});
-
-collapsedContinueProgramButton.addEventListener("click", async function () {
-    collapseProgramViewToggle();
-    await saveAllOpenCode();
-    continueProgram();
-});
-
 
 // Utility function for saving/loading the code blocks
 async function fileAsString(buffer){
@@ -1146,7 +1109,7 @@ async function FSviewFile(filename) {
 
 async function FSviewFiletran(filename) {
     let content = undefined;
-    
+
     try {
         content = await executionEnviroment.readFile(filename);
     } catch(err){
@@ -1199,27 +1162,28 @@ function openProjectFile(filename) {
     }
 }
 
+async function loadProjectFromURL(url){
+    return fetch(url).then(res => res.blob()).then(async blob => {
+        await newProject(function(){});
+
+        await projectFromZip(blob);
+
+        openCodeEditors();
+    });
+}
+
 // ------ Project Zipping/Unzipping Click Handling ------
 async function uploadProjectFromInput(){
     let reader = new FileReader();
     let files = document.getElementById('projectuploader').files;
     let file = files[0];
     await newProject(function(){});
+
     await projectFromZip(file);
+
     openCodeEditors();
 }
-document.getElementById("DownloadProject").addEventListener("click", async function (e) {
-    downloadProject();
-    e.stopPropagation();
-});
-document.getElementById("UploadProject").addEventListener("click", function (e) {
-    document.getElementById("projectuploader").click();
-    e.stopPropagation();
-});
-document.getElementById("NewProject").addEventListener("click", async function (e) {
-    newProject(activeLanguageSetup.getDefaultProject());
-    e.stopPropagation();
-});
+
 
 // ----- Program Runtime & Error Reporting -----
 function clearErrorLines(){
@@ -1231,142 +1195,177 @@ function clearErrorLines(){
 }
 
 // Update buttons when the state of the ExecutionEnvironment changes
-executionEnviroment.addEventListener("programStarted", function(e){
-    displayEditorNotification("Running project!", NotificationIcons.SUCCESS);
+function setupProgramExecutionEvents(){
+    executionEnviroment.addEventListener("programStarted", function(e){
+        displayEditorNotification("Running project!", NotificationIcons.SUCCESS);
 
-    updateButtons();
-});
-executionEnviroment.addEventListener("programContinued", function(e){
-    updateButtons();
-});
-executionEnviroment.addEventListener("programStopped", function(e){
-    updateButtons();
-    displayEditorNotification("Program Stopped!", NotificationIcons.INFO);
-});
-executionEnviroment.addEventListener("programPaused", function(e){
-    updateButtons();
-});
+        updateButtons();
+    });
+    executionEnviroment.addEventListener("programContinued", function(e){
+        updateButtons();
+    });
+    executionEnviroment.addEventListener("programStopped", function(e){
+        updateButtons();
+        displayEditorNotification("Program Stopped!", NotificationIcons.INFO);
+    });
+    executionEnviroment.addEventListener("programPaused", function(e){
+        updateButtons();
+    });
 
-// Also highlight errors when they come
-executionEnviroment.addEventListener("error", function(e){
-    for(let i = 0; i < editors.length; i ++) {
-        if (editors[i].filename != e.block)
-            continue;
+    // Also highlight errors when they come
+    executionEnviroment.addEventListener("error", function(e){
+        for(let i = 0; i < editors.length; i ++) {
+            if (editors[i].filename != e.block)
+                continue;
 
-        let editor = editors[i].editor;
+            let editor = editors[i].editor;
 
-        if (e.line != null){
-            if (editor.lineCount() < e.line)
-                e.line = editor.lineCount();
-            editor.addLineClass(e.line-1, "wrap", "error-line");
-            editor.scrollIntoView({line:e.line-1, char:0}, 200);
-            editor.setCursor({line:e.line-1, char:0});
+            if (e.line != null){
+                if (editor.lineCount() < e.line)
+                    e.line = editor.lineCount();
+                editor.addLineClass(e.line-1, "wrap", "error-line");
+                editor.scrollIntoView({line:e.line-1, char:0}, 200);
+                editor.setCursor({line:e.line-1, char:0});
+            }
+
+            editor.focus();
         }
+    });
 
-        editor.focus();
-    }
-});
-
+    executionEnviroment.addEventListener("mirrorRequest", async function(e){
+        try {
+            displayEditorNotification("Loading project files...", NotificationIcons.INFO);
+            await MirrorToExecutionEnvironment();
+            e.resolve();
+        }
+        catch(err) {
+            e.reject(err);
+        }
+    });
+}
 
 // ----- Handle "Project Opened in Another Tab" Conflict -----
 let projectConflictModal = null;
 
 let userHasIgnoredProjectConflict = false;
 
-projectConflictModal = createModal(
-    "projectConflictModal",
-    "Project open in another tab!",
+function setupProjectConflictAndConfirmationModals() {
+    projectConflictModal = createModal(
+        "projectConflictModal",
+        "Project open in another tab!",
 
-    "<b>Reload now to avoid losing work!</b><br>"+
-    "This project is already open in another tab and has been modified.<br>"+
-    "Continuing to edit it in this tab will result in losing work! Please reload the project to continue working.",
+        "<b>Reload now to avoid losing work!</b><br>"+
+        "This project is already open in another tab and has been modified.<br>"+
+        "Continuing to edit it in this tab will result in losing work! Please reload the project to continue working.",
 
-    {label:"Reload Now", callback: function(){
-        location.reload();
-    }},
-    {label:"Ignore", callback: function(){
-        userHasIgnoredProjectConflict = true;
-        // Remind the user in 60 seconds
-        setTimeout(function(){
-            userHasIgnoredProjectConflict = false;
-        }, 60000);
-        projectConflictModal.hide();
-    }}
-);
-
-// Check for conflict every 2 seconds - if the lastWriteTime changes without us changing it,
-// the user must be modifying the project in another tab - so show the conflict modal.
-setInterval(function(){
-    storedProject.checkForWriteConflicts();
-}, 2000);
-
-// Also check on focus/visibilitychange (different compatability)
-window.addEventListener("focus", function(){
-    storedProject.checkForWriteConflicts();
-});
-
-window.addEventListener("visibilitychange", function(){
-    // Calling checkForWriteConflicts() directly inside visibilitychange
-    // seems to cause the connection made to not close properly,
-    // leading to strange timeouts and other issues - particularly when
-    // deleting the database in newProject - it can delay up to 20 seconds
-    // or more. This bug tends to manifest _after_ a page reload, making it
-    // particularly confusing.
-    // The fix is simple - do the check after a short timeout instead.
-    setTimeout(function(){
-        storedProject.checkForWriteConflicts();
-    }, 1);
-});
-
-// If the conflict is detected, show the modal
-storedProject.addEventListener("timeConflict", async function() {
-    if (!userHasIgnoredProjectConflict)
-        projectConflictModal.show();
-});
-
-
-
-window.addEventListener("needConfirmation", async function(ev){
-    let confirmLabel = ev.confirmLabel || "Confirm";
-    let cancelLabel = ev.cancelLabel || "Cancel";
-
-    let confirmationModal = createModal(
-        "confirmationModal",
-        ev.shortMessage,
-        ev.longMessage,
-        {label: cancelLabel, callback: ()=>{
-            ev.oncancel();
-            confirmationModal.hide();
+        {label:"Reload Now", callback: function(){
+            location.reload();
         }},
-        {label: confirmLabel, callback: ()=>{
-            ev.onconfirm();
-            confirmationModal.hide();
+        {label:"Ignore", callback: function(){
+            userHasIgnoredProjectConflict = true;
+            // Remind the user in 60 seconds
+            setTimeout(function(){
+                userHasIgnoredProjectConflict = false;
+            }, 60000);
+            projectConflictModal.hide();
         }}
     );
-    confirmationModal.show();
 
-    let confirmationModalEl = document.getElementById("confirmationModal");
-    confirmationModalEl.addEventListener("hidden.bs.modal", function(innerEv){
-        confirmationModal.dispose();
+    // Check for conflict every 2 seconds - if the lastWriteTime changes without us changing it,
+    // the user must be modifying the project in another tab - so show the conflict modal.
+    setInterval(function(){
+        storedProject.checkForWriteConflicts();
+    }, 2000);
+
+    // Also check on focus/visibilitychange (different compatability)
+    window.addEventListener("focus", function(){
+        storedProject.checkForWriteConflicts();
     });
-});
 
-window.addEventListener("filesystemError", async function(ev){
-    // We should find a way to reuse this.
-    // I am unsure what the interface of a modal is
-    // beyond the show and hide methods.
-    let errorModal = createModal(
-        "filesystemErrorModal",
-        ev.shortMessage,
-        ev.longMessage,
-        null,
-        null
-    );
-    errorModal.show();
-
-    let errorModelEl = document.getElementById("filesystemErrorModal");
-    errorModelEl.addEventListener("hidden.bs.modal", function(innerEv){
-        errorModal.dispose();
+    window.addEventListener("visibilitychange", function(){
+        // Calling checkForWriteConflicts() directly inside visibilitychange
+        // seems to cause the connection made to not close properly,
+        // leading to strange timeouts and other issues - particularly when
+        // deleting the database in newProject - it can delay up to 20 seconds
+        // or more. This bug tends to manifest _after_ a page reload, making it
+        // particularly confusing.
+        // The fix is simple - do the check after a short timeout instead.
+        setTimeout(function(){
+            storedProject.checkForWriteConflicts();
+        }, 1);
     });
-});
 
+    // If the conflict is detected, show the modal
+    storedProject.addEventListener("timeConflict", async function() {
+        if (!userHasIgnoredProjectConflict)
+            projectConflictModal.show();
+    });
+
+
+
+    window.addEventListener("needConfirmation", async function(ev){
+        let confirmLabel = ev.confirmLabel || "Confirm";
+        let cancelLabel = ev.cancelLabel || "Cancel";
+
+        let confirmationModal = createModal(
+            "confirmationModal",
+            ev.shortMessage,
+            ev.longMessage,
+            {label: cancelLabel, callback: ()=>{
+                ev.oncancel();
+                confirmationModal.hide();
+            }},
+            {label: confirmLabel, callback: ()=>{
+                ev.onconfirm();
+                confirmationModal.hide();
+            }}
+        );
+        confirmationModal.show();
+
+        let confirmationModalEl = document.getElementById("confirmationModal");
+        confirmationModalEl.addEventListener("hidden.bs.modal", function(innerEv){
+            confirmationModal.dispose();
+        });
+    });
+}
+
+
+function addErrorEventListeners(){
+    executionEnviroment.addEventListener("onDownloadFail", function(data) {
+        displayEditorNotification("Failed to load critical part of IDE: "+data.name+". Click for more details.", NotificationIcons.CRITICAL_ERROR, -1,
+             function() {
+                displayEditorNotification("If you are a <i>developer</i>, please ensure you have placed the file '"+data.url.slice(data.url.lastIndexOf("/")+1)+"' inside your /Browser_IDE/splashkit/ folder."+
+                    "<hr/>Status: "+data.status+" "+data.statusText, NotificationIcons.CRITICAL_ERROR
+                );
+                displayEditorNotification("If you are a <i>user</i>, please report this issue on our <a href=\"https://github.com/thoth-tech/SplashkitOnline/\">GitHub page</a>!",
+                    NotificationIcons.CRITICAL_ERROR
+                );
+            }
+        );
+    });
+
+    executionEnviroment.addEventListener("onCriticalInitializationFail", function(data) {
+        displayEditorNotification("Failed to load critical part of IDE: "+data.message+". ", NotificationIcons.CRITICAL_ERROR);
+    });
+
+
+
+    window.addEventListener("filesystemError", async function(ev){
+        // We should find a way to reuse this.
+        // I am unsure what the interface of a modal is
+        // beyond the show and hide methods.
+        let errorModal = createModal(
+            "filesystemErrorModal",
+            ev.shortMessage,
+            ev.longMessage,
+            null,
+            null
+        );
+        errorModal.show();
+
+        let errorModelEl = document.getElementById("filesystemErrorModal");
+        errorModelEl.addEventListener("hidden.bs.modal", function(innerEv){
+            errorModal.dispose();
+        });
+    });
+}

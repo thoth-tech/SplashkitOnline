@@ -2,6 +2,8 @@
 
 // Utility function to instantiate a language's compiler scripts
 function initializeLanguageCompilerFiles(language){
+    let ret = getPromiseFromEvent(registeredCompilersEvents, "compilerReady");
+
     // load in the script files for this language/setup
     for (let script of language.compilerFiles){
         var s = document.createElement("script");
@@ -10,6 +12,8 @@ function initializeLanguageCompilerFiles(language){
         s.async = false;
         document.documentElement.appendChild(s);
     }
+
+    return ret;
 }
 
 // Compiler registry
@@ -32,7 +36,7 @@ class Compiler{
         this.name = "";
     }
 
-    async compileAll(sourceList, print){throw new Error("CompileAll not supported in current compiler!");}
+    async compileAll(compileList, sourceList, print){throw new Error("CompileAll not supported in current compiler!");}
     async compileOne(name, source, print){throw new Error("CompileOne not supported in current compiler!");}
     async syntaxCheckOne(name, source, print){throw new Error("SyntaxCheckOne not supported in current compiler!");}
 

@@ -49,7 +49,8 @@ async function downloadFile(url, progressCallback = null, maybeLZMACompressed = 
             let downloadProgressCallback = (progressCallback==null) ? null : function(percentage) { progressCallback(percentage * downloadPercentage); };
             let compressed = await XMLHttpRequestPromise(url+".lzma", downloadProgressCallback, "GET");
 
-            let result = (await wlzma.decode(compressed.response)).toUint8Array();
+            let decompressProgressCallback = (progressCallback==null) ? null : function(percentage) { progressCallback(downloadPercentage + percentage * decompressionPercentage); };
+            let result = (await wlzma.decode(compressed.response, decompressProgressCallback)).toUint8Array();
 
             return result;
         }

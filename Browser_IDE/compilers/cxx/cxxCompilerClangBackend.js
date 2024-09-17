@@ -71,6 +71,19 @@ await promiseChannel.postMessage("initialize", {SKO}, {
 });
 
 // export functions to compile and link objects - this is used in the main cxxCompiler.js
+export const writeFile = async (name, source) => {
+    try {
+        await promiseChannel.postMessage("setupUserCode", {
+            codeFiles : [{
+                name: name,
+                source: source
+            }]
+        });
+    }
+    catch(err) {
+        displayEditorNotification("Failed to compile due to internal error!</br>"+err.toString(), NotificationIcons.CRITICAL_ERROR);
+    }
+}
 export const compileObject = async (name, source) => {
     let output = null;
 

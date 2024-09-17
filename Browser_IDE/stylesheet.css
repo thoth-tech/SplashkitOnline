@@ -212,6 +212,7 @@ a:visited {
     color: white;
     min-height: 0;
 }
+
 .sk-contents-darker {
     background-color: #1B1B1B;
 }
@@ -222,6 +223,110 @@ a:visited {
 textarea {
     outline: none;
 }
+
+
+
+.fade-on-create {
+    animation: fadein .2s;
+}
+@keyframes fadein {
+    from {
+        opacity:0;
+    }
+    to {
+        opacity:1;
+    }
+}
+
+.sk-demo-window-container{
+    width:100%;
+    position:fixed;
+    height:100%;
+    z-index:1000;
+    padding: 10% 20%;
+    /*backdrop-filter: blur(1px) brightness(80%);*/
+    background-color: #0005;
+}
+
+.sk-demo-window{
+    position:relative;
+    height: 100%;
+    margin:auto;
+    pointer-events:initial;
+}
+
+.sk-demo-window-loading-text{
+    position: absolute;
+    margin: auto;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2em;
+    text-align:center;
+    z-index:100;
+}
+
+.sk-demo-thumbnail-grid-container{
+    overflow: auto;
+}
+
+.sk-demo-thumbnail-grid{
+    display: grid;
+    gap: 20px;
+    flex-direction: row;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    flex-grow: 0;
+    margin-top:1em;
+    margin-bottom:1em;
+}
+
+.sk-demo-tags{
+    position:absolute;
+    top:0px;
+    left:0px;
+    right:0px;
+    background:none;
+    justify-content: end;
+    box-shadow: none;
+}
+
+.sk-demo-tag{
+    background-color: #303724;
+    border-radius: 5px;
+    color: #68ff00;
+    line-height: 1.5em;
+    margin-top: 0.25em;
+    padding: 0px 10px;
+}
+
+.sk-demo-title{
+    position:absolute;
+    bottom:0px;
+    left:0px;
+    right:0px;
+    background-color:#111D;
+    justify-content: center;
+}
+
+.sk-demo-thumbnail{
+    overflow: hidden;
+    box-shadow: rgba(0,0,0,0.2) 4px 4px 10px 0px;
+    position:relative;
+    transition: filter 0.1s;
+    cursor:pointer;
+}
+.sk-demo-thumbnail:hover{
+    filter:brightness(125%);
+}
+
+.sk-demo-thumbnail-img{
+  aspect-ratio: 16/9;
+  object-fit: contain;
+  width: 100%;
+}
+
+
 
 .sk-main-columns {
     overflow: hidden;
@@ -278,6 +383,11 @@ textarea {
     opacity: 1;
     margin-left: auto;
     pointer-events: all;
+}
+
+.sk-notification.sk-contents-focusable:focus-within {
+    box-shadow: 0 0 0 1px #19F, rgba(0,0,0,0.7) 4px 4px 10px 0px;
+    z-index:10;
 }
 
 .sk-terminal {
