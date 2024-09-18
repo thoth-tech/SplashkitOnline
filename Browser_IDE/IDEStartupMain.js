@@ -28,6 +28,8 @@ async function StartIDE() {
     setupCodeEditorCallbacks();
     setupFilePanelAndEvents();
 
+    setupMinifiedInterface();
+
     // Initialize compiler in parallel with everything else
     // This is where the bulk of the startup occurs
     await Promise.all([

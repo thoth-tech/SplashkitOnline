@@ -352,10 +352,6 @@ async function saveAllOpenCode() {
     await Promise.all(promises);
 }
 
-// Add the sk-minified class to the body if the minified interface option is enabled
-// that way we can style the interface differently
-if (SKO.useMinifiedInterface) document.body.classList.add("sk-minified");
-
 let updateCodeButton;
 
 let runProgramButton;
@@ -947,10 +943,15 @@ function collapseProgramViewToggle() {
     collapseViewToggle("runtimeContainer");
 }
 
-// If the minification option is enabled, the files and program view should be collapsed by default
-if (SKO.useMinifiedInterface) {
-    collapseFileViewToggle();
-    collapseProgramViewToggle();
+function setupMinifiedInterface() {
+    if (SKO.useMinifiedInterface) {
+        // Add the sk-minified class to the body if the minified interface option is enabled
+        // that way we can style the interface differently
+        document.body.classList.add("sk-minified");
+        // If the minification option is enabled, the files and program view should be collapsed by default
+        collapseFileViewToggle();
+        collapseProgramViewToggle();
+    }
 }
 
 // Utility function for saving/loading the code blocks
