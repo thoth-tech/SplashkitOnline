@@ -729,9 +729,7 @@ function audioFunctionNotification(source) {
         ];
 
         // Check if any audio functions are present in the source code
-        let audioFunctionFound = audioFunctions.some(func => source.includes(func));
-
-        if (audioFunctionFound) displayEditorNotification("Audio functions are present in the code! Please click into the window to hear audio.", NotificationIcons.WARNING, -1);
+        if (audioFunctions.some(func => source.includes(func))) displayEditorNotification("Audio functions are present in the code! Please click into the window to hear audio.", NotificationIcons.WARNING, -1);
 
         // Set the flag to true, so the notification is only shown once
         audioFunctionNotificationOnce = true;
