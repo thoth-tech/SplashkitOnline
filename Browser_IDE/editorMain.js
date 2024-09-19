@@ -684,6 +684,62 @@ function getCurrentCompiler() {
     return currentCompiler;
 }
 
+
+let audioFunctionNotificationOnce = false;
+
+function audioFunctionNotification(files) {
+    if (!audioFunctionNotificationOnce) {
+        // Audio functions
+        let audioFunctions = [
+            "audio_ready",
+            "close_audio",
+            "open_audio",
+            "fade_music_in",
+            "fade_music_out",
+            "free_all_music",
+            "free_music",
+            "has_music",
+            "load_music",
+            "music_filename",
+            "music_name",
+            "music_named",
+            "music_playing",
+            "music_volume",
+            "pause_music",
+            "play_music",
+            "resume_music",
+            "set_music_volume",
+            "stop_music",
+            "fade_all_sound_effects_out",
+            "fade_sound_effect_out",
+            "free_all_sound_effects",
+            "free_sound_effect",
+            "has_sound_effect",
+            "load_sound_effect",
+            "play_sound_effect",
+            "play_sound_effect_named_with_volume",
+            "play_sound_effect_named_with_times",
+            "play_sound_effect_with_volume",
+            "play_sound_effect_with_times",
+            "sound_effect_filename",
+            "sound_effect_name",
+            "sound_effect_named",
+            "sound_effect_playing",
+            "stop_sound_effect"
+        ];
+
+        // Check if any audio functions are present in the source code
+        let audioFunctionFound = files.some(file => 
+            audioFunctions.some(func => file.source.includes(func))
+        );
+
+        if (audioFunctionFound) displayEditorNotification("Audio functions are present in the code! To hear audio click into the window.", NotificationIcons.WARNING, 10);
+
+        // Set the flag to true, so the notification is only shown once
+        audioFunctionNotificationOnce = true;
+    }
+}
+
 // Functions to run/pause/continue/stop/restart the program itself
 async function runProgram(){
     try {
@@ -717,6 +773,7 @@ async function runProgram(){
         let compiled = await currentCompiler.compileAll(await Promise.all(compilableFiles.map(mapBit)), await Promise.all(sourceFiles.map(mapBit)), reportCompilationError);
 
         if (compiled.output != null) {
+            audioFunctionNotification(compiled.output);
             executionEnviroment.runProgram(compiled.output);
         } else {
             displayEditorNotification("Project has errors! Please see terminal for details.", NotificationIcons.ERROR);
