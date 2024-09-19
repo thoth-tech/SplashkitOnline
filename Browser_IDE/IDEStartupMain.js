@@ -60,3 +60,6 @@ async function StartIDE() {
 }
 
 StartIDE();
+
+// Focus the window, this is used in order to detect if the user clicks inside the iFrame containing the program
+window.focus();

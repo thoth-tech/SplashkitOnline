@@ -84,5 +84,8 @@ function displayEditorNotification(message, icon=NotificationIcons.NONE, timeout
         timeoutID = setTimeout(timeoutFunc, timeout * 1000);
     notificationsArea.appendChild(notification);
 
+    // attach the delete function to the notification element, that way it can be called externally
+    notification.deleteNotification = deleteNotification;
+
     return notification;
 }
