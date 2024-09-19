@@ -733,7 +733,7 @@ function audioFunctionNotification(files) {
             audioFunctions.some(func => file.source.includes(func))
         );
 
-        if (audioFunctionFound) displayEditorNotification("Audio functions are present in the code! To hear audio click into the window.", NotificationIcons.WARNING, 10);
+        if (audioFunctionFound) displayEditorNotification("Audio functions are present in the code! Please click into the window to hear audio.", NotificationIcons.WARNING, 10);
 
         // Set the flag to true, so the notification is only shown once
         audioFunctionNotificationOnce = true;
