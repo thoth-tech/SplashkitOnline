@@ -687,7 +687,7 @@ function getCurrentCompiler() {
 
 let audioFunctionNotificationOnce = false;
 
-function audioFunctionNotification(files) {
+function audioFunctionNotification(source) {
     if (!audioFunctionNotificationOnce) {
         // Audio functions
         let audioFunctions = [
@@ -729,11 +729,9 @@ function audioFunctionNotification(files) {
         ];
 
         // Check if any audio functions are present in the source code
-        let audioFunctionFound = files.some(file => 
-            audioFunctions.some(func => file.source.includes(func))
-        );
+        let audioFunctionFound = audioFunctions.some(func => source.includes(func));
 
-        if (audioFunctionFound) displayEditorNotification("Audio functions are present in the code! Please click into the window to hear audio.", NotificationIcons.WARNING, 10);
+        if (audioFunctionFound) displayEditorNotification("Audio functions are present in the code! Please click into the window to hear audio.", NotificationIcons.WARNING, -1);
 
         // Set the flag to true, so the notification is only shown once
         audioFunctionNotificationOnce = true;
@@ -755,6 +753,7 @@ async function runProgram(){
 
         async function mapBit(filename){
             let source = await fileAsString(await storedProject.access((project) => project.readFile(filename)));
+            audioFunctionNotification(source);
             return {
                 name: filename,
                 source: source
@@ -773,7 +772,6 @@ async function runProgram(){
         let compiled = await currentCompiler.compileAll(await Promise.all(compilableFiles.map(mapBit)), await Promise.all(sourceFiles.map(mapBit)), reportCompilationError);
 
         if (compiled.output != null) {
-            audioFunctionNotification(compiled.output);
             executionEnviroment.runProgram(compiled.output);
         } else {
             displayEditorNotification("Project has errors! Please see terminal for details.", NotificationIcons.ERROR);
