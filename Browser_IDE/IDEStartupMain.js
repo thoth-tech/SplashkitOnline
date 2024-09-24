@@ -4,13 +4,12 @@
 async function StartIDE() {
     makingNewProject = true;
     // Interface setup
-    setupIDEExecutionButtons();
     createGutterSplitters();
     setupLanguageSelectionBox();
 
     // Initialize language
     setupActiveLanguage();
-    SetupIDEButtonEvents(); // uses current language
+    setupIDEButtonEvents(); // uses current language
 
     // Create execution environment and project storage objects
     // These constructors don't _do_ anything important.

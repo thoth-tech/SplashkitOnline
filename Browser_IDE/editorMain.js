@@ -352,32 +352,6 @@ async function saveAllOpenCode() {
     await Promise.all(promises);
 }
 
-let updateCodeButton;
-
-let runProgramButton;
-let restartProgramButton;
-let stopProgramButton;
-let continueProgramButton;
-
-let collapsedRunProgramButton;
-let collapsedRestartProgramButton;
-let collapsedStopProgramButton;
-let collapsedContinueProgramButton;
-
-function setupIDEExecutionButtons(){
-    updateCodeButton = document.getElementById("runOne");
-
-    runProgramButton = document.getElementById("runProgram");
-    restartProgramButton = document.getElementById("restartProgram");
-    stopProgramButton = document.getElementById("stopProgram");
-    continueProgramButton = document.getElementById("continueProgram");
-
-    collapsedRunProgramButton = document.getElementById("collapsedRunProgram");
-    collapsedRestartProgramButton = document.getElementById("collapsedRestartProgram");
-    collapsedStopProgramButton = document.getElementById("collapsedStopProgram");
-    collapsedContinueProgramButton = document.getElementById("collapsedContinueProgram");
-}
-
 function createGutterSplitters(){
     var sizes = localStorage.getItem('sk-online-split-sizes')
 
@@ -779,119 +753,82 @@ async function restartProgram(){
 // ------ Setup code editor buttons ------
 
 // Updates buttons based on the state of the ExecutionEnvironment
-function updateButtons(){
-    updateCodeButton.disabled = !allowExecution;
+function updateButtons() {
+    // First disable the update code button if we can't execute
+    document.getElementById("runOne").disabled = !allowExecution;
 
+    // Get if the program buttons should be on
     let runProgramButtonOn = executionEnviroment.executionStatus == ExecutionStatus.Unstarted && !executionEnviroment.hasRunOnce;
     let continueProgramButtonOn = executionEnviroment.executionStatus == ExecutionStatus.Paused
     let restartProgramButtonOn = executionEnviroment.hasRunOnce;
     let stopProgramButtonOn = executionEnviroment.executionStatus == ExecutionStatus.Running;
 
-    runProgramButton.disabled = !(allowExecution && runProgramButtonOn);
-    continueProgramButton.disabled = !(allowExecution && continueProgramButtonOn);
-    restartProgramButton.disabled = !(allowExecution && restartProgramButtonOn);
-    stopProgramButton.disabled = !(allowExecution && stopProgramButtonOn);
+    // Update the main program buttons
+    updateProgramButton("runProgram", allowExecution, runProgramButtonOn);
+    updateProgramButton("continueProgram", allowExecution, continueProgramButtonOn);
+    updateProgramButton("restartProgram", allowExecution, restartProgramButtonOn);
+    updateProgramButton("stopProgram", allowExecution, stopProgramButtonOn);
 
-    runProgramButton.style.display = !runProgramButtonOn?"none":"";
-    continueProgramButton.style.display = !continueProgramButtonOn?"none":"";
-    restartProgramButton.style.display = !restartProgramButtonOn?"none":"";
-    stopProgramButton.style.display = !stopProgramButtonOn?"none":"";
-
-    // Collapsed view buttons also need to be updated
-    collapsedRunProgramButton.disabled = !(allowExecution && runProgramButtonOn);
-    collapsedContinueProgramButton.disabled = !(allowExecution && continueProgramButtonOn);
-    collapsedRestartProgramButton.disabled = !(allowExecution && restartProgramButtonOn);
-    collapsedStopProgramButton.disabled = !(allowExecution && stopProgramButtonOn);
-
-    collapsedRunProgramButton.style.display = !runProgramButtonOn?"none":"";
-    collapsedContinueProgramButton.style.display = !continueProgramButtonOn?"none":"";
-    collapsedRestartProgramButton.style.display = !restartProgramButtonOn?"none":"";
-    collapsedStopProgramButton.style.display = !stopProgramButtonOn?"none":"";
+    // Update the collapsed program buttons
+    updateProgramButton("collapsedRunProgram", allowExecution, runProgramButtonOn);
+    updateProgramButton("collapsedContinueProgram", allowExecution, continueProgramButtonOn);
+    updateProgramButton("collapsedRestartProgram", allowExecution, restartProgramButtonOn);
+    updateProgramButton("collapsedStopProgram", allowExecution, stopProgramButtonOn);
 }
 
-function SetupIDEButtonEvents() {
-    // Add events for the code view
-    updateCodeButton.addEventListener("click", function () {
-        if (currentEditor == null) return;
+// Update the visibility and disabled state of a program button based on the state of the ExecutionEnvironment
+function updateProgramButton(buttonId, allowExecution, buttonOn) {
+    let button = document.getElementById(buttonId);
+    button.disabled = !(allowExecution && buttonOn);
+    button.style.display = !buttonOn ? "none" : "";
+}
 
+function setupIDEButtonEvents() {
+    // Add events for the code view
+    document.getElementById("runOne").addEventListener("click", function () {
+        if (currentEditor == null) return;
         currentEditor.save();
-        if (activeLanguageSetup.supportHotReloading)
-            currentEditor.runOne();
-        else
-            currentEditor.syntaxCheck();
+        if (activeLanguageSetup.supportHotReloading) currentEditor.runOne();
+        else currentEditor.syntaxCheck();
     });
+
+    // TODO: I think some stopPropagation calls are unnecessary
 
     // Add events to new file source file button
-    document.getElementById("addSourceFile").addEventListener("click", function (event) {
-        openUntitledCodeEditor();
-        event.stopPropagation();
-    });
-
+    document.getElementById("addSourceFile").addEventListener("click", openUntitledCodeEditor);
 
     // Add events for the main program buttons
-    runProgramButton.addEventListener("click", async function () {
+    setupProgramButton("runProgram", runProgram);
+    setupProgramButton("continueProgram", continueProgram);
+    setupProgramButton("restartProgram", restartProgram);
+    setupProgramButton("stopProgram", pauseProgram);
+
+    // Add events for the collapsed program buttons
+    setupProgramButton("collapsedRunProgram", runProgram, true);
+    setupProgramButton("collapsedContinueProgram", continueProgram, true);
+    setupProgramButton("collapsedRestartProgram", restartProgram, true);
+    setupProgramButton("collapsedStopProgram", pauseProgram, true);
+
+    // Add events for the project buttons
+    document.getElementById("UploadProject").addEventListener("click", () => document.getElementById("projectuploader").click());
+
+    setupProjectButton("DownloadProject", downloadProject);
+    setupProjectButton("NewProject", () => newProject(activeLanguageSetup.getDefaultProject()));
+    setupProjectButton("LoadDemo", () => ShowProjectLoader("Choose a demo project:", LoadDemoProjects));
+
+    if (!activeLanguageSetup.supportHotReloading) updateCodeButton.children[0].innerText = "Syntax Check File";
+}
+
+function setupProjectButton(buttonId, callback) {
+    document.getElementById(buttonId).addEventListener("click", async () => callback());
+}
+
+function setupProgramButton(buttonId, callback, collapseView) {
+    document.getElementById(buttonId).addEventListener("click", async function () {
+        if (collapseView) collapseProgramViewToggle();
         await saveAllOpenCode();
-        runProgram();
+        callback();
     });
-
-    stopProgramButton.addEventListener("click", function () {
-        pauseProgram();
-    });
-
-    restartProgramButton.addEventListener("click", async function () {
-        await saveAllOpenCode();
-        restartProgram();
-    });
-
-    continueProgramButton.addEventListener("click", async function () {
-        await saveAllOpenCode();
-        continueProgram();
-    });
-
-    collapsedRunProgramButton.addEventListener("click", async function () {
-        collapseProgramViewToggle();
-        await saveAllOpenCode();
-        runProgram();
-    });
-    
-    collapsedStopProgramButton.addEventListener("click", function () {
-        collapseProgramViewToggle();
-        pauseProgram();
-    });
-    
-    collapsedRestartProgramButton.addEventListener("click", async function () {
-        collapseProgramViewToggle();
-        await saveAllOpenCode();
-        restartProgram();
-    });
-    
-    collapsedContinueProgramButton.addEventListener("click", async function () {
-        collapseProgramViewToggle();
-        await saveAllOpenCode();
-        continueProgram();
-    });
-
-    document.getElementById("DownloadProject").addEventListener("click", async function (e) {
-        downloadProject();
-        e.stopPropagation();
-    });
-    document.getElementById("UploadProject").addEventListener("click", function (e) {
-        document.getElementById("projectuploader").click();
-        e.stopPropagation();
-    });
-    document.getElementById("NewProject").addEventListener("click", async function (e) {
-        newProject(activeLanguageSetup.getDefaultProject());
-        e.stopPropagation();
-    });
-    document.getElementById("LoadDemo").addEventListener("click", async function (e) {
-        ShowProjectLoader("Choose a demo project:", LoadDemoProjects);
-        e.stopPropagation();
-    });
-
-
-    if (!activeLanguageSetup.supportHotReloading) {
-        updateCodeButton.children[0].innerText = "Syntax Check File";
-    }
 }
 
 /*

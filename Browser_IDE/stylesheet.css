@@ -886,3 +886,12 @@ li.CodeMirror-hint-active {
 .sk-minified .directory-contents {
   padding-left: 15px;
 }
+
+/* TODO: could be a better way to do this */
+.run-program .bi-gear-fill {
+  position: absolute;
+  font-size: 0.5em;
+  margin-left: -0.1em;
+  margin-top: 0.64em;
+  opacity: 0.5;
+}

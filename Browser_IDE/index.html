@@ -96,7 +96,10 @@
 					<div class="flex-column">
 						<button type="button" id="restartProgram" style="display:none"><i class="bi bi-arrow-repeat">Restart</i></button>
 						<button type="button" id="continueProgram" style="display:none"><i class="bi bi-play-fill">Continue</i></button>
-						<button type="button" id="runProgram"><i style="position: absolute; font-size: 0.5em; margin-left: -0.1em; margin-top: 0.64em; opacity: 0.5;" class="bi bi-gear-fill"></i><i class="bi bi-play-fill">Build and Run</i></button>
+						<button type="button" id="runProgram" class="run-program">
+							<i class="bi bi-gear-fill"></i>
+							<i class="bi bi-play-fill">Build and Run</i>
+						</button>
 						<button type="button" id="stopProgram" style="display:none"><i class="bi bi-pause-fill">Pause</i></button>
 					</div>
 					<div class="sk-header-title">
@@ -111,7 +114,10 @@
 			</div>
 			<div class="sk-collapsed-column sk-hidden">
 				<button type="button" title="Expand Program" onclick="collapseProgramViewToggle()"><i class="bi bi-terminal"></i></button>
-				<button id="collapsedRunProgram" type="button" title="Build and Run"><i style="position: absolute; font-size: 0.5em; margin-left: -0.1em; margin-top: 0.64em; opacity: 0.5;" class="bi bi-gear-fill"></i><i class="bi bi-play-fill"></i></button>
+				<button id="collapsedRunProgram" type="button" class="run-program" title="Build and Run">
+					<i class="bi bi-gear-fill"></i>
+					<i class="bi bi-play-fill"></i>
+				</button>
 				<button type="button" id="collapsedRestartProgram" title="Restart" style="display:none"><i class="bi bi-arrow-repeat"></i></button>
 				<button type="button" id="collapsedContinueProgram" title="Continue" style="display:none"><i class="bi bi-play-fill"></i></button>
 				<button type="button" id="collapsedStopProgram" title="Pause" style="display:none"><i class="bi bi-pause-fill"></i></button>
