@@ -792,8 +792,6 @@ function setupIDEButtonEvents() {
         else currentEditor.syntaxCheck();
     });
 
-    // TODO: I think some stopPropagation calls are unnecessary
-
     // Add events to new file source file button
     document.getElementById("addSourceFile").addEventListener("click", openUntitledCodeEditor);
 
