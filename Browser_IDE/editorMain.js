@@ -674,6 +674,74 @@ function getCurrentCompiler() {
     return currentCompiler;
 }
 
+// ------ Audio Notification ------
+let audioNotificationRunOnce = false;
+let audioNotification = null;
+
+// This is a hack to detect if the user has clicked into the iFrame
+// If they do, we set a flag to prevent the audio notification from showing and remove it if it's already showing
+// The timeout is to ensure that the activeElement is set correctly, essentially we're telling the browser to wait one tick before checking
+if (SKO.language == "C++") {
+    window.addEventListener("blur", () => {
+        setTimeout(() => {
+            if (document.activeElement.id == "iframetest") {
+                audioNotificationRunOnce = true;
+                if (audioNotification != null) audioNotification.deleteNotification();
+            }
+        });
+    });
+}
+
+function audioFunctionNotification(source) {
+    // Audio functions
+    let audioFunctions = [
+        "audio_ready",
+        "close_audio",
+        "open_audio",
+        "fade_music_in",
+        "fade_music_out",
+        "free_all_music",
+        "free_music",
+        "has_music",
+        "load_music",
+        "music_filename",
+        "music_name",
+        "music_named",
+        "music_playing",
+        "music_volume",
+        "pause_music",
+        "play_music",
+        "resume_music",
+        "set_music_volume",
+        "stop_music",
+        "fade_all_sound_effects_out",
+        "fade_sound_effect_out",
+        "free_all_sound_effects",
+        "free_sound_effect",
+        "has_sound_effect",
+        "load_sound_effect",
+        "play_sound_effect",
+        "play_sound_effect_named_with_volume",
+        "play_sound_effect_named_with_times",
+        "play_sound_effect_with_volume",
+        "play_sound_effect_with_times",
+        "sound_effect_filename",
+        "sound_effect_name",
+        "sound_effect_named",
+        "sound_effect_playing",
+        "stop_sound_effect"
+    ];
+
+    // Check if any audio functions are present in the source code
+    if (audioFunctions.some(func => source.includes(func))) {
+        // Set flag to prevent the audio notification from showing again
+        audioNotificationRunOnce = true;
+        // Display notification and return it so that it can be globally accessed and removed if needed
+        return displayEditorNotification("Audio functions are present in the code! Please click into the window to hear audio.", NotificationIcons.WARNING, -1);
+    }
+    return null;
+}
+
 // Functions to run/pause/continue/stop/restart the program itself
 async function runProgram(){
     try {
@@ -689,6 +757,7 @@ async function runProgram(){
 
         async function mapBit(filename){
             let source = await fileAsString(await storedProject.access((project) => project.readFile(filename)));
+            if (SKO.language == "C++" && !audioNotificationRunOnce) audioNotification = audioFunctionNotification(source);
             return {
                 name: filename,
                 source: source
