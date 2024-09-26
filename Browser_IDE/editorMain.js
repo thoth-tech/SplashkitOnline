@@ -424,7 +424,13 @@ function SwitchToTab(editor){
     }
 
     for (let i = 0; i < editors.length; i ++) {
+        // Before refreshing the editor, get the scroll position of the editor window
+        let display = currentEditor.editor.display;
+        let scrollTop = display.scroller.scrollTop;
+        // Refresh the editor
         editors[i].editor.refresh();
+        // Update the scrollbar with the original scrollbar position
+        display.scrollbars.setScrollTop(scrollTop);
     }
 }
 
