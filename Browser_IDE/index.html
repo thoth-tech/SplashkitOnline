@@ -51,14 +51,26 @@
         </ul>
 	</div>
 	<div class="sk-main-columns">
-		<div class="sk-column" id="fileViewContainer">
-			<div class="sk-header sk-header-indent">
-				FILES
+		<div id="fileViewContainer">
+			<div class="sk-column">
+				<div class="sk-header sk-header-indent">
+					<div class="sk-header-title">
+						<button type="button" title="Collapse Files" onclick="collapseFileViewToggle()">
+							<i class="bi bi-chevron-double-left"></i>
+						</button>
+						FILES
+					</div>
+				</div>
+				<input type="file" id="fileuploader" onchange="uploadFileFromInput()" style="display:none;">
+				<input type="file" id="projectuploader" onchange="uploadProjectFromInput()" style="display:none;">
+				<div class = "sk-header-indent sk-contents sk-contents-focusable" tabindex="0">
+					<div id="fileView"></div>
+				</div>
 			</div>
-			<input type="file" id="fileuploader" onchange="uploadFileFromInput()" style="display:none;">
-			<input type="file" id="projectuploader" onchange="uploadProjectFromInput()" style="display:none;">
-			<div class = "sk-header-indent sk-contents sk-contents-focusable" tabindex="0">
-				<div id="fileView"></div>
+			<div class="sk-collapsed-column sk-hidden">
+				<button type="button" title="Expand Files" onclick="collapseFileViewToggle()">
+					<i class="bi bi-files"></i>
+				</button>
 			</div>
 		</div>
 		<div class="sk-column" id="codeViewContainer">
@@ -78,24 +90,39 @@
                 </div>
             </div>
 		</div>
-		<div class="sk-column" id="runtimeContainer">
-			<div class="sk-header sk-header-indent">
-				<div class="flex-column">
-					PROGRAM
+		<div id="runtimeContainer">
+			<div class="sk-column">
+				<div class="sk-header sk-header-indent">
+					<div class="flex-column">
+						<button type="button" id="restartProgram" style="display:none"><i class="bi bi-arrow-repeat">Restart</i></button>
+						<button type="button" id="continueProgram" style="display:none"><i class="bi bi-play-fill">Continue</i></button>
+						<button type="button" id="runProgram" class="run-program">
+							<i class="bi bi-gear-fill"></i>
+							<i class="bi bi-play-fill">Build and Run</i>
+						</button>
+						<button type="button" id="stopProgram" style="display:none"><i class="bi bi-pause-fill">Pause</i></button>
+					</div>
+					<div class="sk-header-title">
+						PROGRAM
+						<button type="button" title="Collapse Program" onclick="collapseProgramViewToggle()">
+							<i class="bi bi-chevron-double-right"></i>
+						</button>
+					</div>
 				</div>
-				<div class="flex-column">
-					<button type="button" id="restartProgram" style="display:none"><i class="bi bi-arrow-repeat">Restart</i></button>
-					<button type="button" id="continueProgram" style="display:none"><i class="bi bi-play-fill">Continue</i></button>
-					<button type="button" id="runProgram"><i style="position: absolute; font-size: 0.5em; margin-left: -0.1em; margin-top: 0.64em; opacity: 0.5;" class="bi bi-gear-fill"></i><i class="bi bi-play-fill">Build and Run</i></button>
-					<button type="button" id="stopProgram" style="display:none"><i class="bi bi-pause-fill">Pause</i></button>
+				<div class="sk-contents" id="ExecutionEnvironment">
 				</div>
 			</div>
-			<div class="sk-contents" id="ExecutionEnvironment">
+			<div class="sk-collapsed-column sk-hidden">
+				<button type="button" title="Expand Program" onclick="collapseProgramViewToggle()"><i class="bi bi-terminal"></i></button>
+				<button id="collapsedRunProgram" type="button" class="run-program" title="Build and Run">
+					<i class="bi bi-gear-fill"></i>
+					<i class="bi bi-play-fill"></i>
+				</button>
+				<button type="button" id="collapsedRestartProgram" title="Restart" style="display:none"><i class="bi bi-arrow-repeat"></i></button>
+				<button type="button" id="collapsedContinueProgram" title="Continue" style="display:none"><i class="bi bi-play-fill"></i></button>
+				<button type="button" id="collapsedStopProgram" title="Pause" style="display:none"><i class="bi bi-pause-fill"></i></button>
 			</div>
 		</div>
-	</div>
-	<div class="sk-header">
-		<div style="width:2em; height:2em;"></div>
 	</div>
 </body>
 

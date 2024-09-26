@@ -339,6 +339,7 @@ textarea {
     display: flex;
     flex-direction: column;
     flex-grow: 1;
+    height: 100%;
 }
 
 .gutter {
@@ -414,7 +415,8 @@ textarea {
     margin-top: auto !important;
 }
 
-#runProgram {
+#runProgram,
+#collapsedRunProgram {
     color: #9fff69;
 }
 
@@ -861,3 +863,35 @@ li.CodeMirror-hint-active {
 .sk-term-fmt-code35, .sk-term-fmt-code95 {color: magenta;}
 .sk-term-fmt-code36, .sk-term-fmt-code96 {color: cyan;}
 .sk-term-fmt-code37, .sk-term-fmt-code97 {color: white;}
+
+.sk-collapsed-column {
+  box-shadow: 0 1px 0 0.4px #404040 inset;
+  display: flex;
+  flex-direction: column;
+}
+
+.sk-collapsed-column button {
+  font-size: 1.1em;
+  padding: 0.5em;
+}
+
+.sk-hidden {
+  display: none !important;
+}
+
+.sk-header-title {
+  text-wrap: nowrap;
+}
+
+.sk-minified .directory-contents {
+  padding-left: 15px;
+}
+
+/* Run program button icons - join the gear and play icons together */
+.run-program .bi-gear-fill {
+  position: absolute;
+  font-size: 0.5em;
+  margin-left: -0.1em;
+  margin-top: 0.64em;
+  opacity: 0.5;
+}

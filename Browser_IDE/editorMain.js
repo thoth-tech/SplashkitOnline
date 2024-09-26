@@ -352,22 +352,6 @@ async function saveAllOpenCode() {
     await Promise.all(promises);
 }
 
-let updateCodeButton;
-
-let runProgramButton;
-let restartProgramButton;
-let stopProgramButton;
-let continueProgramButton;
-
-function setupIDEExecutionButtons(){
-    updateCodeButton = document.getElementById("runOne");
-
-    runProgramButton = document.getElementById("runProgram");
-    restartProgramButton = document.getElementById("restartProgram");
-    stopProgramButton = document.getElementById("stopProgram");
-    continueProgramButton = document.getElementById("continueProgram");
-}
-
 function createGutterSplitters(){
     var sizes = localStorage.getItem('sk-online-split-sizes')
 
@@ -775,90 +759,141 @@ async function restartProgram(){
 // ------ Setup code editor buttons ------
 
 // Updates buttons based on the state of the ExecutionEnvironment
-function updateButtons(){
-    updateCodeButton.disabled = !allowExecution;
+function updateButtons() {
+    // First disable the update code button if we can't execute
+    document.getElementById("runOne").disabled = !allowExecution;
 
+    // Get if the program buttons should be on
     let runProgramButtonOn = executionEnviroment.executionStatus == ExecutionStatus.Unstarted && !executionEnviroment.hasRunOnce;
     let continueProgramButtonOn = executionEnviroment.executionStatus == ExecutionStatus.Paused
     let restartProgramButtonOn = executionEnviroment.hasRunOnce;
     let stopProgramButtonOn = executionEnviroment.executionStatus == ExecutionStatus.Running;
 
-    runProgramButton.disabled = !(allowExecution && runProgramButtonOn);
-    continueProgramButton.disabled = !(allowExecution && continueProgramButtonOn);
-    restartProgramButton.disabled = !(allowExecution && restartProgramButtonOn);
-    stopProgramButton.disabled = !(allowExecution && stopProgramButtonOn);
+    // Update the main program buttons
+    updateProgramButton("runProgram", allowExecution, runProgramButtonOn);
+    updateProgramButton("continueProgram", allowExecution, continueProgramButtonOn);
+    updateProgramButton("restartProgram", allowExecution, restartProgramButtonOn);
+    updateProgramButton("stopProgram", allowExecution, stopProgramButtonOn);
 
-    runProgramButton.style.display = !runProgramButtonOn?"none":"";
-    continueProgramButton.style.display = !continueProgramButtonOn?"none":"";
-    restartProgramButton.style.display = !restartProgramButtonOn?"none":"";
-    stopProgramButton.style.display = !stopProgramButtonOn?"none":"";
+    // Update the collapsed program buttons
+    updateProgramButton("collapsedRunProgram", allowExecution, runProgramButtonOn);
+    updateProgramButton("collapsedContinueProgram", allowExecution, continueProgramButtonOn);
+    updateProgramButton("collapsedRestartProgram", allowExecution, restartProgramButtonOn);
+    updateProgramButton("collapsedStopProgram", allowExecution, stopProgramButtonOn);
 }
 
-function SetupIDEButtonEvents() {
-    // Add events for the code view
-    updateCodeButton.addEventListener("click", function () {
-        if (currentEditor == null) return;
+// Update the visibility and disabled state of a program button based on the state of the ExecutionEnvironment
+function updateProgramButton(buttonId, allowExecution, buttonOn) {
+    let button = document.getElementById(buttonId);
+    button.disabled = !(allowExecution && buttonOn);
+    button.style.display = !buttonOn ? "none" : "";
+}
 
+function setupIDEButtonEvents() {
+    // Add events for the code view
+    document.getElementById("runOne").addEventListener("click", function () {
+        if (currentEditor == null) return;
         currentEditor.save();
-        if (activeLanguageSetup.supportHotReloading)
-            currentEditor.runOne();
-        else
-            currentEditor.syntaxCheck();
+        if (activeLanguageSetup.supportHotReloading) currentEditor.runOne();
+        else currentEditor.syntaxCheck();
     });
 
     // Add events to new file source file button
-    document.getElementById("addSourceFile").addEventListener("click", function (event) {
-        openUntitledCodeEditor();
-        event.stopPropagation();
-    });
-
+    document.getElementById("addSourceFile").addEventListener("click", openUntitledCodeEditor);
 
     // Add events for the main program buttons
-    runProgramButton.addEventListener("click", async function () {
-        await saveAllOpenCode();
-        runProgram();
-    });
+    setupProgramButton("runProgram", runProgram);
+    setupProgramButton("continueProgram", continueProgram);
+    setupProgramButton("restartProgram", restartProgram);
+    setupProgramButton("stopProgram", pauseProgram);
 
-    stopProgramButton.addEventListener("click", function () {
-        pauseProgram();
-    });
+    // Add events for the collapsed program buttons
+    setupProgramButton("collapsedRunProgram", runProgram, true);
+    setupProgramButton("collapsedContinueProgram", continueProgram, true);
+    setupProgramButton("collapsedRestartProgram", restartProgram, true);
+    setupProgramButton("collapsedStopProgram", pauseProgram, true);
 
-    restartProgramButton.addEventListener("click", async function () {
-        await saveAllOpenCode();
-        restartProgram();
-    });
+    // Add events for the project buttons
+    document.getElementById("UploadProject").addEventListener("click", () => document.getElementById("projectuploader").click());
 
-    continueProgramButton.addEventListener("click", async function () {
-        await saveAllOpenCode();
-        continueProgram();
-    });
+    setupProjectButton("DownloadProject", downloadProject);
+    setupProjectButton("NewProject", () => newProject(activeLanguageSetup.getDefaultProject()));
+    setupProjectButton("LoadDemo", () => ShowProjectLoader("Choose a demo project:", LoadDemoProjects));
 
-
-
-
-    document.getElementById("DownloadProject").addEventListener("click", async function (e) {
-        downloadProject();
-        e.stopPropagation();
-    });
-    document.getElementById("UploadProject").addEventListener("click", function (e) {
-        document.getElementById("projectuploader").click();
-        e.stopPropagation();
-    });
-    document.getElementById("NewProject").addEventListener("click", async function (e) {
-        newProject(activeLanguageSetup.getDefaultProject());
-        e.stopPropagation();
-    });
-    document.getElementById("LoadDemo").addEventListener("click", async function (e) {
-        ShowProjectLoader("Choose a demo project:", LoadDemoProjects);
-        e.stopPropagation();
-    });
-
-
-    if (!activeLanguageSetup.supportHotReloading) {
-        updateCodeButton.children[0].innerText = "Syntax Check File";
-    }
+    if (!activeLanguageSetup.supportHotReloading) updateCodeButton.children[0].innerText = "Syntax Check File";
 }
 
+function setupProjectButton(buttonId, callback) {
+    document.getElementById(buttonId).addEventListener("click", async () => callback());
+}
+
+function setupProgramButton(buttonId, callback, collapseView) {
+    document.getElementById(buttonId).addEventListener("click", async function () {
+        if (collapseView) collapseProgramViewToggle();
+        await saveAllOpenCode();
+        callback();
+    });
+}
+
+/*
+Toggle collapsed view
+
+Example HTML for a collapsible view:
+    <div id="viewContainer">
+        <div class="sk-column">
+            <!-- Main view -->
+        </div>
+        <div class="sk-collapsed-column sk-hidden">
+            <!-- Collapsed view -->
+        </div>
+    </div>
+*/
+function collapseViewToggle(containerId) {
+    // Get the container, the main view, and the collapsed view
+    let viewContainer = document.getElementById(containerId);
+    // The first child should be the main view, the second should be the collapsed view
+    let view = viewContainer.firstElementChild;
+    let collapsedView = viewContainer.lastElementChild;
+
+    // Toggle the visibility of the main view and the collapsed view
+    view.classList.toggle("sk-hidden");
+    collapsedView.classList.toggle("sk-hidden");
+
+    // Restore the original width of the view container if it was saved
+    // Otherwise, save the original width and set the width to auto
+    if (viewContainer.dataset.originalWidth) {
+        viewContainer.style.width = viewContainer.dataset.originalWidth;
+        delete viewContainer.dataset.originalWidth;
+    } else {
+        viewContainer.dataset.originalWidth = viewContainer.style.width;
+        viewContainer.style.width = "auto";
+    }
+
+    // Prevent the user from being able to resize the view when the view is collapsed
+    // The gutter is placed either before or after the view container depending on which side of the screen the view is on
+    let gutter = viewContainer.previousElementSibling || viewContainer.nextElementSibling;
+    if (!gutter.firstChild.classList.contains("gutter")) gutter = viewContainer.previousElementSibling || viewContainer.nextElementSibling;
+    gutter.style.pointerEvents = view.classList.contains("sk-hidden") ? "none" : "";
+}
+
+function collapseFileViewToggle() {
+    collapseViewToggle("fileViewContainer");
+}
+
+function collapseProgramViewToggle() {
+    collapseViewToggle("runtimeContainer");
+}
+
+function setupMinifiedInterface() {
+    if (SKO.useMinifiedInterface) {
+        // Add the sk-minified class to the body if the minified interface option is enabled
+        // that way we can style the interface differently
+        document.body.classList.add("sk-minified");
+        // If the minification option is enabled, the files and program view should be collapsed by default
+        collapseFileViewToggle();
+        collapseProgramViewToggle();
+    }
+}
 
 // Utility function for saving/loading the code blocks
 async function fileAsString(buffer){
