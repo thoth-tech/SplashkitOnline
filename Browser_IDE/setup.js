@@ -64,16 +64,16 @@ const requiredFiles = [
     new RequiredFile(thothTechRepoPath, "binaries/Browser_IDE/splashkit/SplashKitBackendWASM.wasm", jsRuntimeDir),
 
     // C++ files
-    new RequiredFile(WhyPenguinsRepoPath, "cxx_language_backend_binaries/Browser_IDE/compilers/cxx/bin/compiler.zip", cxxCompilerDir, async () => {
+    new RequiredFile(WhyPenguinsRepoPath, "cxx-audio-support-binaries/Browser_IDE/compilers/cxx/bin/compiler.zip", cxxCompilerDir, async () => {
         // Unpack and delete compiler.zip
         console.log("Extracting " + cxxCompilerDir + "/compiler.zip" + "...");
         await extract(cxxCompilerDir + "/compiler.zip", {dir: path.resolve(cxxCompilerDir)});
         fs.unlinkSync(cxxCompilerDir + "/compiler.zip");
         console.log("Extracted " + cxxCompilerDir + "/compiler.zip");
     }),
-    new RequiredFile(WhyPenguinsRepoPath, "cxx_language_backend_binaries/Browser_IDE/compilers/cxx/bin/wasi-sysroot.zip", cxxCompilerDir),
-    new RequiredFile(WhyPenguinsRepoPath, "cxx_language_backend_binaries/Browser_IDE/runtimes/cxx/bin/SplashKitBackendWASMCPP.js", cxxRuntimeDir),
-    new RequiredFile(WhyPenguinsRepoPath, "cxx_language_backend_binaries/Browser_IDE/runtimes/cxx/bin/SplashKitBackendWASMCPP.worker.js", cxxRuntimeDir)
+    new RequiredFile(WhyPenguinsRepoPath, "cxx-audio-support-binaries/Browser_IDE/compilers/cxx/bin/wasi-sysroot.zip", cxxCompilerDir),
+    new RequiredFile(WhyPenguinsRepoPath, "cxx-audio-support-binaries/Browser_IDE/runtimes/cxx/bin/SplashKitBackendWASMCPP.js", cxxRuntimeDir),
+    new RequiredFile(WhyPenguinsRepoPath, "cxx-audio-support-binaries/Browser_IDE/runtimes/cxx/bin/SplashKitBackendWASMCPP.worker.js", cxxRuntimeDir)
 ];
 
 exports.run = async function(){
@@ -86,7 +86,7 @@ exports.run = async function(){
         return;
     }
 
-    console.log("Setting up SKO files...");
+    console.log("Setting up SplashKit Online pre-built dependencies...");
 
     await Promise.all(requiredFiles.map((reqFile) => {
         return (async () => {
@@ -94,5 +94,5 @@ exports.run = async function(){
         })();
     }));
 
-    console.log("SKO setup complete!");
+    console.log("SplashKit Online setup complete!");
 }
