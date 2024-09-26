@@ -820,7 +820,7 @@ function setupIDEButtonEvents() {
     setupProjectButton("NewProject", () => newProject(activeLanguageSetup.getDefaultProject()));
     setupProjectButton("LoadDemo", () => ShowProjectLoader("Choose a demo project:", LoadDemoProjects));
 
-    if (!activeLanguageSetup.supportHotReloading) updateCodeButton.children[0].innerText = "Syntax Check File";
+    if (!activeLanguageSetup.supportHotReloading) document.getElementById("runOne").children[0].innerText = "Syntax Check File";
 }
 
 function setupProjectButton(buttonId, callback) {
