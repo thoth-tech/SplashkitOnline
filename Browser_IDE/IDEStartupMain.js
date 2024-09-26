@@ -43,6 +43,7 @@ async function StartIDE() {
                 (async () => {
                     await appStorage.attach();
                     await storedProject.attachToProject();
+                    openCodeEditors();
                 })()
             ])
 
