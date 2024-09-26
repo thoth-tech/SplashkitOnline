@@ -13,7 +13,7 @@ class JavascriptPatcher extends Compiler{
         return source;
     }
 
-    async compileAll(sourceList, print){
+    async compileAll(compileList, sourceList, print){
         let compiled = {
             output : null,
         };

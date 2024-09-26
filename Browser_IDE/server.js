@@ -12,6 +12,7 @@ async function run(){
     app.use("/babel", express.static(path.join(__dirname,"node_modules/@babel/standalone/")));
     app.use("/split.js", express.static(path.join(__dirname,"node_modules/split.js/dist/")));
     app.use("/mime", express.static(path.join(__dirname,"node_modules/mime/dist/")));
+    app.use("/DemoProjects", express.static(path.join(__dirname,"../DemoProjects")));
 
     app.use(function (req, res, next) {
         res.header("Access-Control-Allow-Origin", "*");
