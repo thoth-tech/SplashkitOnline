@@ -6,6 +6,13 @@ on:
   push:
     branches: ["deployed"]
 
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - closed
+
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
@@ -14,6 +21,7 @@ permissions:
   contents: write
   pages: write
   id-token: write
+  pull-requests: write
 
 # Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
 # However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
@@ -90,6 +98,10 @@ jobs:
           
       - name: Upload Built Archive
         working-directory: ./site-builds
+        env:
+          action: ${{ github.event.action }}
+          event: ${{ github.event_name }}
+          pr: ${{ github.event.number }}
         run: |
           git checkout --orphan new-site-builds site-builds
 
@@ -102,7 +114,17 @@ jobs:
           mv ../pr-builds ./pr-builds
 
           # move the new build in!
-          mv ../splashkitonline/Browser_IDE/* ./
+          echo "Event! ${event}"
+          echo "Action! ${action}"
+          if [ "${event}" == "push" ]; then
+            echo "Deploy!"
+            mv ../splashkitonline/Browser_IDE/* ./
+          elif [ "${event}" == "pull_request" ]; then
+            echo "PR! ${pr}"
+            rm -r "./pr-builds/${pr}"
+            mkdir "./pr-builds/${pr}"
+            mv ../splashkitonline/Browser_IDE/* ./pr-builds/${pr}/
+          fi
 
           # commit!
           git config --global user.email "buildbot@bot.bot"
@@ -111,3 +133,11 @@ jobs:
           git commit -m "Update builds"
           git branch -M new-site-builds site-builds
           git push origin site-builds --force-with-lease
+
+      - name: Leave a link to the PR
+        if: ${{ github.event_name }} == 'pull_request'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: pr-preview
+          message: "SplashKit Online PR Preview!:---:Preview at https://${{ steps.deployment.outputs.page_url }}/pr-builds/${{ github.event.number }}"
+          
