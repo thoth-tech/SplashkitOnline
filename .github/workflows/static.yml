@@ -107,7 +107,7 @@ jobs:
           # commit!
           git config --global user.email "buildbot@bot.bot"
           git config --global user.name "build-bot-bob"
-          git add deployed.tar.gz
+          git add --all
           git commit -m "Update builds"
           git branch -M new-site-builds site-builds
           git push origin site-builds --force-with-lease
