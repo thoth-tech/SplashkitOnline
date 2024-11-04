@@ -79,14 +79,17 @@ jobs:
       # it should be safe and be unable to trash the live site. I think anyway...
       - name: Create Build Archive
         run: tar -c --lzma -f deployed.tar.gz ./Browser_IDE # ${{ inputs.pr-number }}
-      - name: Clone Site Builds
-        run: |
-          rm -rf site-builds
-          git clone --single-branch --branch site-builds https://github.com/${{ github.repository }} site-builds
-          mv deployed.tar.gz site-builds/
+
+      - name: Checkout Site Builds
+        uses: actions/checkout@v4
+        with:
+          path: site-builds
+          ref: site-builds
+          
       - name: Upload Built Archive
         working-directory: ./site-builds
         run: |
+          mv ../deployed.tar.gz ./
           git config --global user.email "buildbot@bot.bot"
           git config --global user.name "build-bot-bob"
           git checkout --orphan new-site-builds site-builds
