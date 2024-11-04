@@ -59,6 +59,12 @@ jobs:
           mv ../DemoProjects DemoProjects
         env:
           GITHUB_TOKEN: ''
+      - name: download binaries
+        working-directory: ./Browser_IDE
+        run: |
+          python3 ./setup.py
+        env:
+          GITHUB_TOKEN: ''
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
