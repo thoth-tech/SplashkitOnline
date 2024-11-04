@@ -89,7 +89,8 @@ jobs:
         run: |
           git config --global user.email "buildbot@bot.bot"
           git config --global user.name "build-bot-bob"
+          git checkout --orphan new-site-builds site-builds
           git add deployed.tar.gz
           git commit -m "Update builds"
-          git rebase -i HEAD~n
+          git branch -M new-site-builds site-builds
           git push origin site-builds --force-with-lease
