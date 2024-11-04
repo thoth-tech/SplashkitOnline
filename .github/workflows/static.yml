@@ -82,7 +82,7 @@ jobs:
       - name: Clone Site Builds
         run: |
           rm -rf site-builds
-          git clone --single-branch --branch site-builds ${{ github.repository }} site-builds
+          git clone --single-branch --branch site-builds https://github.com/${{ github.repository }} site-builds
           mv deployed.tar.gz site-builds/
       - name: Upload Built Archive
         working-directory: ./site-builds
