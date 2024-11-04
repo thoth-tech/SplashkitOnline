@@ -38,18 +38,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          path: splashkitonline
           submodules: 'true'
         env:
           GITHUB_TOKEN: ''
 
       - name: npm install
-        working-directory: ./Browser_IDE
+        working-directory: ./splashkitonline/Browser_IDE
         run: |
           npm install
         env:
           GITHUB_TOKEN: ''
       - name: shuffle folders
-        working-directory: ./Browser_IDE
+        working-directory: ./splashkitonline/Browser_IDE
         run: |
           mv node_modules/codemirror codemirror-5.65.15
           mv node_modules/jszip/dist jszip
@@ -60,7 +61,7 @@ jobs:
         env:
           GITHUB_TOKEN: ''
       - name: download binaries
-        working-directory: ./Browser_IDE #python3 ./setup.py
+        working-directory: ./splashkitonline/Browser_IDE #python3 ./setup.py
         run: |
           wget -O splashkit/splashkit_autocomplete.json https://raw.githubusercontent.com/WhyPenguins/SplashkitOnline/github-live/Browser_IDE/splashkit/splashkit_autocomplete.json
           wget -O runtimes/javascript/bin/SplashKitBackendWASM.js https://raw.githubusercontent.com/WhyPenguins/SplashkitOnline/github-live/Browser_IDE/runtimes/javascript/bin/SplashKitBackendWASM.js
@@ -77,8 +78,9 @@ jobs:
       # At this point any scripts that exist in the filesystem _cannot_ be trusted
       # But I think (...?) if we do everything in the workflow from here on,
       # it should be safe and be unable to trash the live site. I think anyway...
-      - name: Create Build Archive
-        run: tar -c --lzma -f deployed.tar.gz ./Browser_IDE # ${{ inputs.pr-number }}
+
+      # - name: Create Build Archive
+      #   run: tar -c --lzma -f deployed.tar.gz ./Browser_IDE # ${{ inputs.pr-number }}
 
       - name: Checkout Site Builds
         uses: actions/checkout@v4
@@ -89,10 +91,22 @@ jobs:
       - name: Upload Built Archive
         working-directory: ./site-builds
         run: |
-          mv ../deployed.tar.gz ./
+          git checkout --orphan new-site-builds site-builds
+
+          # delete everything except for pr-builds and .git, a bit hacky really...
+          mkdir -p ./pr-builds
+          mv ./pr-builds ../
+          mv ./.git ../
+          rm -r ./
+          mv ../.git ./.git
+          mv ../pr-builds ./pr-builds
+
+          # move the new build in!
+          mv ../splashkitonline/Browser_IDE/* ./
+
+          # commit!
           git config --global user.email "buildbot@bot.bot"
           git config --global user.name "build-bot-bob"
-          git checkout --orphan new-site-builds site-builds
           git add deployed.tar.gz
           git commit -m "Update builds"
           git branch -M new-site-builds site-builds
