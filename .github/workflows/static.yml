@@ -97,7 +97,7 @@ jobs:
           mkdir -p ./pr-builds
           mv ./pr-builds ../
           mv ./.git ../
-          rm -r ./
+          rm -r ./*
           mv ../.git ./.git
           mv ../pr-builds ./pr-builds
 
