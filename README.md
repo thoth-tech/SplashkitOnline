@@ -1,6 +1,13 @@
 
 <img src="SplashKitOnlineIDETitle.png" alt="SplashKit Online IDE"/>
 
+[![GitHub contributors](https://img.shields.io/github/contributors/thoth-tech/SplashkitOnline?label=Contributors&color=F5A623)](https://github.com/thoth-tech/SplashkitOnline/graphs/contributors)
+[![GitHub issues](https://img.shields.io/github/issues/thoth-tech/SplashkitOnline?label=Issues&color=F5A623)](https://github.com/thoth-tech/SplashkitOnline/issues)
+[![GitHub pull requests](https://img.shields.io/github/issues-pr/thoth-tech/SplashkitOnline?label=Pull%20Requests&color=F5A623)](https://github.com/thoth-tech/SplashkitOnline/pulls)
+[![Website](https://img.shields.io/website?down_color=red&down_message=Offline&label=Website&up_color=green&up_message=Online&url=https%3A%2F%2Fthoth-tech.github.io%2FSplashkitOnline%2F)](https://thoth-tech.github.io/SplashkitOnline/)
+[![Forks](https://img.shields.io/github/forks/thoth-tech/SplashkitOnline?label=Forks&color=F5A623)](https://github.com/thoth-tech/SplashkitOnline/network/members)
+[![Stars](https://img.shields.io/github/stars/thoth-tech/SplashkitOnline?label=Stars&color=F5A623)](https://github.com/thoth-tech/SplashkitOnline/stargazers)
+
 # SplashKit Online
 
 SplashKit Online is a browser-based development environment for beginner programmers!
@@ -8,7 +15,11 @@ With it you can immediately get started programming in JavaScript and/or C++ usi
 
 [![prototype-image](SplashKitOnlineIDEPrototypeImage.png)](https://thoth-tech.github.io/SplashkitOnline/)
 
-# <p align="center">[Try Online!](https://thoth-tech.github.io/SplashkitOnline/)</p>
+<p align="center">
+  <a href="https://thoth-tech.github.io/SplashkitOnline/">
+    <img src="https://img.shields.io/badge/Try%20Online!-F5A623?style=for-the-badge" alt="Try Online!">
+  </a>
+</p>
 
 ## Table Of Contents
 - [Table Of Contents](#table-of-contents)
