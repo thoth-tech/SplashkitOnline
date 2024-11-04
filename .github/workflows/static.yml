@@ -87,6 +87,8 @@ jobs:
       - name: Upload Built Archive
         working-directory: ./site-builds
         run: |
+          git config --global user.email "buildbot@bot.bot"
+          git config --global user.name "build-bot-bob"
           git add deployed.tar.gz
           git commit -m "Update builds"
           git rebase -i HEAD~n
