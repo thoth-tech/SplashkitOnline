@@ -1,5 +1,12 @@
 <img src="SplashKitOnlineIDETitle.png" alt="SplashKit Online IDE"/>
 
+[![GitHub contributors](https://img.shields.io/github/contributors/thoth-tech/SplashkitOnline?label=Contributors&color=F5A623)](https://github.com/thoth-tech/SplashkitOnline/graphs/contributors)
+[![GitHub issues](https://img.shields.io/github/issues/thoth-tech/SplashkitOnline?label=Issues&color=F5A623)](https://github.com/thoth-tech/SplashkitOnline/issues)
+[![GitHub pull requests](https://img.shields.io/github/issues-pr/thoth-tech/SplashkitOnline?label=Pull%20Requests&color=F5A623)](https://github.com/thoth-tech/SplashkitOnline/pulls)
+[![Website](https://img.shields.io/website?down_color=red&down_message=Offline&label=Website&up_color=green&up_message=Online&url=https%3A%2F%2Fthoth-tech.github.io%2FSplashkitOnline%2F)](https://thoth-tech.github.io/SplashkitOnline/)
+[![Forks](https://img.shields.io/github/forks/thoth-tech/SplashkitOnline?label=Forks&color=F5A623)](https://github.com/thoth-tech/SplashkitOnline/network/members)
+[![Stars](https://img.shields.io/github/stars/thoth-tech/SplashkitOnline?label=Stars&color=F5A623)](https://github.com/thoth-tech/SplashkitOnline/stargazers)
+
 # SplashKit Online
 
 SplashKit Online is a browser-based development environment for beginner programmers!
@@ -7,22 +14,31 @@ With it you can immediately get started programming in Javascript (and experimen
 
 [![prototype-image](SplashKitOnlineIDEPrototypeImage.png)](https://thoth-tech.github.io/SplashkitOnline/)
 
-## <p align="center">[Try Online!](https://thoth-tech.github.io/SplashkitOnline/)</p>
+<p align="center">
+  <a href="https://thoth-tech.github.io/SplashkitOnline/">
+    <img src="https://img.shields.io/badge/Try%20Online!-F5A623?style=for-the-badge" alt="Try Online!">
+  </a>
+</p>
 
 ## Table Of Contents
 
-- [Installation](#installation)
+- [SplashKit Online](#splashkit-online)
+  - [Table Of Contents](#table-of-contents)
+  - [Installation](#installation)
     - [Setting up the IDE](#setting-up-the-ide)
-- [Project Goals and Structure](#project-goals-and-structure)
-    - [Technology Used](#technology-used)
-- [SplashKit Wasm Library Manual Compilation](#splashkit-wasm-library-manual-compilation)
+  - [Project Goals and Structure](#project-goals-and-structure)
+  - [Technology Used](#technology-used)
+    - [IDE](#ide)
+    - [Code Execution](#code-execution)
+    - [SplashKit Library](#splashkit-library)
+  - [SplashKit Wasm Library Manual Compilation](#splashkit-wasm-library-manual-compilation)
 - [Experimental C++ Support](#experimental-c-support)
-    - [Setup](#setup)
-	    - [Installing the Compilers](#installing-the-compilers)
-	    - [Installing the C++ Runtime](#installing-the-c-runtime)
-	        - [(Optional) For Manual Compilation](#optional-for-manual-compilation)
-    - [Switching to C++](#switching-to-c)
-- [License](#license)
+  - [Setup](#setup)
+    - [Installing the Compilers](#installing-the-compilers)
+      - [Manual Compilation](#manual-compilation)
+  - [Switching to C++](#switching-to-c)
+  - [License](#license)
+
 ## Installation
 
 Standard installation (of JavaScript support only) involves two steps:
@@ -103,7 +119,7 @@ emcmake cmake -G "Unix Makefiles" -DENABLE_CPP_BACKEND=ON .
 emmake make -j8
 ```
 
-For more info, see the [this pull request](https://github.com/thoth-tech/SplashkitOnline/pull/65).
+For more info, see the [pull request](https://github.com/thoth-tech/SplashkitOnline/pull/65).
 
 ## Switching to C++
 
