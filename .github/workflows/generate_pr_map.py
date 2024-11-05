@@ -34,6 +34,8 @@ def cache_root_hashes():
     for root, dirs, files in os.walk(ROOT_DIR, topdown=True):
         if "pr-previews" in dirs:
             del dirs[dirs.index("pr-previews")]
+        if "branch-previews" in dirs:
+            del dirs[dirs.index("branch-previews")]
         for file in files:
             if os.path.splitext(file)[1].lower() in EXTENSIONS:
                 file_path = os.path.join(root, file)
@@ -66,6 +68,10 @@ def process_pr_folder(pr_folder, bulk_dir):
                     if not os.path.exists(bulk_path):
                         shutil.move(file_path, bulk_path)
                         print("move", file_path, bulk_path)
+                    else:
+                        os.remove(file_path)
+                        print("exists, delete", file_path, bulk_path)
+
                     pr_path_map["redirects"][get_relative_path(file_path, ROOT_DIR)] = get_relative_path(bulk_path, ROOT_DIR)
 
     # Write the PR path map JSON

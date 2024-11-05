@@ -28,6 +28,7 @@ jobs:
   # May be running untrusted code, so it's been given very restricted permissions
   # Hopefully it can't do anything too bad...
   build:
+    if: ${{ github.event_name != 'pull_request_target' || github.event.action != 'closed' }}
     permissions:
       contents: read
     runs-on: ubuntu-latest
@@ -109,11 +110,16 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - name: Download a Build Artifact
+      - name: Download built site
+        if: ${{ github.event_name != 'pull_request_target' || github.event.action != 'closed' }}
         uses: actions/download-artifact@v4.1.8
         with:
           name: preview-${{ github.sha }}
           path: ./built-site
+
+      - name: Or make an empty folder... # Note: Git will ignore empty folders when commiting
+        if: ${{ github.event_name == 'pull_request_target' && github.event.action == 'closed' }}
+        run: mkdir -p built-site
 
       - name: Checkout Site Builds
         uses: actions/checkout@v4
@@ -132,8 +138,6 @@ jobs:
         run: |
           git checkout --orphan new-site-builds site-builds
 
-          # move the new build in!
-
           # clean the directory - delete everything except for pr-previews and .git, a bit hacky really...
           mkdir -p ./pr-previews
           mkdir -p ./branch-previews
@@ -145,6 +149,7 @@ jobs:
           mv ../pr-previews ./pr-previews
           mv ../branch-previews ./branch-previews
 
+          # move the new build in!
           if [ "${event}" == "push" ]; then
             echo "Branch! ${ref}"
             mkdir -p "./branch-previews/${ref}" # also creates parent directories
