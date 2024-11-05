@@ -194,6 +194,11 @@ jobs:
         working-directory: ./deployed
         run: python3 ../script/.github/workflows/generate_pr_map.py
 
+      - name: Delete existing page artifact # allows re-run of workflow
+        uses: geekyeggo/delete-artifact@v5
+        with:
+            name: github-pages
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
