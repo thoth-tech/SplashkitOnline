@@ -228,6 +228,8 @@ jobs:
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           header: pr-preview
-          delete: true
           message: |
-            # PR Preview Removed
+            | :whale2: **PR Preview!** |
+            | :-----: |
+            | The preview is no more! |
+            | Congrats if this was merged! :smile: |
