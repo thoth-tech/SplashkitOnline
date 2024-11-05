@@ -195,7 +195,3 @@ function showDownloadFailure() {
 
 showLoadingContainer();
 updateLoadingProgress(0);
-
-let globalLoadingBarDownloadSet = null;
-let runtimeLoadingProgress = null;
-let compilerLoadingProgress = null;
