@@ -1,57 +1,77 @@
-# Simple workflow for deploying static content to GitHub Pages
-name: Deploy static content to Pages
+name: Deploy current 'deployed'/PR previews
 
 on:
   # Runs on pushes targeting the default branch
   push:
-    branches: ["deployed"]
+    branches: ["deployed", "main"]
+
+  pull_request_target: # use trusted workflow (as opposed to `pull_request`)
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - closed
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
-permissions:
-  contents: read
-  pages: write
-  id-token: write
+permissions: {}
 
-# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
+# Allow only one concurrent deployment per PR, skipping runs queued between the run in-progress and latest queued.
 # However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
 concurrency:
-  group: "pages"
-  cancel-in-progress: false
+  group: preview-${{ github.ref }}
+  # cancel-in-progress: false
 
 jobs:
-  # Single deploy job since we're just deploying
-  deploy:
-    environment:
-      name: static-site
-      url: ${{ steps.deployment.outputs.page_url }}
+  # Creates a build of the website and uploads it as an artifact
+  # May be running untrusted code, so it's been given very restricted permissions
+  # Hopefully it can't do anything too bad...
+  build:
+    if: ${{ github.event_name != 'pull_request_target' || github.event.action != 'closed' }}
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          submodules: 'true'
       - name: Use Node.js 20
         uses: actions/setup-node@v4
         with:
           node-version: 20
+        env:
+          GITHUB_TOKEN: ''
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: splashkitonline
+          submodules: 'true'
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+        env:
+          GITHUB_TOKEN: ''
+
       - name: npm install
-        working-directory: ./Browser_IDE
+        working-directory: ./splashkitonline/Browser_IDE
         run: |
           npm install
+        env:
+          GITHUB_TOKEN: ''
+
       - name: shuffle folders
-        working-directory: ./Browser_IDE
+        working-directory: ./splashkitonline/Browser_IDE
         run: |
           mv node_modules/codemirror codemirror-5.65.15
           mv node_modules/jszip/dist jszip
           mv node_modules/@babel/standalone babel
           mv node_modules/split.js/dist split.js
           mv node_modules/mime/dist mime
+          rm -rf external/js-lzma/data
           mv ../DemoProjects DemoProjects
-      - name: download binaries #(hacky, please improve!) See https://github.com/thoth-tech/SplashkitOnline/pull/85
-        working-directory: ./Browser_IDE
+        env:
+          GITHUB_TOKEN: ''
+
+      - name: download binaries
+        working-directory: ./splashkitonline/Browser_IDE #python3 ./setup.py
         run: |
           wget -O splashkit/splashkit_autocomplete.json https://raw.githubusercontent.com/WhyPenguins/SplashkitOnline/github-live/Browser_IDE/splashkit/splashkit_autocomplete.json
           wget -O runtimes/javascript/bin/SplashKitBackendWASM.js https://raw.githubusercontent.com/WhyPenguins/SplashkitOnline/github-live/Browser_IDE/runtimes/javascript/bin/SplashKitBackendWASM.js
@@ -63,13 +83,145 @@ jobs:
           wget -O compilers/cxx/bin/lld.wasm.lzma https://raw.githubusercontent.com/WhyPenguins/SplashkitOnline/github-live/Browser_IDE/compilers/cxx/bin/lld.wasm.lzma
           wget -O runtimes/cxx/bin/SplashKitBackendWASMCPP.js https://raw.githubusercontent.com/WhyPenguins/SplashkitOnline/github-live/Browser_IDE/runtimes/cxx/bin/SplashKitBackendWASMCPP.js
           wget -O runtimes/cxx/bin/SplashKitBackendWASMCPP.worker.js https://raw.githubusercontent.com/WhyPenguins/SplashkitOnline/github-live/Browser_IDE/runtimes/cxx/bin/SplashKitBackendWASMCPP.worker.js
+        env:
+          GITHUB_TOKEN: ''
+
+      - name: Upload the build as an artifact
+        uses: actions/upload-artifact@v4.4.3
+        with:
+          name: preview-${{ github.sha }}
+          path: ./splashkitonline/Browser_IDE
+          retention-days: 1
+          compression-level: 8
+          overwrite: true
+
+  # This part takes that artifact, merges it in to `site-builds` in its respective folder,
+  # and deploys.
+  deploy:
+    needs: build
+    # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+      pull-requests: write
+    environment:
+      name: static-site
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download built site
+        if: ${{ github.event_name != 'pull_request_target' || github.event.action != 'closed' }}
+        uses: actions/download-artifact@v4.1.8
+        with:
+          name: preview-${{ github.sha }}
+          path: ./built-site
+
+      - name: Or make an empty folder... # Note: Git will ignore empty folders when commiting
+        if: ${{ github.event_name == 'pull_request_target' && github.event.action == 'closed' }}
+        run: mkdir -p built-site
+
+      - name: Checkout Site Builds
+        uses: actions/checkout@v4
+        with:
+          path: site-builds
+          submodules: 'false'
+          ref: site-builds
+
+      - name: Upload Built Archive
+        working-directory: ./site-builds
+        env:
+          action: ${{ github.event.action }}
+          event: ${{ github.event_name }}
+          pr: ${{ github.event.number }}
+          ref: ${{ github.ref_name }}
+        run: |
+          git checkout --orphan new-site-builds site-builds
+
+          # clean the directory - delete everything except for pr-previews and .git, a bit hacky really...
+          mkdir -p ./pr-previews
+          mkdir -p ./branch-previews
+          mv ./pr-previews ../
+          mv ./branch-previews ../
+          mv ./.git ../
+          cd ../ && rm -rf site-builds && mkdir site-builds && cd site-builds
+          mv ../.git ./.git
+          mv ../pr-previews ./pr-previews
+          mv ../branch-previews ./branch-previews
+
+          # move the new build in!
+          if [ "${event}" == "push" ]; then
+            echo "Branch! ${ref}"
+            mkdir -p "./branch-previews/${ref}" # also creates parent directories
+            rm -rf "./branch-previews/${ref}"
+            mv ../built-site "./branch-previews/${ref}"
+          elif [ "${event}" == "pull_request_target" ]; then
+            echo "PR! ${pr}"
+            rm -rf "./pr-previews/${pr}"
+            if [ "${action}" != "closed" ]; then
+              mv ../built-site "./pr-previews/${pr}"
+            fi
+          fi
+
+          # commit!
+          git config --global user.email "buildbot@bot.bot"
+          git config --global user.name "build-bot-bob"
+          git add --all --force
+          git commit -m "Update builds"
+          git branch -M new-site-builds site-builds
+          # TODO: This is race condition, if there are two simultaneous PRs only one will survive...
+          git push origin site-builds --force-with-lease
+
+          repoSiteURL=$(echo ${{ github.repository }} | sed 's/\//.github.io\//')
+          echo "repoSiteURL=$repoSiteURL" >> $GITHUB_ENV
+
+      - name: Structure Deployment # Put everything inside the `deployed` branch's folder
+        working-directory: ./site-builds
+        run: |
+          mkdir -p "./branch-previews/deployed" # just in case
+          mv "./branch-previews/deployed" ../deployed
+          mv ./* ../deployed/
+
+      - name: Checkout de-duplicate script # This way it's safe...
+        uses: actions/checkout@v4
+        with:
+          path: script
+          sparse-checkout: |
+            .github/workflows/generate_pr_map.py
+          sparse-checkout-cone-mode: false
+
+      - name: De-duplicate # I really wish GitHub supported hardlinks at least, this would have been much less painful...and save them space!
+        working-directory: ./deployed
+        run: python3 ../script/.github/workflows/generate_pr_map.py
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
           # Upload IDE site
-          path: './Browser_IDE'
+          path: './deployed'
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+      - name: Leave a link to the PR
+        if: ${{ success() && github.event_name == 'pull_request_target' && github.event.action != 'closed' }}
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: pr-preview
+          message: |
+            | :whale2: **PR Preview!** |
+            | :-----: |
+            | Preview at https://${{ env.repoSiteURL }}/pr-previews/${{ github.event.number }} |
+            | for commit ${{ github.event.pull_request.head.sha }} |
+
+      - name: Or delete the link...
+        if: ${{ github.event_name == 'pull_request_target' && github.event.action == 'closed' }}
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: pr-preview
+          delete: true
+          message: |
+            # PR Preview Removed

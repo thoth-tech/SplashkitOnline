@@ -6,6 +6,7 @@ importScripts('./../../external/js-lzma/src/wlzma.js');
 importScripts('./../../external/js-lzma/src/lzma.shim.js');
 
 self.wlzmaCustomPath = "./../../external/js-lzma/src/wlzma.wrk.js";
+self.downloadRootPath = "./../../";
 importScripts('./../../downloadHandler.js');
 
 // function to load the system libraries zip file

@@ -20,9 +20,13 @@ let SKO = (function(){
             return parsedRawParams[paramName] ?? _default;
     }
 
+    let isPreview =   (page_url.pathname.indexOf("/pr-previews/") >= 0)
+                   || (page_url.pathname.indexOf("/branch-previews/") >= 0);
+
     return {
         language: getEnvParam("language", "JavaScript", false), /*don't decode, so + remains + rather than a space*/
         useCompressedBinaries: getEnvParam("useCompressedBinaries", "on", true) == "on",
         useMinifiedInterface: getEnvParam("useMinifiedInterface") == "on",
+        isPRPreview: getEnvParam("isPRPreview", isPreview ? "on" : "off") == "on",
     };
 })();

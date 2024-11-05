@@ -1,9 +1,47 @@
 "use strict";
 
 let wlzmaPath = self['wlzmaCustomPath'] || "./external/js-lzma/src/wlzma.wrk.js";
+let downloadRootPath = self['downloadRootPath'] || "./";
+
+// url patch map
+let urlPatchMap = null;
+
+async function rerouteURL(url){
+    if (SKO.isPRPreview) {
+        const requestUrl = new URL(url, self.location);
+
+        if (urlPatchMap == null){
+            const requestUrl = new URL(downloadRootPath+"PRPathMap.json", self.location);
+            let response = await fetch(requestUrl.href);
+            urlPatchMap = await response.json();
+            // patch the patch map...
+            // initially entries look like:
+            // "/pr-previews/2/compilers/cxx/bin/clang.wasm.lzma": "/compilers/cxx/bin/clang.wasm.lzma"
+            // which only works if the site is running at /. Under GitHub pages it runs in a sub-directory,
+            // so we re-map the paths to be in that sub-directory as well.
+
+            // find the prefix
+            const current_prefix = new URL(downloadRootPath, self.location).pathname;
+            let prefix_offset = current_prefix.indexOf(urlPatchMap.root);
+            let prefix = current_prefix.slice(0, prefix_offset);
+
+            let orig_redirects = urlPatchMap.redirects;
+            urlPatchMap.redirects = {};
+
+            Object.keys(orig_redirects).forEach(function(key) {
+                urlPatchMap.redirects[prefix+key] = prefix+orig_redirects[key];
+            });
+        }
+        if (requestUrl.pathname in urlPatchMap.redirects) {
+            return urlPatchMap.redirects[requestUrl.pathname];
+        }
+    }
+    return url;
+}
+
 
 function XMLHttpRequestPromise(url, progressCallback, type="GET") {
-    return new Promise(function (resolve, reject) {
+    return new Promise(async function (resolve, reject) {
         let req = new XMLHttpRequest();
         req.responseType = 'arraybuffer';
 
@@ -25,7 +63,7 @@ function XMLHttpRequestPromise(url, progressCallback, type="GET") {
             resolve(event.target);
         }, false);
 
-        req.open(type, url);
+        req.open(type, await rerouteURL(url));
         req.send();
     });
 }
@@ -33,6 +71,8 @@ function XMLHttpRequestPromise(url, progressCallback, type="GET") {
 let wlzma = (self.WLZMA != undefined) ? new WLZMA.Manager(0, wlzmaPath) : null;
 
 async function downloadFile(url, progressCallback = null, maybeLZMACompressed = false){
+    url = await rerouteURL(url);
+
     // First try downloading the LZMA version
     if (wlzma && maybeLZMACompressed && SKO.useCompressedBinaries) {
         let exists = false;

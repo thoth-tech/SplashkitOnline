@@ -66,7 +66,7 @@ async function ShowProjectLoader(title, getChoices){
                         displayEditorNotification("Switching language to " + item["language"] + "<br>Page will reload.", NotificationIcons.INFO);
 
                     // wait until the project has loaded, only then switch language if needed
-                    await loadProjectFromURL(item["file"]);
+                    await loadProjectFromURL(await rerouteURL(item["file"]));
 
                     if (activeLanguage.name != item["language"])
                         switchActiveLanguage(item["language"]);
