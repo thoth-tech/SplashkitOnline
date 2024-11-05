@@ -2,6 +2,9 @@
 
 let hasInitializedLanguage = false;
 
+
+let SKO = null;
+
 window.addEventListener('message', function(m){
     if (m.data.type == "InitializeLanguage"){
         if (hasInitializedLanguage){
@@ -9,6 +12,8 @@ window.addEventListener('message', function(m){
             return;
         }
         hasInitializedLanguage = true;
+
+        SKO = m.data.SKO;
 
         globalLoadingBarDownloadSet = new DownloadSet((progress) => {
             if (progress < 0) {

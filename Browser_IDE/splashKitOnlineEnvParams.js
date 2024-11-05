@@ -24,5 +24,6 @@ let SKO = (function(){
         language: getEnvParam("language", "JavaScript", false), /*don't decode, so + remains + rather than a space*/
         useCompressedBinaries: getEnvParam("useCompressedBinaries", "on", true) == "on",
         useMinifiedInterface: getEnvParam("useMinifiedInterface") == "on",
+        isPRPreview: getEnvParam("isPRPreview", page_url.pathname.indexOf("/pr-previews/") >= 0 ? "on" : "off") == "on",
     };
 })();

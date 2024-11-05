@@ -1,9 +1,29 @@
 "use strict";
 
 let wlzmaPath = self['wlzmaCustomPath'] || "./external/js-lzma/src/wlzma.wrk.js";
+let downloadRootPath = self['downloadRootPath'] || "./";
+
+// url patch map
+let urlPatchMap = null;
+
+async function rerouteURL(url){
+    if (SKO.isPRPreview) {
+        const requestUrl = new URL(url, self.location);
+        if (urlPatchMap == null){
+            const requestUrl = new URL(downloadRootPath+"PRPathMap.json", self.location);
+            let response = await fetch(requestUrl.href);
+            urlPatchMap = await response.json();
+        }
+        if (requestUrl.pathname in urlPatchMap.redirects) {
+            return urlPatchMap.redirects[requestUrl.pathname];
+        }
+    }
+    return url;
+}
+
 
 function XMLHttpRequestPromise(url, progressCallback, type="GET") {
-    return new Promise(function (resolve, reject) {
+    return new Promise(async function (resolve, reject) {
         let req = new XMLHttpRequest();
         req.responseType = 'arraybuffer';
 
@@ -25,7 +45,7 @@ function XMLHttpRequestPromise(url, progressCallback, type="GET") {
             resolve(event.target);
         }, false);
 
-        req.open(type, url);
+        req.open(type, await rerouteURL(url));
         req.send();
     });
 }
@@ -33,6 +53,8 @@ function XMLHttpRequestPromise(url, progressCallback, type="GET") {
 let wlzma = (self.WLZMA != undefined) ? new WLZMA.Manager(0, wlzmaPath) : null;
 
 async function downloadFile(url, progressCallback = null, maybeLZMACompressed = false){
+    url = await rerouteURL(url);
+
     // First try downloading the LZMA version
     if (wlzma && maybeLZMACompressed && SKO.useCompressedBinaries) {
         let exists = false;

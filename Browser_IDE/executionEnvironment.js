@@ -303,6 +303,7 @@ class ExecutionEnvironment extends EventTarget{
                 runtimeFiles: language.runtimeFiles,
                 runtimeSizeAprox: language.runtimeSizeAprox,
                 compilerSizeAprox: language.compilerSizeAprox,
+                SKO: SKO,
             }, "*");
         }
         this.addEventListener("languageLoaderReady", f);
