@@ -9,10 +9,28 @@ let urlPatchMap = null;
 async function rerouteURL(url){
     if (SKO.isPRPreview) {
         const requestUrl = new URL(url, self.location);
+
         if (urlPatchMap == null){
             const requestUrl = new URL(downloadRootPath+"PRPathMap.json", self.location);
             let response = await fetch(requestUrl.href);
             urlPatchMap = await response.json();
+            // patch the patch map...
+            // initially entries look like:
+            // "/pr-previews/2/compilers/cxx/bin/clang.wasm.lzma": "/compilers/cxx/bin/clang.wasm.lzma"
+            // which only works if the site is running at /. Under GitHub pages it runs in a sub-directory,
+            // so we re-map the paths to be in that sub-directory as well.
+
+            // find the prefix
+            const current_prefix = new URL(downloadRootPath, self.location).pathname;
+            let prefix_offset = current_prefix.indexOf(urlPatchMap.root);
+            let prefix = current_prefix.slice(0, prefix_offset);
+
+            let orig_redirects = urlPatchMap.redirects;
+            urlPatchMap.redirects = {};
+
+            Object.keys(orig_redirects).forEach(function(key) {
+                urlPatchMap.redirects[prefix+key] = prefix+orig_redirects[key];
+            });
         }
         if (requestUrl.pathname in urlPatchMap.redirects) {
             return urlPatchMap.redirects[requestUrl.pathname];

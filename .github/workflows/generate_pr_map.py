@@ -41,7 +41,7 @@ def cache_root_hashes():
                 root_file_hashes[file_hash] = file_path
 
 def process_pr_folder(pr_folder, bulk_dir):
-    pr_path_map = {"redirects": {}}
+    pr_path_map = {"redirects": {}, "root": get_relative_path(pr_folder, ROOT_DIR)}
     for root, _, files in os.walk(pr_folder):
         for file in files:
             if os.path.splitext(file)[1].lower() in EXTENSIONS:
