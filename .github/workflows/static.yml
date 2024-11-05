@@ -99,6 +99,7 @@ jobs:
   # and deploys.
   deploy:
     needs: build
+    if: ${{ always() && !failure() && !cancelled() }} # run this job even if the previous one is skipped
     # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
     permissions:
       contents: write
