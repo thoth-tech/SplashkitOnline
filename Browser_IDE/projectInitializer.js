@@ -17,9 +17,12 @@ function gameInnerLoop(){
         write_line("click!");
 
     // Draw a simple scene
-    fill_ellipse(COLOR_LIME, 0, 400, 800, 400);
-    fill_rectangle(rgba_color(0.4,0.4,0.4,1), 300, 300, 200, 200);
-    fill_triangle(COLOR_RED, 250, 300, 400, 150, 550, 300);
+    fill_ellipse(rgba_color(0.2,0.2,0.2,1), 0, 400, 800, 400);
+    fill_rectangle(COLOR_BLACK, 300, 300, 200, 200);
+    fill_triangle(COLOR_BLACK, 250, 300, 400, 150, 550, 300);
+    fill_rectangle(COLOR_ORANGE, 350, 350, 50, 50);
+    fill_rectangle(COLOR_BLACK, 372, 350, 5, 50);
+    fill_rectangle(COLOR_BLACK, 350, 372, 50, 5);
 
     // If the mouse is being held down,
     // set the global variable circle_pos
@@ -30,7 +33,7 @@ function gameInnerLoop(){
 
     // Draw the circle!
     fill_ellipse(
-        rgba_color(0.3,0.7,1,0.7),     // Color of the ellipse
+        rgba_color(1.0,0.5,0.2,0.7),     // Color of the ellipse
         circle_pos.x - circleSize/2, // The x (horizontal) position
         circle_pos.y - circleSize/2, // The y (vertical) position
         circleSize,                  // The width
@@ -60,7 +63,7 @@ function main(){
 
         // Clear the screen - try removing this!
         // If you change it, don't forget to "Restart"!
-        clear_screen(COLOR_WHITE);
+        clear_screen(rgb_color(0.1,0.1,0.1));
 
         // Do the game related stuff (in the code block above!)
         gameInnerLoop();
@@ -91,9 +94,12 @@ void gameInnerLoop(){
         write_line("click!");
 
     // Draw a simple scene
-    fill_ellipse(COLOR_LIME, 0, 400, 800, 400);
-    fill_rectangle(rgba_color(0.4,0.4,0.4,1.0), 300, 300, 200, 200);
-    fill_triangle(COLOR_RED, 250, 300, 400, 150, 550, 300);
+    fill_ellipse(rgba_color(0.2,0.2,0.2,1.0), 0, 400, 800, 400);
+    fill_rectangle(COLOR_BLACK, 300, 300, 200, 200);
+    fill_triangle(COLOR_BLACK, 250, 300, 400, 150, 550, 300);
+    fill_rectangle(COLOR_ORANGE, 350, 350, 50, 50);
+    fill_rectangle(COLOR_BLACK, 372, 350, 5, 50);
+    fill_rectangle(COLOR_BLACK, 350, 372, 50, 5);
 
     // If the mouse is being held down,
     // set the global variable circle_pos
@@ -104,7 +110,7 @@ void gameInnerLoop(){
 
     // Draw the circle!
     fill_ellipse(
-        rgba_color(0.3,0.7,1.0,0.7),     // Color of the ellipse
+        rgba_color(1.0,0.5,0.2,0.7),     // Color of the ellipse
         circle_pos.x - circleSize/2, // The x (horizontal) position
         circle_pos.y - circleSize/2, // The y (vertical) position
         circleSize,                  // The width
@@ -140,7 +146,7 @@ int main(){
 
         // Clear the screen - try removing this!
         // If you change it, don't forget to "Restart"!
-        clear_screen(COLOR_WHITE);
+        clear_screen(rgb_color(0.1,0.1,0.1));
 
         // Do the game related stuff (in the code block above!)
         gameInnerLoop();
