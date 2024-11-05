@@ -168,93 +168,6 @@ class ExecutionEnvironmentInternalCXX extends ExecutionEnvironmentInternal{
 
 let executionEnvironment = null;
 
-// Service worker, which is used to provide a location we can send events to,
-// and that our user's program can recieve them from. Using a SharedArrayBuffer would of course
-// be better, but has less support (and also can't be served easily when hosting on GitHub)
-
-// heavily inspired by the work here: https://blog.persistent.info/2021/08/worker-loop.html
-
-let currentServiceWorker = null;
-let serviceWorkerChannel = null;
-
-function serviceWorkerSanityCheck() {
-    if (!currentServiceWorker)
-        return false;
-    if (currentServiceWorker.state == "redundant") {
-        executionEnvironment.Reload();
-    }
-    return true;
-}
-
-function sendWorkerCommand(command, args) {
-    if (!serviceWorkerSanityCheck())
-        return;
-
-    currentServiceWorker.postMessage({type: "programEvent", command, args});
-}
-
-// seperate function to keep performance up (sendWorkerCommand is called a _lot_)
-async function sendAwaitableWorkerCommand(command, args) {
-    if (!serviceWorkerSanityCheck())
-        return;
-
-    await serviceWorkerChannel.postMessage("programEvent", {command, args});
-}
-
-function clearWorkerCommands(command) {
-    if (!serviceWorkerSanityCheck())
-        return;
-
-    currentServiceWorker.postMessage({type: "clearEvents"});
-}
-
-async function registerServiceWorker(){
-    // first try tidying up any erroneous service workers
-    try {
-        navigator.serviceWorker.getRegistrations().then(registrations => {
-            for (const registration of registrations) {
-                if (registration.scope.includes("executionEnvironment.html"))
-                    registration.unregister();
-            }
-        });
-    }
-    catch(err) {
-        executionEnvironment.reportCriticalInitializationFail(
-            "Error when modifying service workers. <br/>"+
-            err.toString()
-        );
-    }
-
-    try {
-        let path = (new URL(window.location.href)).pathname;
-        let scope = path.slice(0,path.lastIndexOf("/")+1);
-
-        let worker = await navigator.serviceWorker.register("SKOservice-worker.js", { scope: scope });
-
-        worker.addEventListener("statechange", (event) => {
-            if (this.state == "activated" || this.state == "redundant") {
-                // trigger reload so service worker starts intercepting properly
-                executionEnvironment.Reload();
-            }
-        });
-
-        if (worker.active) {
-            currentServiceWorker = worker.active;
-            serviceWorkerChannel = new PromiseChannel(navigator.serviceWorker, currentServiceWorker);
-
-            runtimeLoadingProgress(1);
-            executionEnvironment.signalReady();
-        }
-    }
-    catch(err){
-        executionEnvironment.reportCriticalInitializationFail(
-            "Failed to initialize critical component: Service Worker. <br/>"+
-            "You can still compile and run programs, but you will be unable to interact with them with your mouse or keyboard.<br/>"+
-            err.toString()
-        );
-    }
-}
-
 //  Audio
 let audioPlayer = null;
 
@@ -350,7 +263,6 @@ function setupAudio(){
 
 // set everything up!
 executionEnvironment = new ExecutionEnvironmentInternalCXX(window);
-registerServiceWorker();
 audioPlayer = new setupAudio();
 
 // make canvas take focus when clicked
@@ -383,4 +295,9 @@ terminalInput.addEventListener("keydown", function(event){
     }
 });
 
-runtimeLoadingProgress(0.5);
+runtimeLoadingProgress(1);
+
+serviceWorkerLoaded.then(function (success){
+    if (success)
+        executionEnvironment.signalReady();
+});

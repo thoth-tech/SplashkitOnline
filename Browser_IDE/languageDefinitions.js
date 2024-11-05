@@ -43,6 +43,7 @@ let SplashKitOnlineLanguageDefinitions = [
             persistentFilesystem: true,
             compiled: false,
             needsSandbox: true,
+            needsServiceWorker: false,
         }]
     },
     {
@@ -68,7 +69,7 @@ let SplashKitOnlineLanguageDefinitions = [
                 "external/js-lzma/src/lzma.shim.js",
                 "compilers/cxx/cxxCompiler.js",
             ],
-            runtimeSizeAprox: 10,
+            runtimeSizeAprox: 0, // user's compiled code becomes the 'runtime'
             compilerSizeAprox: 150,
             compilerName: "cxxCompiler",
             supportHotReloading: false,
@@ -76,6 +77,7 @@ let SplashKitOnlineLanguageDefinitions = [
             persistentFilesystem: false,
             compiled: true,
             needsSandbox: false,
+            needsServiceWorker: true,
         }]
     }
 ];
