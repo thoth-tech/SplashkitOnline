@@ -501,6 +501,8 @@ async function newProject(initializer){
             await storedProject.access(async (project) => {
                 await project.renameProject("New Project");
             });
+
+            openCodeEditors();
         })()
     ])
 
