@@ -94,7 +94,7 @@ void gameInnerLoop(){
         write_line("click!");
 
     // Draw a simple scene
-    fill_ellipse(rgba_color(0.2,0.2,0.2,1), 0, 400, 800, 400);
+    fill_ellipse(rgba_color(0.2,0.2,0.2,1.0), 0, 400, 800, 400);
     fill_rectangle(COLOR_BLACK, 300, 300, 200, 200);
     fill_triangle(COLOR_BLACK, 250, 300, 400, 150, 550, 300);
     fill_rectangle(COLOR_ORANGE, 350, 350, 50, 50);
