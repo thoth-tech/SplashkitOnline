@@ -1,36 +1,37 @@
+
 <img src="SplashKitOnlineIDETitle.png" alt="SplashKit Online IDE"/>
 
 # SplashKit Online
 
 SplashKit Online is a browser-based development environment for beginner programmers!
-With it you can immediately get started programming in Javascript (and experimentally C++!) using the [SplashKit](https://splashkit.io) library, which is an easy to use library for handling input, graphics, and sound - everything you need to make a game!
+With it you can immediately get started programming in JavaScript and/or C++ using the [SplashKit](https://splashkit.io) library, which is an easy to use library for handling input, graphics, and sound - everything you need to make a game!
 
 [![prototype-image](SplashKitOnlineIDEPrototypeImage.png)](https://thoth-tech.github.io/SplashkitOnline/)
 
-## <p align="center">[Try Online!](https://thoth-tech.github.io/SplashkitOnline/)</p>
+# <p align="center">[Try Online!](https://thoth-tech.github.io/SplashkitOnline/)</p>
 
 ## Table Of Contents
-
+- [Table Of Contents](#table-of-contents)
 - [Installation](#installation)
-    - [Setting up the IDE](#setting-up-the-ide)
+  - [Setting up the IDE](#setting-up-the-ide)
 - [Project Goals and Structure](#project-goals-and-structure)
-    - [Technology Used](#technology-used)
-- [SplashKit Wasm Library Manual Compilation](#splashkit-wasm-library-manual-compilation)
-- [Experimental C++ Support](#experimental-c-support)
-    - [Setup](#setup)
-	    - [Installing the Compilers](#installing-the-compilers)
-	    - [Installing the C++ Runtime](#installing-the-c-runtime)
-	        - [(Optional) For Manual Compilation](#optional-for-manual-compilation)
-    - [Switching to C++](#switching-to-c)
+- [Technology/Design Overview](#technologydesign-overview)
+  - [IDE](#ide)
+  - [Code Execution](#code-execution)
+    - [JavaScript "Backend"](#javascript-backend)
+    - [C++ "Backend"](#c-backend)
+- ["Backend" Development](#backend-development)
+  - [SplashKit Wasm Library Manual Compilation (JavaScript backend)](#splashkit-compiler-library-manual-compilation-c-backend)
+  - [SplashKit Compiler Library Manual Compilation (C++ backend)](#splashkit-compiler-library-manual-compilation-c-backend)
 - [License](#license)
+
+
 ## Installation
 
-Standard installation (of JavaScript support only) involves two steps:
+Standard installation (of JavaScript and C++ support) involves two steps:
 
  1. Setting up the IDE
- 2. Importing the SplashKit Wasm Library
-
-See the bottom of the readme for how to set up experimental C++ support.
+ 2. Downloading the SplashKit WASM binaries
 
 ### Setting up the IDE
 The IDE is just a simple node project with few dependencies, and can be setup with the following lines:
@@ -39,29 +40,43 @@ git clone --recursive https://github.com/thoth-tech/SplashkitOnline.git
 cd SplashkitOnline/Browser_IDE/
 npm install
 ```
-However, we also need to import the SplashKit library, as its not included in the repository by default. The Node server will import the necessary files automatically on start-up, but this can also be achieved with the included `setup.py` script.
+However, we also need to import the compiled SplashKit library and compiler, as they are not included in the repository by default due to their size. The Node server will import the necessary files automatically on start-up, but this can also be achieved with the included `setup.py` script.
 ```bash
 python3 setup.py # optional
 npm run server
 ```
 Now you'll be able to load up `localhost:8000` in a browser and see the IDE!
 
-## Project Goals and Structure
-The goal of the SplashKit Online IDE is to provide a beginner friendly programming environment targeted towards using the SplashKit library. It has REPL like functionality to allow rapid feedback, with emphasis on game related functionality like interactivity, graphics rendering and audio playback. To support this, code execution should definitely happen in the browser (hence compiling SplashKit to run in the browser), and ideally compilation does as well. Currently Javascript is the only language supported (as it is quite easy to execute in a browser), however work on involving other languages is also under way.
+**Note:** For those concerned about downloading the binaries; these are _WebAssembly_ binaries, not native binaries like `.exe` - they execute securely inside the browser and have no access to the real computer/filesystem.
 
-## Technology Used
+## Project Goals and Structure
+The goal of the SplashKit Online IDE is to provide a beginner friendly programming environment targeted towards using the SplashKit library. It has REPL like functionality to allow rapid feedback, with emphasis on game related functionality like interactivity, graphics rendering and audio playback. To support this, code execution happens in the browser (hence compiling SplashKit to run in the browser), as does compilation does as well. We currently have support for compiling/running JavaScript _and_ C++ in the browser, with support for C# under development. 
+
+For clarity, while we refer to various language "backends" in later parts of this readme, this is not referring to a server backend as in web development. SplashKit Online is designed so that everything can be served statically.
+
+## Technology/Design Overview
 ### IDE
-The IDE is written as simply as possible, using straight HTML, CSS and Javascript. The code editors use the CodeMirror library (version 5) to provide syntax highlighting and other editing features. It is currently ran by using node for some reason, however as demonstrated by the unofficial demo, any sort of static page server can do the trick (such as `python -m http.server`)
+The IDE is written as simply as possible, using straight HTML, CSS and JavaScript. The code editors use the CodeMirror library (version 5) to provide syntax highlighting and other editing features. It is currently ran by using node for some reason, however as demonstrated by the unofficial demo, any sort of static page server can do the trick (such as `python -m http.server`)
 
 ### Code Execution
-Currently Javascript is the language supported by the IDE, and it is executed securely inside an iFrame after some code transformations to make it run asynchronously and within a custom scope.
+#### JavaScript "Backend"
+When the user's JavaScript is ran, it is executed securely inside an iFrame after some code transformations to make it run asynchronously and within a custom scope.
 
-The SplashKit API has been exposed to the global scope of Javascript, allowing the user to interface with it in much the same way they can in other languages, like C++ and Python. Calls to the SplashKit API are then executed by the SplashKit Wasm module as native code (or as native as it gets in a browser).
+The SplashKit API has been exposed to the global scope of JavaScript, allowing the user to interface with it in much the same way they can in other languages, like C++ and Python. Calls to the SplashKit API are then executed by the SplashKit Wasm module as native code (or as native as it gets in a browser).
 
-### SplashKit Library
-The SplashKit library handles all input, graphics, audio and file handling, and is invoked by the user's Javascript. The library has been compiled into a WebAssembly (Wasm) module via Emscripten. This module is loaded into the page as soon as the IDE starts, and the functions in it exported as Javascript functions.
+##### SplashKit Library
+The SplashKit library handles all input, graphics, audio and file handling, and is invoked by the user's JavaScript. The library has been compiled into a WebAssembly (Wasm) module via Emscripten. This module is loaded into the page as soon as the IDE starts, and the functions in it exported as JavaScript functions.
 
-## SplashKit Wasm Library Manual Compilation
+#### C++ "Backend"
+The user's code is compiled using a custom version of [_Clang_](https://clang.llvm.org/) compiled to WebAssembly - the code is compiled in-browser! 
+
+The final binary is of course WebAssembly as well, and is linked to a WebAssembly SplashKit library object file. This library file is a bit different to the one used in the JavaScript backend.
+
+Finally this binary is executed securely in an asynchronous WebWorker. The WebWorker passes commands back to the main window, which then handles actually rendering graphics, playing audio, passing user input back, etc.
+
+## "Backend" Development
+
+### SplashKit Wasm Library Manual Compilation (JavaScript backend)
 First you'll need to install Emscripten, which will be used to compile SplashKit to Wasm so it can be used in the browser. The easiest way to do this is via the `emsdk`. Installation instructions are here - [Getting Started](https://emscripten.org/docs/getting_started/downloads.html)
 
 Once you've got Emscripten installed and activated, you can compile the SplashKit Wasm library! We've included SplashKit's source code as a submodule, along with the scripts to compile it as a Wasm library, directly in this repo.
@@ -74,25 +89,15 @@ emmake make
 ```
 If all goes well, you should find the three files built and copied to inside `Browser_IDE/runtimes/javascript/bin/` and `Browser_IDE/splashkit/` - if so, you're done!
 
-# Experimental C++ Support
+### SplashKit Compiler Library Manual Compilation (C++ backend)
 It is also possible to use C++ within SplashKit Online! This is still experimental, and as such is missing some features and can be a bit unstable. However, the majority of graphics, audio, and input functionality works, and you can use it to compile and test regular C++ programs too!
 
-Assuming the IDE is set up correctly, installation of the C++ side involves three more steps:
+There are three main pieces to the compiler:
+1. Clang
+2. System root files (includes, standard library, etc)
+3. SplashKit Library Object
 
- 1. Installing the Compilers
- 2. Installing the C++ Runtime
- 3. Switching to C++
-
-## Setup
-### Installing the Compilers
-Currently the binaries for the compilers can be found unoficially [here](https://github.com/WhyPenguins/SplashkitOnline/blob/cxx_language_backend_binaries/Browser_IDE/compilers/cxx/bin/)
-
-1. Download [compiler.zip](https://github.com/WhyPenguins/SplashkitOnline/blob/cxx_language_backend_binaries/Browser_IDE/compilers/cxx/bin/compiler.zip)
-2. Extract the files in it, and place them all inside `/Browser_IDE/compilers/cxx/bin/`
-3. You'll also need [wasi-sysroot.zip](https://github.com/WhyPenguins/SplashkitOnline/blob/cxx_language_backend_binaries/Browser_IDE/compilers/cxx/bin/wasi-sysroot.zip) - this goes in the same directory (don't unzip it!)
-
-####  Manual Compilation
-If you want to compile some of this yourself, currently the repository supports building both the C++/JavaScript runtimes, and the Compiler System Root Files (partially).
+If you want to compile some of this yourself, currently the repository supports building both the C++/JavaScript runtimes, and the Compiler System Root Files (partially). We don't support compiling Clang currently, though we'd like to find a way to include this in the repository as well.
 
 To compile these:
 1. Place [sysroot.zip](https://github.com/WhyPenguins/SplashkitOnline/tree/cxx_language_backend_binaries/SplashKitWasm/prebuilt/sysroot.zip) at `SplashKitWasm/prebuilt/` (don't unzip it!)
@@ -105,11 +110,8 @@ emmake make -j8
 
 For more info, see the [this pull request](https://github.com/thoth-tech/SplashkitOnline/pull/65).
 
-## Switching to C++
-
-Once its all setup, you can head to `localhost:8000`, which will bring up the normal JavaScript runtime. To switch to C++, just go to `localhost:8000/?language=C++` - you'll probably also want to click `New Project` to create the default C++ project. You can also use `localhost:8000/?language=JavaScript` for JavaScript.
-
 ## License
 
 Most of the SplashKit Online IDE is licensed under the GNU General Public License v3.0
-Some of it is unlicensed - this code will be either removed shortly (it is no longer unused) or the original authors contacted and properly licensed.
+
+Some of it is unlicensed - this code will be either removed shortly (it is no longer used) or the original authors contacted and properly licensed.
