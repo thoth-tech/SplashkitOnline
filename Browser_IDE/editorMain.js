@@ -1383,3 +1383,13 @@ function addErrorEventListeners(){
         });
     });
 }
+
+function AddWindowListeners(){
+    window.addEventListener('message', async function(m){
+        switch (m.data.eventType){
+            case "InitializeProjectFromOutsideWorld":
+                await newProject(async function(storedProject){await initializeFromFileList(storedProject, m.data.files)});
+                break;
+        }
+    }, false);
+}

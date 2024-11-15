@@ -59,6 +59,8 @@ async function StartIDE() {
     // enable code execution once project is mirrored to the execution
     // environment and compiler is ready.
     updateCodeExecutionState();
+
+    AddWindowListeners();
 }
 
 StartIDE();
