@@ -1,6 +1,3 @@
-// TODO: refactor this so that it's clearer where each
-//       global variable is initialized/setup (should they be
-//       global in the first place? Probably not...)
 async function StartIDE() {
     makingNewProject = true;
     // Interface setup
@@ -12,7 +9,6 @@ async function StartIDE() {
     setupIDEButtonEvents(); // uses current language
 
     // Create execution environment and project storage objects
-    // These constructors don't _do_ anything important.
     executionEnviroment = new ExecutionEnvironment(document.getElementById("ExecutionEnvironment"), activeLanguageSetup);
     appStorage = new AppStorage();
     storedProject = new IDBStoredProject(appStorage, activeLanguageSetup.getDefaultProject());
@@ -30,33 +26,41 @@ async function StartIDE() {
     setupMinifiedInterface();
 
     // Initialize compiler in parallel with everything else
-    // This is where the bulk of the startup occurs
     await Promise.all([
         (async () => {
             await initializeLanguageCompilerFiles(activeLanguageSetup);
             executionEnviroment.updateCompilerLoadProgress(1);
         })(),
         (async () => {
-            // Initialize execution environment
-            // in parallel with project+treeview
             await Promise.all([
                 executionEnviroment.initialize(),
                 (async () => {
                     await appStorage.attach();
                     await storedProject.attachToProject();
+
+                    // Check for projectURL and load project if provided
+                    if (SKO.projectURL) {
+                        try {
+                            console.log(`Loading project from URL: ${SKO.projectURL}`);
+                            await loadProjectFromURL(SKO.projectURL);
+                            console.log("Project loaded successfully.");
+                        } catch (error) {
+                            console.error("Error loading project from URL:", error);
+                        }
+                    }
+
                     openCodeEditors();
                 })()
-            ])
+            ]);
 
             makingNewProject = false;
 
-            // mirror project once execution environment +
-            // project are ready
+            // Mirror project once execution environment + project are ready
             await mirrorProject();
         })()
     ]);
 
-    // enable code execution once project is mirrored to the execution
+    // Enable code execution once project is mirrored to the execution
     // environment and compiler is ready.
     updateCodeExecutionState();
 
