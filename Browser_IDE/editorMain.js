@@ -477,6 +477,11 @@ let unifiedFS = null;
 
 let makingNewProject = false;
 
+// Project handling needs to be fixed
+// This function is a big issue;
+// making a new project shouldn't delete
+// the current one...
+// TODO: Rationalize project handling
 async function newProject(initializer){
     // Guard against re-entry on double click
     if (makingNewProject)
@@ -497,10 +502,6 @@ async function newProject(initializer){
 
             storedProject.initializer = initializer;
             await storedProject.attachToProject();
-
-            await storedProject.access(async (project) => {
-                await project.renameProject("New Project");
-            });
 
             openCodeEditors();
         })()
@@ -1381,4 +1382,14 @@ function addErrorEventListeners(){
             errorModal.dispose();
         });
     });
+}
+
+function AddWindowListeners(){
+    window.addEventListener('message', async function(m){
+        switch (m.data.eventType){
+            case "InitializeProjectFromOutsideWorld":
+                await newProject(async function(storedProject){await initializeFromFileList(storedProject, m.data.files)});
+                break;
+        }
+    }, false);
 }

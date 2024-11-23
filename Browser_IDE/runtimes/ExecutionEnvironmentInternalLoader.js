@@ -54,6 +54,9 @@ window.addEventListener('message', function(m){
         }
     }
     if (m.data.type == "UpdateCompilerLoadProgress"){
+        if (compilerLoadingProgress == null){
+            console.error("UpdateCompilerLoadProgress called before InitializeLanguage, please investigate and fix!");
+        }
         compilerLoadingProgress(m.data.progress);
     }
 }, false);
