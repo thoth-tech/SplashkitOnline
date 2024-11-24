@@ -749,14 +749,22 @@ function audioFunctionNotification(source) {
 async function runProgram(){
     try {
         clearErrorLines();
-
-        displayEditorNotification(activeLanguageSetup.compiled ? "Compiling project..." : "Building project...", NotificationIcons.CONSTRUCTION);
-
+		
+		// the notification object returned by displayEditorNotification
+		let currentNotification = displayEditorNotification(
+			activeLanguageSetup.compiled ? "Compiling project..." : "Building project...",
+			NotificationIcons.CONSTRUCTION,-1
+		);
+		
         // give the notification a chance to show
         await asyncSleep();
 
         let currentCompiler = await getCurrentCompiler();
-        if (currentCompiler == null) return;
+
+		if (currentCompiler == null) {
+            currentNotification.deleteNotification(); // delete the current notification if no compiler is found
+            return;
+        }
 
         async function mapBit(filename){
             let source = await fileAsString(await storedProject.access((project) => project.readFile(filename)));
@@ -769,23 +777,32 @@ async function runProgram(){
         let compilableFiles = await findAllCompilableFiles();
         let sourceFiles = await findAllSourceFiles();
         if (compilableFiles.length == 0) {
+        	currentNotification.deleteNotification(); 
             displayEditorNotification("Project has no source files! In a "+activeLanguage.name+" project, valid source files end with:</br><ul>"+
                 activeLanguage.compilableExtensions.map((s)=>"<li>."+s+"</li>").join("")+"</ul>",
-                NotificationIcons.ERROR, -1
+                NotificationIcons.ERROR,-1
             );
             return;
         }
 
         let compiled = await currentCompiler.compileAll(await Promise.all(compilableFiles.map(mapBit)), await Promise.all(sourceFiles.map(mapBit)), reportCompilationError);
 
+		currentNotification.deleteNotification();
+
         if (compiled.output != null) {
             executionEnviroment.runProgram(compiled.output);
         } else {
-            displayEditorNotification("Project has errors! Please see terminal for details.", NotificationIcons.ERROR);
+            displayEditorNotification(
+			"Project has errors! Please see terminal for details.",
+			NotificationIcons.ERROR,-1
+			);
         }
     }
     catch (err) {
-        displayEditorNotification("Failed to run program!<br/>"+err.toString(), NotificationIcons.ERROR);
+        displayEditorNotification(
+		"Failed to run program!<br/>"+err.toString(),
+		NotificationIcons.ERROR,-1
+		);
     }
 }
 
