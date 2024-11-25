@@ -15,11 +15,7 @@ With it you can immediately get started programming in JavaScript and/or C++ usi
 
 [![prototype-image](SplashKitOnlineIDEPrototypeImage.png)](https://thoth-tech.github.io/SplashkitOnline/)
 
-<p align="center">
-  <a href="https://thoth-tech.github.io/SplashkitOnline/">
-    <img src="https://img.shields.io/badge/Try%20Online!-F5A623?style=for-the-badge" alt="Try Online!">
-  </a>
-</p>
+# <p align="center">[Try Online!](https://thoth-tech.github.io/SplashkitOnline/)</p>
 
 ## Table Of Contents
 
