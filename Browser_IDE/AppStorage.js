@@ -205,10 +205,43 @@ class __AppStorageRW{
         return project;
     }
 
-    async createProject(projectName, projectID = null){
-        projectID = projectID || Date.now().toString(); // TODO?: Generate IDs properly
+    async getProjectByName(projectName){
+        let AS = this;
+        let project = await AS.doTransaction("userProjects", "readwrite", async (t, s) => {
+            let _project = await AS.request(t, async () => {
+                return s.index("name").get(projectName);
+            });
+            return _project;
+        });
+
+        return project;
+    }
+
+    async getAutoName(projectName){
+        if (!await this.getProjectByName(projectName))
+            return projectName
+
+        let i = 1;
+        let newName = "";
+        do {
+            // Just give up after 20 attempts...
+            if (i > 20) {
+                i = Date.now();
+            }
+            newName = projectName + "("+i+")";
+            i ++;
+        } while(await this.getProjectByName(newName) && i < 100);
+
+        return newName;
+    }
+
+    async createProject(projectName, projectID = null, autoName = true){
+        projectID = projectID || Date.now().toString();
 
         let AS = this;
+
+        if (autoName) projectName = await this.getAutoName(projectName);
+
         await AS.doTransaction("userProjects", "readwrite", async (t, s) => {
             await AS.request(t, async () => {
                 return s.put({
@@ -222,8 +255,10 @@ class __AppStorageRW{
         return projectID;
     }
 
-    async renameProject(projectID, newProjectName){
+    async renameProject(projectID, newProjectName, autoName = true){
         let AS = this;
+
+        if (autoName) projectName = await this.getAutoName(projectName);
 
         await AS.doTransaction("userProjects", "readwrite", async (t, s) => {
             await AS.request(t, async () => {
