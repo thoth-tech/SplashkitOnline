@@ -1394,4 +1394,5 @@ function AddWindowListeners(){
                 break;
         }
     }, false);
+    parent.postMessage({type:"SplashKitOnlineListening"}, "*");
 }
