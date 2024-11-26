@@ -87,7 +87,7 @@ class CodeViewer {
             mode: "text/javascript",
             theme: "dracula",
             lineNumbers: true,
-            autoCloseBrackets: true,
+            autoCloseBrackets: false,
             styleActiveLine: true,
             extraKeys: {"Ctrl-Space": "autocomplete"},
             hintOptions: {
