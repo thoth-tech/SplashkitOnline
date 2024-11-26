@@ -1,69 +1,142 @@
+// IDE specific action queues
+
+let IDECoreInitQueue = new ActionQueue("IDECoreInitQueue", {
+    cancelRunning: false,
+    replaceQueued: true,
+    maxQueued: 1,
+    waitOn: [],
+});
+
+// These three execute in parallel, after IDECoreInitQueue has cleared
+let CompilerInitQueue = new ActionQueue("CompilerInitQueue", {
+    cancelRunning: false,
+    replaceQueued: true,
+    maxQueued: 1,
+    waitOn: [IDECoreInitQueue],
+});
+let ExecutionEnvironmentLoadQueue = new ActionQueue("ExecutionEnvironmentLoadQueue", {
+    cancelRunning: false,
+    replaceQueued: true,
+    maxQueued: 1,
+    waitOn: [IDECoreInitQueue],
+});
+let InitializeProjectQueue = new ActionQueue("InitializeProjectQueue", {
+    cancelRunning: true,
+    replaceQueued: true,
+    maxQueued: 1,
+    waitOn: [IDECoreInitQueue],
+});
+
+// These cancel if the project is re-initialized/loaded
+// Can have multipled scheduled - they don't cancel eachother out'
+let LoadProjectQueue = new ActionQueue("LoadProjectQueue", {
+    cancelRunning: false,
+    replaceQueued: false,
+    maxQueued: 100,
+    waitOn: [ExecutionEnvironmentLoadQueue, InitializeProjectQueue],
+    cancelOn: [InitializeProjectQueue],
+});
+let MirrorProjectQueue = new ActionQueue("MirrorProjectQueue", {
+    cancelRunning: true,
+    replaceQueued: true,
+    maxQueued: 1,
+    waitOn: [LoadProjectQueue],
+    cancelOn: [InitializeProjectQueue, LoadProjectQueue],
+});
+
+// This only executes if everything has loaded, and cancels if another project is loaded
+let LanguageSwitchAfterLoadQueue = new ActionQueue("LanguageSwitchAfterLoadQueue", {
+    cancelRunning: true,
+    replaceQueued: true,
+    maxQueued: 1,
+    waitOn: [LoadProjectQueue],
+    cancelOn: [LoadProjectQueue, InitializeProjectQueue],
+});
+
+// TODO: This only executes if everything has loaded, and cancels if another project is loaded
+let CompileQueue = new ActionQueue("CompileQueue", {
+    cancelRunning: true,
+    replaceQueued: true,
+    maxQueued: 1,
+    waitOn: [CompilerInitQueue, InitializeProjectQueue, ExecutionEnvironmentLoadQueue],
+    cancelOn: [InitializeProjectQueue],
+});
+
+// Whenever both execution environment and load project queue clear, mirror the project
+ActionQueue.OnClear([ExecutionEnvironmentLoadQueue, InitializeProjectQueue], async function(){
+    MirrorProjectQueue.Schedule("Mirror", async function(){
+        // mirror project once execution environment +
+        // project are ready
+        await mirrorProject();
+    });
+});
+
+// Update execution state whenever these queues clear
+ActionQueue.OnClear([InitializeProjectQueue], updateCodeExecutionState);
+ActionQueue.OnClear([CompilerInitQueue], updateCodeExecutionState);
+ActionQueue.OnClear([ExecutionEnvironmentLoadQueue], updateCodeExecutionState);
+
+
 // TODO: refactor this so that it's clearer where each
 //       global variable is initialized/setup (should they be
 //       global in the first place? Probably not...)
 async function StartIDE() {
-    makingNewProject = true;
-    // Interface setup
-    createGutterSplitters();
-    setupLanguageSelectionBox();
+    IDECoreInitQueue.Schedule("IDECoreInit", async function IDECoreInitQueue (isCanceled){
+        // Interface setup
+        createGutterSplitters();
+        setupLanguageSelectionBox();
 
-    // Initialize language
-    setupActiveLanguage();
-    setupIDEButtonEvents(); // uses current language
+        // Initialize language
+        setupActiveLanguage();
+        setupIDEButtonEvents(); // uses current language
 
-    // Create execution environment and project storage objects
-    // These constructors don't _do_ anything important.
-    executionEnviroment = new ExecutionEnvironment(document.getElementById("ExecutionEnvironment"), activeLanguageSetup);
-    appStorage = new AppStorage();
-    storedProject = new IDBStoredProject(appStorage, activeLanguageSetup.getDefaultProject());
-    unifiedFS = new UnifiedFS(storedProject, executionEnviroment);
+        // Create execution environment and project storage objects
+        // These constructors don't _do_ anything important.
+        executionEnviroment = new ExecutionEnvironment(document.getElementById("ExecutionEnvironment"), activeLanguageSetup);
+        appStorage = new AppStorage();
+        storedProject = new IDBStoredProject(appStorage, activeLanguageSetup.getDefaultProject());
+        unifiedFS = new UnifiedFS(storedProject, executionEnviroment);
 
-    // Setup callbacks/listeners
-    addErrorEventListeners();
-    setupProgramExecutionEvents();
-    disableCodeExecution();
+        // Setup callbacks/listeners
+        addErrorEventListeners();
+        setupProgramExecutionEvents();
+        disableCodeExecution();
 
-    setupProjectConflictAndConfirmationModals();
-    setupCodeEditorCallbacks();
-    setupFilePanelAndEvents();
+        setupProjectConflictAndConfirmationModals();
+        setupCodeEditorCallbacks();
+        setupFilePanelAndEvents();
 
-    setupMinifiedInterface();
+        setupMinifiedInterface();
+    });
 
-    // Initialize compiler in parallel with everything else
-    // This is where the bulk of the startup occurs
-    await Promise.all([
-        (async () => {
-            await initializeLanguageCompilerFiles(activeLanguageSetup);
-            executionEnviroment.updateCompilerLoadProgress(1);
-        })(),
-        (async () => {
-            // Initialize execution environment
-            // in parallel with project+treeview
-            await Promise.all([
-                executionEnviroment.initialize(),
-                (async () => {
-                    await appStorage.attach();
-                    await storedProject.attachToProject();
-                    openCodeEditors();
-                })()
-            ])
 
-            makingNewProject = false;
+    CompilerInitQueue.Schedule("CompilerInit", async function CompilerInitQueue (isCanceled){
+        await initializeLanguageCompilerFiles(activeLanguageSetup);
+        await executionEnviroment.updateCompilerLoadProgress(1);
+    });
 
-            // mirror project once execution environment +
-            // project are ready
-            await mirrorProject();
-        })()
-    ]);
+    ExecutionEnvironmentLoadQueue.Schedule("ExecutionEnvironmentInit", async function ExecutionEnvironmentLoadQueue (isCanceled){
+        await executionEnviroment.initialize();
+    });
 
-    // enable code execution once project is mirrored to the execution
-    // environment and compiler is ready.
-    updateCodeExecutionState();
+    InitializeProjectQueue.Schedule("LoadLastProjectInit", async function InitializeProjectQueue (isCanceled){
+        await isCanceled();
+
+        await appStorage.attach();
+
+        await isCanceled();
+
+        await storedProject.attachToProject();
+
+        await isCanceled();
+
+        openCodeEditors();
+    });
 
     AddWindowListeners();
+
+    // Focus the window, this is used in order to detect if the user clicks inside the iFrame containing the program
+    window.focus();
 }
 
 StartIDE();
-
-// Focus the window, this is used in order to detect if the user clicks inside the iFrame containing the program
-window.focus();

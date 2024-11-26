@@ -261,7 +261,7 @@ function openCodeEditor(filename, setFocus=true, load=true) {
 }
 
 async function updateNoEditorsMessage() {
-    document.getElementById("noEditorsMessage").style.opacity = (editors.length == 0 && !makingNewProject) ? 1 : 0;
+    document.getElementById("noEditorsMessage").style.opacity = (editors.length == 0) ? 1 : 0;
 }
 
 async function openCodeEditors(editorLimit = 3) {
@@ -428,6 +428,13 @@ function switchActiveLanguage(language){
      window.location = page_url;
 }
 
+function schedulePotentialLanguageSwitch(language){
+    LanguageSwitchAfterLoadQueue.Schedule("PotentiallySwitchLanguage", async function(){
+        if (activeLanguage.name != language)
+            switchActiveLanguage(language);
+    });
+}
+
 let languageSelectElem = null;
 function setupLanguageSelectionBox(){
     // setup language selection box
@@ -475,42 +482,36 @@ let appStorage = null;
 let storedProject = null;
 let unifiedFS = null;
 
-let makingNewProject = false;
-
 // Project handling needs to be fixed
 // This function is a big issue;
 // making a new project shouldn't delete
 // the current one...
 // TODO: Rationalize project handling
-async function newProject(initializer){
-    // Guard against re-entry on double click
-    if (makingNewProject)
-        return;
-    makingNewProject = true;
+async function scheduleProjectReInitialization(initializer){
+    ExecutionEnvironmentLoadQueue.Schedule("Reset", async function (isCanceled){
+        await executionEnviroment.resetEnvironment();
+    });
+    InitializeProjectQueue.Schedule("ProjectReInitialization", async function (isCanceled){
+        let projectID = storedProject.projectID;
 
-    let projectID = storedProject.projectID;
+        disableCodeExecution();
+        storedProject.detachFromProject();
+        closeAllCodeEditors();
+        await storedProject.deleteProject(projectID);
 
-    disableCodeExecution();
-    storedProject.detachFromProject();
-    closeAllCodeEditors();
+        await isCanceled();
 
-    await Promise.all([
-        executionEnviroment.resetEnvironment(),
-        (async () => {
-            await storedProject.deleteProject(projectID);
-            await appStorage.attach();
+        await appStorage.attach();
 
-            storedProject.initializer = initializer;
-            await storedProject.attachToProject();
+        await isCanceled();
 
-            openCodeEditors();
-        })()
-    ])
+        storedProject.initializer = initializer;
+        await storedProject.attachToProject();
 
-    await mirrorProject();
-    updateCodeExecutionState();
+        await isCanceled();
 
-    makingNewProject = false;
+        await openCodeEditors();
+    });
 }
 
 async function mirrorProject(){
@@ -581,10 +582,8 @@ function enableCodeExecution(){
 }
 // automatically enable/disable based on IDE state
 function updateCodeExecutionState(){
-    if (getCompiler(activeLanguageSetup.compilerName))
-        executionEnviroment.updateCompilerLoadProgress(1);
-
     if (getCompiler(activeLanguageSetup.compilerName) && executionEnviroment.readyForExecution) {
+        executionEnviroment.updateCompilerLoadProgress(1);
         enableCodeExecution();
     }
     else
@@ -889,7 +888,7 @@ function setupIDEButtonEvents() {
     document.getElementById("UploadProject").addEventListener("click", () => document.getElementById("projectuploader").click());
 
     setupProjectButton("DownloadProject", downloadProject);
-    setupProjectButton("NewProject", () => newProject(activeLanguageSetup.getDefaultProject()));
+    setupProjectButton("NewProject", () => scheduleProjectReInitialization(activeLanguageSetup.getDefaultProject()));
     setupProjectButton("LoadDemo", () => ShowProjectLoader("Choose a demo project:", LoadDemoProjects));
 
     if (!activeLanguageSetup.supportHotReloading) document.getElementById("runOne").children[0].innerText = "Syntax Check File";
@@ -1176,26 +1175,29 @@ function openProjectFile(filename) {
     }
 }
 
-async function loadProjectFromURL(url){
-    return fetch(url).then(res => res.blob()).then(async blob => {
-        await newProject(function(){});
+async function scheduleLoadProjectFromURL(url){
+    scheduleProjectReInitialization(function(){});
 
+    LoadProjectQueue.Schedule("loadProjectFromURL", async function (){
+        return fetch(url).then(res => res.blob()).then(async blob => {
         await projectFromZip(blob);
-
         openCodeEditors();
+        });
     });
 }
 
 // ------ Project Zipping/Unzipping Click Handling ------
-async function uploadProjectFromInput(){
+async function scheduleUploadProjectFromInput(){
     let reader = new FileReader();
     let files = document.getElementById('projectuploader').files;
     let file = files[0];
-    await newProject(function(){});
 
-    await projectFromZip(file);
+    scheduleProjectReInitialization(function(){});
 
-    openCodeEditors();
+    LoadProjectQueue.Schedule("uploadProjectFromInput", async function (){
+        await projectFromZip(file);
+        openCodeEditors();
+    });
 }
 
 
@@ -1300,7 +1302,7 @@ function setupProjectConflictAndConfirmationModals() {
         // Calling checkForWriteConflicts() directly inside visibilitychange
         // seems to cause the connection made to not close properly,
         // leading to strange timeouts and other issues - particularly when
-        // deleting the database in newProject - it can delay up to 20 seconds
+        // deleting the database in scheduleProjectReInitialization - it can delay up to 20 seconds
         // or more. This bug tends to manifest _after_ a page reload, making it
         // particularly confusing.
         // The fix is simple - do the check after a short timeout instead.
@@ -1388,7 +1390,7 @@ function AddWindowListeners(){
     window.addEventListener('message', async function(m){
         switch (m.data.eventType){
             case "InitializeProjectFromOutsideWorld":
-                await newProject(async function(storedProject){await initializeFromFileList(storedProject, m.data.files)});
+                scheduleProjectReInitialization(async function(storedProject){await initializeFromFileList(storedProject, m.data.files)});
                 break;
         }
     }, false);
