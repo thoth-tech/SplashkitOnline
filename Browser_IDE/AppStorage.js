@@ -103,7 +103,7 @@ class __AppStorageRW{
             }
 
             transaction.onerror = function(){
-                console.log("error");
+                console.log("error", func);
                 transaction.abort(); 
                 reject(transaction.error);
             };
@@ -127,7 +127,7 @@ class __AppStorageRW{
             }
 
             result.onerror = function(){
-                console.log("error");
+                console.log("error", func);
                 transaction.abort(); 
                 reject(result.error);
             };

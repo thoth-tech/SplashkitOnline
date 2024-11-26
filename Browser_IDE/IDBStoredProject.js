@@ -31,6 +31,7 @@ class IDBStoredProject extends EventTarget{
                 return await s.getProject(_projectID);
             });
         }
+
         if(!_project){ // project not listed
             this.projectID = await this.appStorage.access(async (s) => {
                 return await s.createProject("untitled", _projectID);
@@ -396,7 +397,7 @@ class __IDBStoredProjectRW{
                 return;
             }
 
-            transaction.onerror = function(){console.log("error");transaction.abort(); reject(transaction.error);};
+            transaction.onerror = function(){console.log("error", func);transaction.abort(); reject(transaction.error);};
             transaction.oncomplete = function(){resolve(result);};
         });
     }
@@ -412,7 +413,7 @@ class __IDBStoredProjectRW{
                 return;
             }
 
-            result.onerror = function(){console.log("error");transaction.abort(); reject(result.error);};
+            result.onerror = function(){console.log("error", func);transaction.abort(); reject(result.error);};
             result.onsuccess = function(){resolve(result.result);};
         });
     }
