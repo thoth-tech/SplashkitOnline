@@ -32,6 +32,10 @@ class ActionQueue extends EventTarget {
             }
     }
 
+    isClear() {
+        return this.queue.length == 0 && this.current == null;
+    }
+
     log(text){
         //console.log(this.name, text); // uncomment to help with debugging... TODO: Maybe this can be made tidier?
     }
@@ -78,7 +82,7 @@ class ActionQueue extends EventTarget {
         }
 
         for (let i = 0; i < this.concurrency.waitOn.length; i ++) {
-            if (this.concurrency.waitOn[i].queue.length != 0 || this.concurrency.waitOn[i].current != null) {
+            if (!this.concurrency.waitOn[i].isClear()) {
                 this.log("    Waiting on " + this.concurrency.waitOn[i].name + " queue to finish");
                 return;
             }
@@ -112,7 +116,7 @@ class ActionQueue extends EventTarget {
             let self = this;
             queues[i].addEventListener("onConsumedOne", function() {
                 for (let i = 0; i < queues.length; i ++) {
-                    if (queues[i].queue.length != 0 || queues[i].current != null)
+                    if (!queues[i].isClear())
                         return;
                 }
                 func();

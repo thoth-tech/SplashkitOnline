@@ -582,7 +582,12 @@ function enableCodeExecution(){
 }
 // automatically enable/disable based on IDE state
 function updateCodeExecutionState(){
-    if (getCompiler(activeLanguageSetup.compilerName) && executionEnviroment.readyForExecution) {
+    if (InitializeProjectQueue.isClear() &&
+        MirrorProjectQueue.isClear() &&
+        LoadProjectQueue.isClear() &&
+        getCompiler(activeLanguageSetup.compilerName) &&
+        executionEnviroment.readyForExecution
+    ){
         executionEnviroment.updateCompilerLoadProgress(1);
         enableCodeExecution();
     }

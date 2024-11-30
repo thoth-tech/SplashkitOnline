@@ -76,10 +76,13 @@ ActionQueue.OnClear([ExecutionEnvironmentLoadQueue, InitializeProjectQueue], asy
 });
 
 // Update execution state whenever these queues clear
-ActionQueue.OnClear([InitializeProjectQueue], updateCodeExecutionState);
-ActionQueue.OnClear([CompilerInitQueue], updateCodeExecutionState);
-ActionQueue.OnClear([ExecutionEnvironmentLoadQueue], updateCodeExecutionState);
-
+[
+    InitializeProjectQueue,
+    MirrorProjectQueue,
+    LoadProjectQueue,
+    CompilerInitQueue,
+    ExecutionEnvironmentLoadQueue,
+].forEach(queue => ActionQueue.OnClear([queue], updateCodeExecutionState));
 
 // TODO: refactor this so that it's clearer where each
 //       global variable is initialized/setup (should they be
