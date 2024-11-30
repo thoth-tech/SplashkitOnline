@@ -538,7 +538,7 @@ async function MirrorToExecutionEnvironment(){
             for(let node of dirs_files){
                 let abs_path = path+""+node.label;
                 if (node.children != null){
-                    promises.push(executionEnviroment.mkdir(abs_path));
+                    promises.push(FSEnsureDir(executionEnviroment, abs_path));
                     await mirror(node.children, abs_path+"/");
                 }
                 else{
@@ -1000,6 +1000,14 @@ some stuff that exists in StoredProject.
 */
 function FSsplitPath(path){
     return path.split("/").slice(1);
+}
+async function FSEnsureDir(FS, path) {
+    try {
+        await FS.mkdir(path);
+    } catch (err){
+        if (err.toString() != "ErrnoError: File exists" /*again, a hack to deal with our various error types. Something like err.errno != 20 (from Module['ERRNO_CODES']['EEXIST']) would be nicer*/)
+            throw err;
+    }
 }
 async function FSEnsurePath(FS, path) {
     let pathBits = FSsplitPath(path);
