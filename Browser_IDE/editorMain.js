@@ -748,14 +748,17 @@ function audioFunctionNotification(source) {
 async function runProgram(){
     try {
         clearErrorLines();
-
-        displayEditorNotification(activeLanguageSetup.compiled ? "Compiling project..." : "Building project...", NotificationIcons.CONSTRUCTION);
-
+       // the notification object returned by displayEditorNotification
+        const notificationMessage = activeLanguageSetup.compiled ? "Compiling project..." : "Building project...";
+        let currentNotification = displayEditorNotification(notificationMessage,NotificationIcons.CONSTRUCTION,-1);   
         // give the notification a chance to show
         await asyncSleep();
-
         let currentCompiler = await getCurrentCompiler();
-        if (currentCompiler == null) return;
+
+        if (currentCompiler == null) {
+            currentNotification.deleteNotification(); // delete the current notification if no compiler is found
+            return;
+        }
 
         async function mapBit(filename){
             let source = await fileAsString(await storedProject.access((project) => project.readFile(filename)));
@@ -768,23 +771,26 @@ async function runProgram(){
         let compilableFiles = await findAllCompilableFiles();
         let sourceFiles = await findAllSourceFiles();
         if (compilableFiles.length == 0) {
-            displayEditorNotification("Project has no source files! In a "+activeLanguage.name+" project, valid source files end with:</br><ul>"+
-                activeLanguage.compilableExtensions.map((s)=>"<li>."+s+"</li>").join("")+"</ul>",
-                NotificationIcons.ERROR, -1
-            );
+            currentNotification.deleteNotification(); 
+            const notificationMessage = "Project has no source files! In a " + activeLanguage.name + " project, valid source files end with:</br><ul>" + 
+            activeLanguage.compilableExtensions.map((s) => "<li>." + s + "</li>").join("") + "</ul>";
+            displayEditorNotification(notificationMessage,NotificationIcons.ERROR,-1);
             return;
         }
 
         let compiled = await currentCompiler.compileAll(await Promise.all(compilableFiles.map(mapBit)), await Promise.all(sourceFiles.map(mapBit)), reportCompilationError);
 
+        currentNotification.deleteNotification();
+
         if (compiled.output != null) {
             executionEnviroment.runProgram(compiled.output);
-        } else {
-            displayEditorNotification("Project has errors! Please see terminal for details.", NotificationIcons.ERROR);
+        } 
+        else {
+            displayEditorNotification("Project has errors! Please see terminal for details.",NotificationIcons.ERROR,-1);
         }
     }
     catch (err) {
-        displayEditorNotification("Failed to run program!<br/>"+err.toString(), NotificationIcons.ERROR);
+        displayEditorNotification("Failed to run program!<br/>"+err.toString(),NotificationIcons.ERROR,-1);
     }
 }
 
@@ -986,6 +992,28 @@ async function fileAsString(buffer){
     });
 }
 
+/*
+This is not great design. A better refactor would be to make the various
+'filesystem' related objects (StoredProject, ExecutionEnvironment(Internal), etc)
+inherit from a class that defines these functions. Already this is duplicating
+some stuff that exists in StoredProject.
+*/
+function FSsplitPath(path){
+    return path.split("/").slice(1);
+}
+async function FSEnsurePath(FS, path) {
+    let pathBits = FSsplitPath(path);
+    let dir = "/";
+    for (let ii = 0; ii < pathBits.length-1; ii ++) {
+        try {
+            await FS.mkdir(dir + pathBits[ii]);
+        } catch (err){
+            if (err.toString() != "ErrnoError: File exists" /*again, a hack to deal with our various error types. Something like err.errno != 20 (from Module['ERRNO_CODES']['EEXIST']) would be nicer*/)
+                throw err;
+        }
+        dir += pathBits[ii] + "/";
+    }
+}
 
 // ------ Project Zipping/Unzipping Functions ------
 async function projectFromZip(file){
@@ -998,12 +1026,12 @@ async function projectFromZip(file){
                 let abs_path = "/"+rel_path;
                 if (zipEntry.dir){
                     abs_path = abs_path.substring(0, abs_path.length-1);
-
-                    promises.push(unifiedFS.mkdir(abs_path));
+                    promises.push(FSEnsurePath(unifiedFS, abs_path+"/"));
                 }
                 else{
                     promises.push(async function () {
                         let uint8_view = await zip.file(rel_path).async("uint8array");
+                        await FSEnsurePath(unifiedFS, abs_path);
                         await unifiedFS.writeFile(abs_path, uint8_view)
                     }());
                 }
@@ -1180,8 +1208,8 @@ async function scheduleLoadProjectFromURL(url){
 
     LoadProjectQueue.Schedule("loadProjectFromURL", async function (){
         return fetch(url).then(res => res.blob()).then(async blob => {
-        await projectFromZip(blob);
-        openCodeEditors();
+            await projectFromZip(blob);
+            openCodeEditors();
         });
     });
 }
@@ -1390,7 +1418,18 @@ function AddWindowListeners(){
     window.addEventListener('message', async function(m){
         switch (m.data.eventType){
             case "InitializeProjectFromOutsideWorld":
-                scheduleProjectReInitialization(async function(storedProject){await initializeFromFileList(storedProject, m.data.files)});
+                scheduleProjectReInitialization(async function(storedProject){
+                    // load individual files
+                    await initializeFromFileList(storedProject, m.data.files)
+                });
+                if (m.data.zips) {
+                    LoadProjectQueue.Schedule("InitializeProjectFromOutsideWorld_ProjectFromZip", async function (){
+                        // load from requested zips
+                        for(let i = 0; i < m.data.zips.length; i ++) {
+                            await projectFromZip(m.data.zips[i].data);
+                        }
+                    });
+                }
                 break;
         }
     }, false);

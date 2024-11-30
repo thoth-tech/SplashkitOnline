@@ -187,15 +187,7 @@ async function initializeFromFileList(storedProject, files){
     await initializeSplashKitResourceFolders(storedProject);
 
     for (let i = 0; i < files.length; i ++) {
-
-        // first ensure the directory exists
-        // TODO: make more efficient
-        let path = storedProject.splitPath(files[i].path);
-        let dir = "/";
-        for (let ii = 0; ii < path.length-1; ii ++){
-            await storedProject.mkdir(dir + path[ii]);
-            dir += path[ii] + "/";
-        }
+        await FSEnsurePath(storedProject, files[i].path);
 
         await storedProject.writeFile(files[i].path, files[i].data);
     }
