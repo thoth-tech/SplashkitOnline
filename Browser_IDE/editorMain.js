@@ -993,6 +993,28 @@ async function fileAsString(buffer){
     });
 }
 
+/*
+This is not great design. A better refactor would be to make the various
+'filesystem' related objects (StoredProject, ExecutionEnvironment(Internal), etc)
+inherit from a class that defines these functions. Already this is duplicating
+some stuff that exists in StoredProject.
+*/
+function FSsplitPath(path){
+    return path.split("/").slice(1);
+}
+async function FSEnsurePath(FS, path) {
+    let pathBits = FSsplitPath(path);
+    let dir = "/";
+    for (let ii = 0; ii < pathBits.length-1; ii ++) {
+        try {
+            await FS.mkdir(dir + pathBits[ii]);
+        } catch (err){
+            if (err.toString() != "ErrnoError: File exists" /*again, a hack to deal with our various error types. Something like err.errno != 20 (from Module['ERRNO_CODES']['EEXIST']) would be nicer*/)
+                throw err;
+        }
+        dir += pathBits[ii] + "/";
+    }
+}
 
 // ------ Project Zipping/Unzipping Functions ------
 async function projectFromZip(file){
@@ -1005,12 +1027,12 @@ async function projectFromZip(file){
                 let abs_path = "/"+rel_path;
                 if (zipEntry.dir){
                     abs_path = abs_path.substring(0, abs_path.length-1);
-
-                    promises.push(unifiedFS.mkdir(abs_path));
+                    promises.push(FSEnsurePath(unifiedFS, abs_path+"/"));
                 }
                 else{
                     promises.push(async function () {
                         let uint8_view = await zip.file(rel_path).async("uint8array");
+                        await FSEnsurePath(unifiedFS, abs_path);
                         await unifiedFS.writeFile(abs_path, uint8_view)
                     }());
                 }
@@ -1394,7 +1416,16 @@ function AddWindowListeners(){
     window.addEventListener('message', async function(m){
         switch (m.data.eventType){
             case "InitializeProjectFromOutsideWorld":
-                await newProject(async function(storedProject){await initializeFromFileList(storedProject, m.data.files)});
+                await newProject(async function(storedProject){
+                    // load individual files
+                    await initializeFromFileList(storedProject, m.data.files)
+                });
+                // load from requested zips
+                if (m.data.zips) {
+                    for(let i = 0; i < m.data.zips.length; i ++) {
+                        await projectFromZip(m.data.zips[i].data);
+                    }
+                }
                 break;
         }
     }, false);
