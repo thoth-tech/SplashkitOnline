@@ -29,19 +29,23 @@ let InitializeProjectQueue = new ActionQueue("InitializeProjectQueue", {
 
 // These cancel if the project is re-initialized/loaded
 // Can have multipled scheduled - they don't cancel eachother out'
-let LoadProjectQueue = new ActionQueue("LoadProjectQueue", {
-    cancelRunning: false,
-    replaceQueued: false,
-    maxQueued: 100,
-    waitOn: [ExecutionEnvironmentLoadQueue, InitializeProjectQueue],
-    cancelOn: [InitializeProjectQueue],
-});
+/* Note: LoadProjectQueue actions use the UnifiedFS - so they write to both the
+         project FS and the transient FS in the ExecutableEnvironment.
+         We mirror inbetween 'Init'ing the project, and Loading data into it.
+*/
 let MirrorProjectQueue = new ActionQueue("MirrorProjectQueue", {
     cancelRunning: true,
     replaceQueued: true,
     maxQueued: 1,
-    waitOn: [LoadProjectQueue],
-    cancelOn: [InitializeProjectQueue, LoadProjectQueue],
+    waitOn: [InitializeProjectQueue],
+    cancelOn: [InitializeProjectQueue],
+});
+let LoadProjectQueue = new ActionQueue("LoadProjectQueue", {
+    cancelRunning: false,
+    replaceQueued: false,
+    maxQueued: 100,
+    waitOn: [ExecutionEnvironmentLoadQueue, InitializeProjectQueue, MirrorProjectQueue],
+    cancelOn: [InitializeProjectQueue],
 });
 
 // This only executes if everything has loaded, and cancels if another project is loaded
