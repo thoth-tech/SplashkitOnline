@@ -65,11 +65,10 @@ async function ShowProjectLoader(title, getChoices){
                     if (activeLanguage.name != item["language"])
                         displayEditorNotification("Switching language to " + item["language"] + "<br>Page will reload.", NotificationIcons.INFO);
 
-                    // wait until the project has loaded, only then switch language if needed
-                    await loadProjectFromURL(await rerouteURL(item["file"]));
+                    let reroutedURL = await rerouteURL(item["file"]);
 
-                    if (activeLanguage.name != item["language"])
-                        switchActiveLanguage(item["language"]);
+                    scheduleLoadProjectFromURL(reroutedURL);
+                    schedulePotentialLanguageSwitch(item["language"]);
                 });
             }
             gridContainer.appendChild(set);

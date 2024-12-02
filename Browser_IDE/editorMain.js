@@ -250,18 +250,22 @@ function openCodeEditor(filename, setFocus=true, load=true) {
 
     let codeView = new CodeViewer(filename);
 
+    let loadPromise = null;
+
     if (load)
-        codeView.load();
+        loadPromise = codeView.load();
 
     editors.push(codeView);
 
     if (setFocus) {
         SwitchToTab(codeView);
     }
+
+    return loadPromise;
 }
 
 async function updateNoEditorsMessage() {
-    document.getElementById("noEditorsMessage").style.opacity = (editors.length == 0 && !makingNewProject) ? 1 : 0;
+    document.getElementById("noEditorsMessage").style.opacity = (editors.length == 0) ? 1 : 0;
 }
 
 async function openCodeEditors(editorLimit = 3) {
@@ -272,9 +276,11 @@ async function openCodeEditors(editorLimit = 3) {
         return;
     }
 
+    let promises = [];
     for(let i = 0; i < sourceFiles.length; i ++) {
-        openCodeEditor(sourceFiles[i], false);
+        promises.push(openCodeEditor(sourceFiles[i], false));
     }
+    await Promise.all(promises);
 
     if (editors.length > 0)
         SwitchToTab(editors[0]);
@@ -428,6 +434,13 @@ function switchActiveLanguage(language){
      window.location = page_url;
 }
 
+function schedulePotentialLanguageSwitch(language){
+    LanguageSwitchAfterLoadQueue.Schedule("PotentiallySwitchLanguage", async function(){
+        if (activeLanguage.name != language)
+            switchActiveLanguage(language);
+    });
+}
+
 let languageSelectElem = null;
 function setupLanguageSelectionBox(){
     // setup language selection box
@@ -475,42 +488,35 @@ let appStorage = null;
 let storedProject = null;
 let unifiedFS = null;
 
-let makingNewProject = false;
-
 // Project handling needs to be fixed
 // This function is a big issue;
 // making a new project shouldn't delete
 // the current one...
 // TODO: Rationalize project handling
-async function newProject(initializer){
-    // Guard against re-entry on double click
-    if (makingNewProject)
-        return;
-    makingNewProject = true;
+async function scheduleProjectReInitialization(initializer){
+    ExecutionEnvironmentLoadQueue.Schedule("Reset", async function (isCanceled){
+        await executionEnviroment.resetEnvironment();
+    });
+    InitializeProjectQueue.Schedule("ProjectReInitialization", async function (isCanceled){
+        let projectID = storedProject.projectID;
 
-    let projectID = storedProject.projectID;
+        disableCodeExecution();
+        storedProject.detachFromProject();
+        closeAllCodeEditors();
+        await storedProject.deleteProject(projectID);
 
-    disableCodeExecution();
-    storedProject.detachFromProject();
-    closeAllCodeEditors();
+        await isCanceled();
+        await appStorage.attach();
 
-    await Promise.all([
-        executionEnviroment.resetEnvironment(),
-        (async () => {
-            await storedProject.deleteProject(projectID);
-            await appStorage.attach();
+        await isCanceled();
 
-            storedProject.initializer = initializer;
-            await storedProject.attachToProject();
+        storedProject.initializer = initializer;
+        await storedProject.attachToProject();
 
-            openCodeEditors();
-        })()
-    ])
+        await isCanceled();
 
-    await mirrorProject();
-    updateCodeExecutionState();
-
-    makingNewProject = false;
+        await openCodeEditors();
+    });
 }
 
 async function mirrorProject(){
@@ -537,7 +543,7 @@ async function MirrorToExecutionEnvironment(){
             for(let node of dirs_files){
                 let abs_path = path+""+node.label;
                 if (node.children != null){
-                    promises.push(executionEnviroment.mkdir(abs_path));
+                    promises.push(FSEnsureDir(executionEnviroment, abs_path));
                     await mirror(node.children, abs_path+"/");
                 }
                 else{
@@ -581,10 +587,13 @@ function enableCodeExecution(){
 }
 // automatically enable/disable based on IDE state
 function updateCodeExecutionState(){
-    if (getCompiler(activeLanguageSetup.compilerName))
+    if (InitializeProjectQueue.isClear() &&
+        MirrorProjectQueue.isClear() &&
+        LoadProjectQueue.isClear() &&
+        getCompiler(activeLanguageSetup.compilerName) &&
+        executionEnviroment.readyForExecution
+    ){
         executionEnviroment.updateCompilerLoadProgress(1);
-
-    if (getCompiler(activeLanguageSetup.compilerName) && executionEnviroment.readyForExecution) {
         enableCodeExecution();
     }
     else
@@ -895,7 +904,7 @@ function setupIDEButtonEvents() {
     document.getElementById("UploadProject").addEventListener("click", () => document.getElementById("projectuploader").click());
 
     setupProjectButton("DownloadProject", downloadProject);
-    setupProjectButton("NewProject", () => newProject(activeLanguageSetup.getDefaultProject()));
+    setupProjectButton("NewProject", () => scheduleProjectReInitialization(activeLanguageSetup.getDefaultProject()));
     setupProjectButton("LoadDemo", () => ShowProjectLoader("Choose a demo project:", LoadDemoProjects));
 
     if (!activeLanguageSetup.supportHotReloading) document.getElementById("runOne").children[0].innerText = "Syntax Check File";
@@ -1002,6 +1011,14 @@ some stuff that exists in StoredProject.
 function FSsplitPath(path){
     return path.split("/").slice(1);
 }
+async function FSEnsureDir(FS, path) {
+    try {
+        await FS.mkdir(path);
+    } catch (err){
+        if (err.toString() != "ErrnoError: File exists" /*again, a hack to deal with our various error types. Something like err.errno != 20 (from Module['ERRNO_CODES']['EEXIST']) would be nicer*/)
+            throw err;
+    }
+}
 async function FSEnsurePath(FS, path) {
     let pathBits = FSsplitPath(path);
     let dir = "/";
@@ -1017,30 +1034,49 @@ async function FSEnsurePath(FS, path) {
 }
 
 // ------ Project Zipping/Unzipping Functions ------
-async function projectFromZip(file){
+async function projectFromZip(file, isCanceled = function(){}){
     let promises = [];
 
     try {
         await JSZip.loadAsync(file)
         .then(async function(zip) {
             zip.forEach(async function (rel_path, zipEntry) {
+
                 let abs_path = "/"+rel_path;
+
                 if (zipEntry.dir){
                     abs_path = abs_path.substring(0, abs_path.length-1);
-                    promises.push(FSEnsurePath(unifiedFS, abs_path+"/"));
+                    promises.push(async function () {
+                        await isCanceled();
+
+                        await FSEnsurePath(unifiedFS, abs_path+"/");
+                    });
                 }
                 else{
                     promises.push(async function () {
+                        await isCanceled();
+
                         let uint8_view = await zip.file(rel_path).async("uint8array");
+
+                        await isCanceled();
+
                         await FSEnsurePath(unifiedFS, abs_path);
+
+                        await isCanceled();
+
                         await unifiedFS.writeFile(abs_path, uint8_view)
                     }());
                 }
             });
         });
 
-        await Promise.all(promises);
+        await Promise.allSettled(promises); // ensure we wait for all to complete, even if one throws
+        await Promise.all(promises); // now throw if needed
+
     } catch(err){
+        if (err instanceof ActionCancelled){
+            return;
+        }
         let errEv = new Event("filesystemError");
         errEv.shortMessage = "Import failed";
         errEv.longMessage = "An error occured and the project could not be imported.\n\nReason:\n" + err;
@@ -1204,26 +1240,35 @@ function openProjectFile(filename) {
     }
 }
 
-async function loadProjectFromURL(url){
-    return fetch(url).then(res => res.blob()).then(async blob => {
-        await newProject(function(){});
+async function scheduleLoadProjectFromURL(url){
+    scheduleProjectReInitialization(function(){});
 
-        await projectFromZip(blob);
+    LoadProjectQueue.Schedule("loadProjectFromURL", async function (isCanceled){
+        return fetch(url).then(res => res.blob()).then(async blob => {
+            await projectFromZip(blob, isCanceled);
 
-        openCodeEditors();
+            await isCanceled();
+
+            await openCodeEditors();
+        });
     });
 }
 
 // ------ Project Zipping/Unzipping Click Handling ------
-async function uploadProjectFromInput(){
+async function scheduleUploadProjectFromInput(){
     let reader = new FileReader();
     let files = document.getElementById('projectuploader').files;
     let file = files[0];
-    await newProject(function(){});
 
-    await projectFromZip(file);
+    scheduleProjectReInitialization(function(){});
 
-    openCodeEditors();
+    LoadProjectQueue.Schedule("uploadProjectFromInput", async function (isCanceled){
+        await projectFromZip(file, isCanceled);
+
+        await isCanceled();
+
+        await openCodeEditors();
+    });
 }
 
 
@@ -1328,7 +1373,7 @@ function setupProjectConflictAndConfirmationModals() {
         // Calling checkForWriteConflicts() directly inside visibilitychange
         // seems to cause the connection made to not close properly,
         // leading to strange timeouts and other issues - particularly when
-        // deleting the database in newProject - it can delay up to 20 seconds
+        // deleting the database in scheduleProjectReInitialization - it can delay up to 20 seconds
         // or more. This bug tends to manifest _after_ a page reload, making it
         // particularly confusing.
         // The fix is simple - do the check after a short timeout instead.
@@ -1416,17 +1461,20 @@ function AddWindowListeners(){
     window.addEventListener('message', async function(m){
         switch (m.data.eventType){
             case "InitializeProjectFromOutsideWorld":
-                await newProject(async function(storedProject){
+                scheduleProjectReInitialization(async function(storedProject){
                     // load individual files
                     await initializeFromFileList(storedProject, m.data.files)
                 });
-                // load from requested zips
                 if (m.data.zips) {
-                    for(let i = 0; i < m.data.zips.length; i ++) {
-                        await projectFromZip(m.data.zips[i].data);
-                    }
+                    LoadProjectQueue.Schedule("InitializeProjectFromOutsideWorld_ProjectFromZip", async function (){
+                        // load from requested zips
+                        for(let i = 0; i < m.data.zips.length; i ++) {
+                            await projectFromZip(m.data.zips[i].data);
+                        }
+                    });
                 }
                 break;
         }
     }, false);
+    parent.postMessage({type:"SplashKitOnlineListening"}, "*");
 }
