@@ -45,7 +45,7 @@ let LoadProjectQueue = new ActionQueue("LoadProjectQueue", {
     replaceQueued: false,
     maxQueued: 100,
     waitOn: [ExecutionEnvironmentLoadQueue, InitializeProjectQueue, MirrorProjectQueue],
-    cancelOn: [InitializeProjectQueue],
+    cancelOn: [InitializeProjectQueue, ExecutionEnvironmentLoadQueue],
 });
 
 // This only executes if everything has loaded, and cancels if another project is loaded

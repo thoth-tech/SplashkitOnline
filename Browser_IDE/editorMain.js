@@ -250,14 +250,18 @@ function openCodeEditor(filename, setFocus=true, load=true) {
 
     let codeView = new CodeViewer(filename);
 
+    let loadPromise = null;
+
     if (load)
-        codeView.load();
+        loadPromise = codeView.load();
 
     editors.push(codeView);
 
     if (setFocus) {
         SwitchToTab(codeView);
     }
+
+    return loadPromise;
 }
 
 async function updateNoEditorsMessage() {
@@ -272,9 +276,11 @@ async function openCodeEditors(editorLimit = 3) {
         return;
     }
 
+    let promises = [];
     for(let i = 0; i < sourceFiles.length; i ++) {
-        openCodeEditor(sourceFiles[i], false);
+        promises.push(openCodeEditor(sourceFiles[i], false));
     }
+    await Promise.all(promises);
 
     if (editors.length > 0)
         SwitchToTab(editors[0]);
@@ -500,7 +506,6 @@ async function scheduleProjectReInitialization(initializer){
         await storedProject.deleteProject(projectID);
 
         await isCanceled();
-
         await appStorage.attach();
 
         await isCanceled();
@@ -1029,30 +1034,49 @@ async function FSEnsurePath(FS, path) {
 }
 
 // ------ Project Zipping/Unzipping Functions ------
-async function projectFromZip(file){
+async function projectFromZip(file, isCanceled = function(){}){
     let promises = [];
 
     try {
         await JSZip.loadAsync(file)
         .then(async function(zip) {
             zip.forEach(async function (rel_path, zipEntry) {
+
                 let abs_path = "/"+rel_path;
+
                 if (zipEntry.dir){
                     abs_path = abs_path.substring(0, abs_path.length-1);
-                    promises.push(FSEnsurePath(unifiedFS, abs_path+"/"));
+                    promises.push(async function () {
+                        await isCanceled();
+
+                        await FSEnsurePath(unifiedFS, abs_path+"/");
+                    });
                 }
                 else{
                     promises.push(async function () {
+                        await isCanceled();
+
                         let uint8_view = await zip.file(rel_path).async("uint8array");
+
+                        await isCanceled();
+
                         await FSEnsurePath(unifiedFS, abs_path);
+
+                        await isCanceled();
+
                         await unifiedFS.writeFile(abs_path, uint8_view)
                     }());
                 }
             });
         });
 
-        await Promise.all(promises);
+        await Promise.allSettled(promises); // ensure we wait for all to complete, even if one throws
+        await Promise.all(promises); // now throw if needed
+
     } catch(err){
+        if (err instanceof ActionCancelled){
+            return;
+        }
         let errEv = new Event("filesystemError");
         errEv.shortMessage = "Import failed";
         errEv.longMessage = "An error occured and the project could not be imported.\n\nReason:\n" + err;
@@ -1219,10 +1243,13 @@ function openProjectFile(filename) {
 async function scheduleLoadProjectFromURL(url){
     scheduleProjectReInitialization(function(){});
 
-    LoadProjectQueue.Schedule("loadProjectFromURL", async function (){
+    LoadProjectQueue.Schedule("loadProjectFromURL", async function (isCanceled){
         return fetch(url).then(res => res.blob()).then(async blob => {
-            await projectFromZip(blob);
-            openCodeEditors();
+            await projectFromZip(blob, isCanceled);
+
+            await isCanceled();
+
+            await openCodeEditors();
         });
     });
 }
@@ -1235,9 +1262,12 @@ async function scheduleUploadProjectFromInput(){
 
     scheduleProjectReInitialization(function(){});
 
-    LoadProjectQueue.Schedule("uploadProjectFromInput", async function (){
-        await projectFromZip(file);
-        openCodeEditors();
+    LoadProjectQueue.Schedule("uploadProjectFromInput", async function (isCanceled){
+        await projectFromZip(file, isCanceled);
+
+        await isCanceled();
+
+        await openCodeEditors();
     });
 }
 
