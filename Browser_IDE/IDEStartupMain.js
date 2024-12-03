@@ -1,12 +1,13 @@
 async function StartIDE() {
     makingNewProject = true;
+
     // Interface setup
     createGutterSplitters();
     setupLanguageSelectionBox();
 
     // Initialize language
     setupActiveLanguage();
-    setupIDEButtonEvents(); // uses current language
+    setupIDEButtonEvents();
 
     // Create execution environment and project storage objects
     executionEnviroment = new ExecutionEnvironment(document.getElementById("ExecutionEnvironment"), activeLanguageSetup);
@@ -22,7 +23,6 @@ async function StartIDE() {
     setupProjectConflictAndConfirmationModals();
     setupCodeEditorCallbacks();
     setupFilePanelAndEvents();
-
     setupMinifiedInterface();
 
     // Initialize compiler in parallel with everything else
@@ -38,7 +38,7 @@ async function StartIDE() {
                     await appStorage.attach();
                     await storedProject.attachToProject();
 
-                    // Check for projectURL and load project if provided
+                    // Load project from URL if specified
                     if (SKO.projectURL) {
                         try {
                             console.log(`Loading project from URL: ${SKO.projectURL}`);
@@ -60,14 +60,14 @@ async function StartIDE() {
         })()
     ]);
 
-    // Enable code execution once project is mirrored to the execution
-    // environment and compiler is ready.
+    // Enable code execution once project is mirrored to the execution environment and compiler is ready
     updateCodeExecutionState();
 
     AddWindowListeners();
 }
 
-StartIDE();
-
-// Focus the window, this is used in order to detect if the user clicks inside the iFrame containing the program
+// Focus the window for detecting user interaction inside the iFrame
 window.focus();
+
+// Start the IDE
+StartIDE();
