@@ -169,6 +169,7 @@ file(GLOB SOURCE_FILES
     "${SK_EXT}/sqlite/sqlite3.c"
     "${SK_EXT}/hash-library/*.cpp"
     "${SK_EXT}/easyloggingpp/*.cc"
+    "${SK_EXT}/microui/src/*.c"
 )
 
 if (EMSCRIPTEN)
@@ -204,6 +205,7 @@ include_directories("${SK_EXT}/hash-library")
 include_directories("${SK_EXT}/json")
 include_directories("${SK_EXT}/sqlite")
 include_directories("${SK_EXT}/catch")
+include_directories("${SK_EXT}/microui/src")
 include_directories("${SK_WASMEXT}/src/lib")
 
 # MAC OS AND WINDOWS DIRECTORY INCLUDES
@@ -345,7 +347,7 @@ set_target_properties(SplashKitBackendCXX
 if (EMSCRIPTEN)
     if (ENABLE_JS_BACKEND)
         add_executable(SplashKitBackendWASM "${SK_WASMEXT}/generated/SplashKitWasmGlue.cpp")
-        set_target_properties(SplashKitBackendWASM PROPERTIES LINK_FLAGS "-sALLOW_TABLE_GROWTH -s MAXIMUM_MEMORY=1gb -sALLOW_MEMORY_GROWTH -s EXPORTED_RUNTIME_METHODS=addFunction -s EXPORTED_FUNCTIONS=\"['_malloc','stackAlloc','stackSave','stackRestore','_free']\" -s EXPORT_ALL=1 -sFS_DEBUG --post-js ${SK_WASMEXT}/generated/SplashKitWasmGlue.js")
+        set_target_properties(SplashKitBackendWASM PROPERTIES LINK_FLAGS "-sALLOW_TABLE_GROWTH -s MAXIMUM_MEMORY=1gb -sALLOW_MEMORY_GROWTH -s EXPORTED_RUNTIME_METHODS=addFunction -s EXPORTED_FUNCTIONS=\"['_malloc','stackAlloc','stackSave','stackRestore','_free']\" -s EXPORT_ALL=1 -sFS_DEBUG --post-js \"${SK_WASMEXT}\"/generated/SplashKitWasmGlue.js")
         target_link_libraries(SplashKitBackendWASM SplashKitBackend) #NOTE: deliberately using SplashKitBackend rather than SplashKitBackendCXX - we don't care about the final linked output, we just want Emscripten to give us its JS runtime
         set_target_properties(SplashKitBackendWASM
             PROPERTIES

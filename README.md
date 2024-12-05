@@ -96,8 +96,7 @@ Finally this binary is executed securely in an asynchronous WebWorker. The WebWo
 ## "Backend" Development
 
 ### SplashKit Wasm Library Manual Compilation (JavaScript backend)
-
-First you'll need to install Emscripten, which will be used to compile SplashKit to Wasm so it can be used in the browser. The easiest way to do this is via the `emsdk`. Installation instructions are here - [Getting Started](https://emscripten.org/docs/getting_started/downloads.html)
+First, install Emscripten version 3.1.48, which is required to successfully build the SplashKit core and compile it to Wasm for browser use. The easiest way to do this is via the `emsdk`. Installation instructions are here - [Getting Started](https://emscripten.org/docs/getting_started/downloads.html)
 
 Once you've got Emscripten installed and activated, you can compile the SplashKit Wasm library! We've included SplashKit's source code as a submodule, along with the scripts to compile it as a Wasm library, directly in this repo.
 
@@ -110,6 +109,8 @@ emmake make
 ```
 
 If all goes well, you should find the three files built and copied to inside `Browser_IDE/runtimes/javascript/bin/` and `Browser_IDE/splashkit/` - if so, you're done!
+
+**Note:** Placing the project in a path with spaces can lead to errors during the build process.
 
 ### SplashKit Compiler Library Manual Compilation (C++ backend)
 
