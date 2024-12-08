@@ -66,15 +66,15 @@
 
     -  Microsoft Edge
 
-      ![image-20241208183830945](C:\Users\jiayi\AppData\Roaming\Typora\typora-user-images\image-20241208183830945.png)
+      ![image](images/image-1.png)
 
     - Google Chrome
 
-      ![image-20241208184007680](C:\Users\jiayi\AppData\Roaming\Typora\typora-user-images\image-20241208184007680.png)
+      ![image](images/image-2.png)
 
     - Firefox
 
-      ![image-20241208184116771](C:\Users\jiayi\AppData\Roaming\Typora\typora-user-images\image-20241208184116771.png)
+      ![image](images/image-3.png)
 
   - **Recommended Solution:**
     - Add proper termination conditions to recursive functions in the JavaScript code to avoid infinite recursion.
