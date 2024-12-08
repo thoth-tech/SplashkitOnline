@@ -70,8 +70,16 @@ function XMLHttpRequestPromise(url, progressCallback, type="GET") {
 
 let wlzma = (self.WLZMA != undefined) ? new WLZMA.Manager(0, wlzmaPath) : null;
 
+let cache = {};
+
 async function downloadFile(url, progressCallback = null, maybeLZMACompressed = false){
     url = await rerouteURL(url);
+
+    // check cache first (in memory)
+    if (cache[url]) {
+        console.log(`Using cached decompressed version for ${url}`);
+        return cache[url];
+    }
 
     // First try downloading the LZMA version
     if (wlzma && maybeLZMACompressed && SKO.useCompressedBinaries) {
@@ -91,6 +99,10 @@ async function downloadFile(url, progressCallback = null, maybeLZMACompressed = 
 
             let decompressProgressCallback = (progressCallback==null) ? null : function(percentage) { progressCallback(downloadPercentage + percentage * decompressionPercentage); };
             let result = (await wlzma.decode(compressed.response, decompressProgressCallback)).toUint8Array();
+
+            // store in memory cache
+            cache[url] = result;
+            console.log(`Decompressed and cached version of ${url}`);
 
             return result;
         }
