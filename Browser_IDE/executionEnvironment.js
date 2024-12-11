@@ -313,3 +313,32 @@ class ExecutionEnvironment extends EventTarget{
     }
 
 }
+
+document.getElementById("stopProgram").addEventListener("click", () => {
+    terminateProgram();
+});
+
+document.getElementById("collapsedStopProgram").addEventListener("click", () => {
+    terminateProgram();
+});
+
+function terminateProgram() {
+    if (!isProgramRunning()) return;
+
+    try {
+        // Logic to terminate the running process
+        runtimeManager.terminate();
+        showNotification("Program stopped successfully.", "info");
+        updateRuntimeButtons(false); // Disable runtime buttons
+    } catch (error) {
+        console.error("Failed to stop the program:", error);
+        showNotification("Failed to stop the program. Please try again.", "error");
+    }
+}
+
+function updateRuntimeButtons(isRunning) {
+    const stopButton = document.getElementById("stopProgram");
+    const collapsedStopButton = document.getElementById("collapsedStopProgram");
+    stopButton.disabled = !isRunning;
+    collapsedStopButton.disabled = !isRunning;
+}
