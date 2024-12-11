@@ -94,7 +94,7 @@ input {
 }
 
 a:visited {
-    color: #0A0;
+    color: #ff9525;
 }
 
 .sk-body {
@@ -294,7 +294,7 @@ textarea {
 .sk-demo-tag{
     background-color: #303724;
     border-radius: 5px;
-    color: #68ff00;
+    color: #ff9525;
     line-height: 1.5em;
     margin-top: 0.25em;
     padding: 0px 10px;
@@ -417,7 +417,7 @@ textarea {
 
 #runProgram,
 #collapsedRunProgram {
-    color: #9fff69;
+    color: #ff9525;
 }
 
 .sk-terminal-input-wrapper {
@@ -470,7 +470,7 @@ textarea {
     color: #f8f8f2;
 }
 .node-persistent.node-transient{
-    color: #9fff69;
+    color: #ff9525;
     opacity: 1.0;
 }
 .node-tentative-label{
@@ -525,8 +525,8 @@ textarea {
 }
 
 /* make the CodeMirror theme match the rest of the UI a little more */
-.cm-s-dracula.CodeMirror, .cm-s-dracula .CodeMirror-gutters {
-    background-color: #24262d !important;
+.cm-s-ayu-mirage.CodeMirror, .cm-s-ayu-mirage .CodeMirror-gutters {
+    background-color: #232324 !important
 }
 
 
@@ -827,7 +827,7 @@ li.CodeMirror-hint-active {
 }
 
 .btn-success {
-  color: #54ff3b;
+  color: #ff9525;
 }
 
 .btn-success:hover, .btn-success:focus {
