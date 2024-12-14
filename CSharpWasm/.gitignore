@@ -1,0 +1,46 @@
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build results
+bin/
+obj/
+
+# ASP.NET Scaffolding
+ScaffoldingReadMe.txt
+
+# Configuration files
+appsettings.json
+appsettings.Development.json
+
+# Cache files
+*.log
+*.cache
+*.temp
+*.pid
+*.gz
+*.zip
+*.tar
+
+# IDE-specific files
+.vscode/
+.idea/
+
+# dotnet-specific directories
+.dotnet/
+.nuget/
+
+# wasm-related artifacts
+wwwroot/
+
+# Temporary files
+*~
+*.tmp
+*.swp
+*.bak
+*.old
+
+node_modules/
