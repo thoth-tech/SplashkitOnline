@@ -322,23 +322,84 @@ document.getElementById("collapsedStopProgram").addEventListener("click", () => 
     terminateProgram();
 });
 
-function terminateProgram() {
-    if (!isProgramRunning()) return;
+// Attach event listeners for Stop buttons
+initializeEventListeners();
+
+function initializeEventListeners() {
+    const stopButton = document.getElementById("stopProgram");
+    const collapsedStopButton = document.getElementById("collapsedStopProgram");
+
+    stopButton.addEventListener("click", handleStopProgram);
+    collapsedStopButton.addEventListener("click", handleStopProgram);
+}
+
+/**
+ * Handles the stop button click event
+ */
+function handleStopProgram() {
+    if (!isProgramRunning()) {
+        showNotification("No program is currently running.", "warning");
+        return;
+    }
 
     try {
-        // Logic to terminate the running process
-        runtimeManager.terminate();
+        terminateProgram();
         showNotification("Program stopped successfully.", "info");
-        updateRuntimeButtons(false); // Disable runtime buttons
     } catch (error) {
-        console.error("Failed to stop the program:", error);
+        console.error("Error while stopping the program:", error);
         showNotification("Failed to stop the program. Please try again.", "error");
     }
 }
 
+/**
+ * Terminates the currently running program
+ */
+function terminateProgram() {
+    try {
+        // Logic to terminate the running process
+        runtimeManager.terminate();
+        updateRuntimeButtons(false); // Disable runtime buttons after stopping
+    } catch (error) {
+        throw new Error("Program termination failed: " + error.message);
+    }
+}
+
+/**
+ * Updates the runtime control buttons based on the program state
+ * @param {boolean} isRunning - Whether the program is currently running
+ */
 function updateRuntimeButtons(isRunning) {
-    const stopButton = document.getElementById("stopProgram");
-    const collapsedStopButton = document.getElementById("collapsedStopProgram");
-    stopButton.disabled = !isRunning;
-    collapsedStopButton.disabled = !isRunning;
+    toggleButtonState("stopProgram", isRunning);
+    toggleButtonState("collapsedStopProgram", isRunning);
+}
+
+/**
+ * Toggles the disabled state of a button
+ * @param {string} buttonId - The ID of the button to toggle
+ * @param {boolean} isEnabled - Whether the button should be enabled
+ */
+function toggleButtonState(buttonId, isEnabled) {
+    const button = document.getElementById(buttonId);
+    if (button) {
+        button.disabled = !isEnabled;
+    }
+}
+
+/**
+ * Checks if a program is currently running
+ * @returns {boolean} - True if a program is running, false otherwise
+ */
+function isProgramRunning() {
+    // Replace this with the actual logic to check program state
+    return runtimeManager.isRunning(); 
+}
+
+/**
+ * Displays a notification to the user
+ * @param {string} message - The message to display
+ * @param {string} type - The type of the notification ("info", "warning", "error")
+ */
+function showNotification(message, type) {
+    // Replace this with your actual notification logic
+    console.log(`[${type.toUpperCase()}] ${message}`);
 }
