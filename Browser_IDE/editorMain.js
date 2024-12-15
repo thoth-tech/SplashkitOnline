@@ -87,7 +87,7 @@ class CodeViewer {
             mode: SKO.language == "C++" ? "text/x-c++src" : "text/javascript",
             theme: "dracula",
             lineNumbers: true,
-            autoCloseBrackets: false,
+            autoCloseBrackets: true,
             styleActiveLine: true,
             extraKeys: {"Ctrl-Space": "autocomplete"},
             hintOptions: {

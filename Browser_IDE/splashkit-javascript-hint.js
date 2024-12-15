@@ -196,25 +196,20 @@ loadSplashKitAutocompletes();
     // Sean Edit: Handle SplashKit Keywords
     forEach(splashKitAutocompletes.keywords, maybeAdd);
 
-    if (currentFound && startParameter) {
-      return currentFound;
-    } else {
-      // Sean Edit: Handle Splashkit Functions specially
-      // TODO: Show when writing parameters, and bold current parameter
-      for (func of splashKitAutocompletes.functions){
-          if (func.name.lastIndexOf(start, 0) == 0 && !arrayContains(found, func.name)){
-              paramList = ""
-              for (param of func.params)
-                  paramList += param+", "
-              found.push({
-                  text: func.name,
-                  displayText: (func.return!="" ? func.return + " " : "") + func.name + "(" + paramList.slice(0, paramList.length - 2) + ")"
-              });
-              if (func.name == start){           
-                currentFound = found;
-              }
-          }
-      }
+    if (currentFound && startParameter) return currentFound;
+
+    // Sean Edit: Handle Splashkit Functions specially
+    // TODO: Show when writing parameters, and bold current parameter
+    for (func of splashKitAutocompletes.functions) {
+        if (func.name.lastIndexOf(start, 0) == 0 && !arrayContains(found, func.name)) {
+            paramList = "";
+            for (param of func.params) paramList += param + ", ";
+            found.push({
+                text: func.name,
+                displayText: (func.return!="" ? func.return + " " : "") + func.name + "(" + paramList.slice(0, paramList.length - 2) + ")"
+            });
+            if (func.name == start) currentFound = found;
+        }
     }
 
     return found;
