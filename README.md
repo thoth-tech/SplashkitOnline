@@ -10,7 +10,7 @@
 
 # SplashKit Online
 
-SplashKit Online is a browser-based development environment for beginner programmers!
+SplashKit Online is a browser-based development environment for beginner programmers!!
 With it you can immediately get started programming in JavaScript and/or C++ using the [SplashKit](https://splashkit.io) library, which is an easy to use library for handling input, graphics, and sound - everything you need to make a game!
 
 [![prototype-image](SplashKitOnlineIDEPrototypeImage.png)](https://thoth-tech.github.io/SplashkitOnline/)
