@@ -35,11 +35,32 @@
 			</div>
 		</div>
 	</div>
+	<div class="csharp-compiler" style="display: flex; flex-direction: column; width: 40rem; gap: 1rem;">
+		<h1>C# WebAssembly Compiler</h1>
+		<textarea id="code" rows="10" cols="80">
+			using System;
+			public class Program {
+			    public static void Main() {
+			        for(int i = 0; i < 5; i++) {
+			            if(i < 4) {
+			                Console.WriteLine(i);
+			            } else {
+							SplashKitInterop.OpenWindow("test", 800, 600);
+							SplashKitInterop.FillEllipse();
+							SplashKitInterop.RefreshScreen(60);
+			            }
+			        }
+			    }
+			}
+			</textarea>
+		<button id="run">Run</button>
+		<div id="output"></div>
+	</div>
 </body>
 
 <script src="fallibleMessage.js"></script>
 <script src="downloadHandler.js"></script>
 <script src="executionEnvironment_Page.js"></script>
 <script src="runtimes/ExecutionEnvironmentInternalLoader.js"></script>
-
+<script src="CSharpWasm/main.js" type="module"></script>
 </html>
