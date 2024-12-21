@@ -39,10 +39,7 @@ const CompileAndRun = async (code) => {
     }
 };
 
-const runButton = document.querySelector('#run');
-const textArea = document.querySelector('#code');
-runButton.addEventListener('click', () => CompileAndRun(textArea.value));
-
+// This event will be trigger by the csharp compiler
 document.addEventListener("compileAndRun", (ev) => {
     CompileAndRun(ev.detail.program[0].source);
 });
