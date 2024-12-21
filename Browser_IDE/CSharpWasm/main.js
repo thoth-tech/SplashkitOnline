@@ -42,3 +42,7 @@ const CompileAndRun = async (code) => {
 const runButton = document.querySelector('#run');
 const textArea = document.querySelector('#code');
 runButton.addEventListener('click', () => CompileAndRun(textArea.value));
+
+document.addEventListener("compileAndRun", (ev) => {
+    CompileAndRun(ev.detail.program[0].source);
+});

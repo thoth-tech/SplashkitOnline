@@ -5,8 +5,13 @@ class ExecutionEnvironmentInternalCSharp extends ExecutionEnvironmentInternal{
     }
 
     async runProgram(program){
-        // When is this function called?
-        console.log("Running program---", program);
+        const event = new CustomEvent("compileAndRun", {
+            detail: {
+                program: program
+            }
+        });
+        // temporal solution to run
+        document.dispatchEvent(event);
     }
 }
 
