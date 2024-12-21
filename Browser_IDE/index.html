@@ -62,7 +62,7 @@
 					</div>
 				</div>
 				<input type="file" id="fileuploader" onchange="uploadFileFromInput()" style="display:none;">
-				<input type="file" id="projectuploader" onchange="uploadProjectFromInput()" style="display:none;">
+				<input type="file" id="projectuploader" onchange="scheduleUploadProjectFromInput()" style="display:none;">
 				<div class = "sk-header-indent sk-contents sk-contents-focusable" tabindex="0">
 					<div id="fileView"></div>
 				</div>
@@ -143,5 +143,6 @@
 <script src="editorMain.js"></script>
 <script src="fileview.js"></script>
 <script src="projectLoadUI.js"></script>
+<script src="actionQueue.js"></script>
 <script src="IDEStartupMain.js"></script>
 </html>
