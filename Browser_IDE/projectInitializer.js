@@ -197,7 +197,6 @@ async function makeNewProject_CSharp(storedProject){
 
     await storedProject.mkdir("/code");
     await storedProject.writeFile("/code/main.cs", defaultMainCodeCSharp);
-    console.log("Project created!---");
 }
 
 async function makeNewProject_CXX(storedProject){
