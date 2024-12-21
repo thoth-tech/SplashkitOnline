@@ -809,14 +809,17 @@ async function pauseProgram(){
     }
 }
 
-async function stopProgram(){
+async function stopProgram() {
     try {
         await executionEnviroment.stopProgram();
-    }
-    catch (err) {
-        displayEditorNotification("Failed to stop program!", NotificationIcons.ERROR);
+        await executionEnviroment.cleanEnvironment(); // Clear resources or locks
+        displayEditorNotification("Program has been stopped successfully.", NotificationIcons.INFO);
+    } catch (err) {
+        displayEditorNotification("Failed to stop program!<br/>" + err.toString(), NotificationIcons.ERROR);
     }
 }
+
+
 
 async function restartProgram(){
     clearErrorLines();
