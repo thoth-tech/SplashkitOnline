@@ -58,8 +58,6 @@ async function StartIDE() {
         })()
     ]);
 
-    console.log("IDE fully initialized?");
-
     // enable code execution once project is mirrored to the execution
     // environment and compiler is ready.
     updateCodeExecutionState();
