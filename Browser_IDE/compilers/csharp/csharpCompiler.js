@@ -33,5 +33,5 @@ class CSharpCompiler extends Compiler {
     }
 }
 
-// :) name has to match the one in languageDefinitions.js
+// The name has to match the one in languageDefinitions.js
 registerCompiler("csharpCompiler", new CSharpCompiler());
