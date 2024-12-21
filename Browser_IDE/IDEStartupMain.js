@@ -33,6 +33,7 @@ async function StartIDE() {
     // This is where the bulk of the startup occurs
     await Promise.all([
         (async () => {
+            console.log("Initializing compiler files");
             await initializeLanguageCompilerFiles(activeLanguageSetup);
             executionEnviroment.updateCompilerLoadProgress(1);
         })(),
@@ -48,13 +49,16 @@ async function StartIDE() {
                 })()
             ])
 
+            executionEnviroment.updateCompilerLoadProgress(1);
             makingNewProject = false;
 
             // mirror project once execution environment +
             // project are ready
-            await mirrorProject();
+            // await mirrorProject();
         })()
     ]);
+
+    console.log("IDE fully initialized?");
 
     // enable code execution once project is mirrored to the execution
     // environment and compiler is ready.

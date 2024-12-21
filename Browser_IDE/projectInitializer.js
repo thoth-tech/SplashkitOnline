@@ -153,6 +153,23 @@ int main(){
 }
 `;
 
+const defaultMainCodeCSharp = `
+using System;
+public class Program {
+    public static void Main() {
+        for(int i = 0; i < 5; i++) {
+            if(i < 4) {
+                Console.WriteLine(i);
+            } else {
+                SplashKitInterop.OpenWindow("test", 800, 600);
+                SplashKitInterop.FillEllipse();
+                SplashKitInterop.RefreshScreen(60);
+            }
+        }
+    }
+}
+`;
+
 let codePath = "/code";
 
 async function initializeSplashKitResourceFolders(storedProject) {
@@ -173,6 +190,14 @@ async function makeNewProject_JavaScript(storedProject){
     await storedProject.mkdir("/code");
     await storedProject.writeFile("/code/innerLoop.js", defaultGameLoopCodeJS);
     await storedProject.writeFile("/code/main.js", defaultMainCodeJS);
+}
+
+async function makeNewProject_CSharp(storedProject){
+    await initializeSplashKitResourceFolders(storedProject);
+
+    await storedProject.mkdir("/code");
+    await storedProject.writeFile("/code/main.cs", defaultMainCodeCSharp);
+    console.log("Project created!---");
 }
 
 async function makeNewProject_CXX(storedProject){

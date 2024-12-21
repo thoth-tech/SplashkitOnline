@@ -48,8 +48,9 @@ window.addEventListener('message', function(m){
         for (let script of m.data.runtimeFiles){
             var s = document.createElement("script");
 
-            s.src = script;
+            s.src = script.src;
             s.async = false;
+            s.type = script.type;
             document.documentElement.appendChild(s);
         }
     }
