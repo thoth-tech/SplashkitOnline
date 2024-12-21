@@ -70,15 +70,81 @@ function XMLHttpRequestPromise(url, progressCallback, type="GET") {
 
 let wlzma = (self.WLZMA != undefined) ? new WLZMA.Manager(0, wlzmaPath) : null;
 
-let cache = {};
+let db;
+
+// initialize IndexedDB
+async function initDatabase() {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open("SplashKitCache", 1);
+
+        request.onupgradeneeded = function(event) {
+            db = event.target.result;
+            if (!db.objectStoreNames.contains("files")) {
+                db.createObjectStore("files", { keyPath: "url" });
+            }
+        };
+
+        request.onsuccess = function(event) {
+            db = event.target.result;
+            resolve();
+        };
+
+        request.onerror = function(event) {
+            console.error("Database error:", event.target.errorCode);
+            reject(event.target.errorCode);
+        };
+    });
+}
+
+// retrieve cache from IndexedDB
+async function loadFromDB(url) {
+    return new Promise((resolve, reject) => {
+        const transaction = db.transaction(["files"], "readonly");
+        const objectStore = transaction.objectStore("files");
+        const request = objectStore.get(url);
+
+        request.onsuccess = function(event) {
+            if (event.target.result) {
+                resolve(event.target.result.data);
+            } else {
+                reject(`No cached data found for URL: ${url}`);
+            }
+        };
+
+        request.onerror = function(event) {
+            reject(`Failed to retrieve data: ${event.target.errorCode}`);
+        };
+    });
+}
+
+// save to IndexedDB
+async function saveToDB(url, data) {
+    return new Promise((resolve, reject) => {
+        const transaction = db.transaction(["files"], "readwrite");
+        const objectStore = transaction.objectStore("files");
+        const request = objectStore.put({ url, data });
+
+        request.onsuccess = function() {
+            resolve();
+        };
+
+        request.onerror = function(event) {
+            reject(`Failed to save data: ${event.target.errorCode}`);
+        };
+    });
+}
 
 async function downloadFile(url, progressCallback = null, maybeLZMACompressed = false){
+    await initDatabase(); // ensure the database is initialized
     url = await rerouteURL(url);
 
-    // check cache first (in memory)
-    if (cache[url]) {
+     // check the cache in IndexedDB
+    try {
+        const cachedData = await loadFromDB(url);
         console.log(`Using cached decompressed version for ${url}`);
-        return cache[url];
+        return cachedData;
+    } catch (error) {
+        console.warn(error);
     }
 
     // First try downloading the LZMA version
@@ -100,15 +166,20 @@ async function downloadFile(url, progressCallback = null, maybeLZMACompressed = 
             let decompressProgressCallback = (progressCallback==null) ? null : function(percentage) { progressCallback(downloadPercentage + percentage * decompressionPercentage); };
             let result = (await wlzma.decode(compressed.response, decompressProgressCallback)).toUint8Array();
 
-            // store in memory cache
-            cache[url] = result;
+            // save to IndexedDB
+            await saveToDB(url, result);
             console.log(`Decompressed and cached version of ${url}`);
 
             return result;
         }
     }
+    // download the uncompressed version normally
+    let response = await XMLHttpRequestPromise(url, progressCallback, "GET");
+    await saveToDB(url, response.response);
+    console.log(`Downloaded and cached version of ${url}`);
 
-    return new Uint8Array((await XMLHttpRequestPromise(url, progressCallback, "GET")).response);
+    return response.response;
+    
 }
 
 class DownloadSet {
