@@ -57,9 +57,7 @@ button:disabled {
     cursor: wait;
 }
 
-button:hover:enabled {
-    background-color: #404040;
-}
+
 
 select {
     -webkit-appearance: button;
