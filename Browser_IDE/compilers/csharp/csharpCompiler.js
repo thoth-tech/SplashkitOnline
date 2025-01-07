@@ -1,14 +1,14 @@
 "use strict";
 
 class CSharpCompiler extends Compiler {
-    constructor(){
+    constructor() {
         super();
         this.signalReady();
     }
 
-    async compileAll(compileList, sourceList, print){
+    async compileAll(compileList, sourceList, print) {
         let compiled = {
-            output : null,
+            output: null,
         };
 
         let hasErrors = false;
@@ -16,18 +16,18 @@ class CSharpCompiler extends Compiler {
         // If all good, then output the 'compiled' result
         if (!hasErrors) {
             compiled.output = [];
-            for(let i = 0; i < sourceList.length; i ++) {
+            for (let i = 0; i < sourceList.length; i++) {
                 compiled.output.push({
                     name: sourceList[i].name,
                     source: sourceList[i].source,
-                })
+                });
             }
         }
 
         return compiled;
     }
 
-    async compileOne(name, source, print){
+    async compileOne(name, source, print) {
         console.log("Compiling " + name);
         // when is this function called?
     }

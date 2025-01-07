@@ -1,4 +1,4 @@
-import { dotnet } from './wwwroot/_framework/dotnet.js';
+import { dotnet } from "./wwwroot/_framework/dotnet.js";
 
 const loadDotNet = async () => {
     const { setModuleImports, getAssemblyExports, getConfig } = await dotnet
@@ -6,11 +6,11 @@ const loadDotNet = async () => {
         .withApplicationArgumentsFromQuery()
         .create();
 
-    setModuleImports('main.js', {
+    setModuleImports("main.js", {
         window: {
             location: {
-                href: () => globalThis.window.location.href
-            }
+                href: () => globalThis.window.location.href,
+            },
         },
         SplashKitBackendWASM: {
             write_line,
@@ -19,8 +19,8 @@ const loadDotNet = async () => {
             fill_ellipse: () => {
                 // Research how to declare a JS object in C#
                 fill_ellipse(color_black(), 260, 260, 200, 200);
-            }
-        }
+            },
+        },
     });
 
     const config = getConfig();
@@ -28,23 +28,30 @@ const loadDotNet = async () => {
     return exports;
 };
 
-const CompileAndRun = async (code) => {
+const CompileAndRun = async (code, reportError) => {
     try {
         const exports = await loadDotNet();
         const result = await exports.CSharpCodeRunner.CompileAndRun(code);
-        /*
-          handle the error adding reportCriticalInitializationFail and WriteToTerminal
-          to the executionEnvironment file
+        if (result.includes("Compilation failed")) {
+            const errors = result.split(":");
+            const errorLine = errors[1].split("Line");
 
-          const outputElement = document.querySelector('#output');
-          outputElement.textContent = result;
-        */
+            const indexCorrector = 1;
+            const filePath = "__USERCODE__/code/main.cs";
+            reportError(
+                filePath,
+                result,
+                Number(errorLine[1]) + indexCorrector,
+                null,
+                true,
+            );
+        }
     } catch (error) {
-        console.error('Error during code execution:', error);
+        console.error("Error during code execution:", error);
     }
 };
 
 // This event will be trigger by the csharp compiler
 document.addEventListener("compileAndRun", (ev) => {
-    CompileAndRun(ev.detail.program[0].source);
+    CompileAndRun(ev.detail.program[0].source, ev.detail.reportError);
 });

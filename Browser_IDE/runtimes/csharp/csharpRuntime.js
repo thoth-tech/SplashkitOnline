@@ -1,14 +1,15 @@
 // define and create the ExecutionEnvironmentInternal subclass
-class ExecutionEnvironmentInternalCSharp extends ExecutionEnvironmentInternal{
+class ExecutionEnvironmentInternalCSharp extends ExecutionEnvironmentInternal {
     constructor(listenOn) {
         return super(listenOn);
     }
 
-    async runProgram(program){
+    async runProgram(program) {
         const event = new CustomEvent("compileAndRun", {
             detail: {
-                program: program
-            }
+                program: program,
+                reportError: executionEnvironment.ReportError,
+            },
         });
         // temporal solution to run
         document.dispatchEvent(event);
