@@ -6,6 +6,13 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using System.Net.Http;
 using System.Threading.Tasks;
+
+public class DiagnosticInfo
+{
+    public int Line { get; set; }
+    public string Message { get; set; }
+}
+
 public partial class CSharpCodeRunner
 {
 
@@ -18,7 +25,6 @@ public partial class CSharpCodeRunner
         {
             using var httpClient = new HttpClient { BaseAddress = new Uri(baseUrl) };
             var assemblyBytes = await httpClient.GetByteArrayAsync(url);
-            Console.WriteLine($"Loaded {assemblyName} from server.");
             return MetadataReference.CreateFromImage(assemblyBytes);
         }
         catch (Exception ex)
@@ -62,13 +68,26 @@ public partial class CSharpCodeRunner
                 // Check for compilation errors
                 if (!emitResult.Success)
                 {
-                    var errors = string.Join("\n", emitResult.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error).Select(d => d.GetMessage()));
-                    return $"Compilation failed:\n{errors}";
+                    var errors = emitResult.Diagnostics
+                        .Where(d => d.Severity == DiagnosticSeverity.Error)
+                        .Select(d => new DiagnosticInfo
+                        {
+                            Line = d.Location.GetLineSpan().StartLinePosition.Line,
+                            Message = d.GetMessage()
+                        })
+                        .ToList();
+
+                    // If you need to format it as a string, you can do:
+                    var errorString = string.Join("\n", errors.Select(e => $"Line {e.Line}: {e.Message}"));
+
+                    return $"Compilation failed:\n{errorString}";
                 }
 
                 // Load the compiled assembly into the current AppDomain
                 ms.Seek(0, SeekOrigin.Begin);
+                #pragma warning disable IL2026
                 var assembly = AppDomain.CurrentDomain.Load(ms.ToArray());
+                #pragma warning restore IL2026
 
                 // Get the entry point and invoke it
                 var entryPoint = assembly.EntryPoint;
