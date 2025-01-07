@@ -13,11 +13,12 @@ const loadDotNet = async () => {
             },
         },
         SplashKitBackendWASM: {
+            // TODO: Pass the rest of the SplashKit functions
             write_line,
             refresh_screen,
             open_window,
             fill_ellipse: () => {
-                // Research how to declare a JS object in C#
+                // Research how to pass a JS object in WASM
                 fill_ellipse(color_black(), 260, 260, 200, 200);
             },
         },

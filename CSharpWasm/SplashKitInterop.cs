@@ -4,6 +4,7 @@ namespace SplashKitSDK
 {
     public partial class SplashKit
     {
+        // TODO: Add the rest of the SplashKit API here
         [JSImport("SplashKitBackendWASM.write_line", "main.js")]
         public static partial void WriteLine(string message);
 
