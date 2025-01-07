@@ -285,7 +285,7 @@ class ExecutionEnvironment extends EventTarget{
 
         iframe.id="iframetest"; // this code is primordial...
         if (language.needsSandbox)
-            iframe.sandbox = 'allow-scripts allow-modals';
+            iframe.sandbox = 'allow-scripts allow-modals allow-same-origin';
 
         container.appendChild(iframe);
         iframe.src="executionEnvironment.html";
