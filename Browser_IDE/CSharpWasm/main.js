@@ -32,8 +32,13 @@ const CompileAndRun = async (code) => {
     try {
         const exports = await loadDotNet();
         const result = await exports.CSharpCodeRunner.CompileAndRun(code);
-        const outputElement = document.querySelector('#output');
-        outputElement.textContent = result;
+        /*
+          handle the error adding reportCriticalInitializationFail and WriteToTerminal
+          to the executionEnvironment file
+
+          const outputElement = document.querySelector('#output');
+          outputElement.textContent = result;
+        */
     } catch (error) {
         console.error('Error during code execution:', error);
     }

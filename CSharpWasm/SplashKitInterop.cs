@@ -5,6 +5,9 @@ public partial class SplashKitInterop
     [JSImport("SplashKitBackendWASM.write_line", "main.js")]
     public static partial void WriteLine(string message);
 
+    [JSImport("SplashKitBackendWASM.write_line", "main.js")]
+    public static partial void WriteLine(int number);
+
     [JSImport("window.location.href", "main.js")]
     public static partial string GetHRef();
 
