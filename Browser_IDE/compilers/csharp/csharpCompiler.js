@@ -27,10 +27,6 @@ class CSharpCompiler extends Compiler {
         return compiled;
     }
 
-    async compileOne(name, source, print) {
-        console.log("Compiling " + name);
-        // when is this function called?
-    }
 }
 
 // The name has to match the one in languageDefinitions.js

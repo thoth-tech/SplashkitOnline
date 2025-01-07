@@ -11,7 +11,7 @@ class ExecutionEnvironmentInternalCSharp extends ExecutionEnvironmentInternal {
                 reportError: executionEnvironment.ReportError,
             },
         });
-        // temporal solution to run
+        // This event will be handled in the CSharpWasm/main.js file
         document.dispatchEvent(event);
     }
 }
