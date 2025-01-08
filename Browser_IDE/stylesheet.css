@@ -39,7 +39,49 @@ iframe {
 h3 {
     font-weight:400;
 }
+.image_li{
+  display: -webkit-inline-box;
+}
 
+.menu {
+  display: inline-block;
+  position: relative;
+}
+
+.menu-button {
+  background-color: #2d2d2d;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+  font-size: 16px;
+  display: inline-block;
+  margin-left: 20px;
+}
+
+.dropdown {
+  display: none;
+  position: absolute;
+  background-color: #2d2d2d;
+  min-width: 150px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  z-index: 1;
+}
+
+.dropdown a {
+  color: white;
+  padding: 10px 15px;
+  text-decoration: none;
+  display: block;
+}
+
+.dropdown a:hover {
+  background-color: #404040;
+}
+
+.menu:hover .dropdown {
+  display: block;
+}
 
 /* SplashKit Online */
 button {

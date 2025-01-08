@@ -35,112 +35,30 @@
 	<script src="split.js/split.min.js"></script>
 	<script type="module">import mime from "./mime/src/index.js"; window.mime = mime;</script>
 
-
 	<style>
-		/* Navbar Styling */
-		.navbar {
-		  display: flex;
-		  align-items: center;
-		  padding: 10px;
-		  border-radius: 5px;
-		  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-		}
-	  
-		/* Dropdown Button Styling */
-		.dropdown {
-		  position: relative;
-		  display: none; /* Initially hidden */
-		}
-	  
-		.dropbtn {
-		  background-color: darkgrey;
-		  color: white;
-		  padding: 10px 15px;
-		  font-size: 14px;
-		  border: none;
-		  border-radius: 4px;
-		  cursor: pointer;
-		  display: flex;
-		  align-items: center;
-		}
-	  
-		.dropbtn i {
-		  margin-left: 5px;
-		}
-	  
-		.dropbtn:hover {
-		  background-color: #0056b3;
-		}
-	  
-		/* Dropdown Content Styling */
-		.dropdown-content {
-		  display: none;
-		  position: absolute;
-		  background-color: #404040;
-		  color: white;
-		  min-width: 150px;
-		  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-		  z-index: 1;
-		  border-radius: 4px;
-		  padding: 5px 0;
-		}
-	  
-		.dropdown-content button {
-		  background: none;
-		  border: none;
-		  color: white;
-		  padding: 8px 12px;
-		  text-align: left;
-		  text-decoration: none;
-		  display: block;
-		  width: 100%;
-		  cursor: pointer;
-		}
-	  
-		.dropdown-content button:hover {
-		  background: white;
-		  color: #404040;
-		}
-	  
-		/* Show Dropdown on Hover */
-		.dropdown:hover .dropdown-content {
-		  display: block;
-		}
-	  
-		/* Primary Button Styling */
-		.run-program {
-		  color: white;
-		  padding: 10px 15px;
-		  font-size: 14px;
-		  border: none;
-		  border-radius: 4px;
-		  cursor: pointer;
-		  display: flex;
-		  align-items: center;
-		  margin-right: 10px;
-		}
-	  
-		.run-program i {
-		  margin-right: 5px;
-		}
-	  
-		.run-program:hover {
-		  background-color: #218838;
-		  color: green;
-		}
-	  </style>
+		
+
+		
+	</style>
+
 </head>
 
 <body class="sk-body">
 	<div class="sk-header">
-		<ul class="sk-menu">
-			<li><img src="splashkit_logo.webp" style="width:2em; height:2em;"></li>
-			<li><button id="NewProject">New Project</button></li>
-			<li><button id="DownloadProject">Export Project</button></li>
-			<li><button id="UploadProject">Import Project</button></li>
-			<span style="border-left:#404040 1px solid;"></span>
-			<li><button id="LoadDemo">Load Demo</button></li>
-		</ul>
+
+		<div class="menu">
+			<li class="image_li"><img src="splashkit_logo.webp" style="width:2em; height:2em;">
+				<button class="menu-button" id="projectButton">Project</button>
+				<div class="dropdown">
+					<button id="NewProject">New Project</button>
+					<button id="DownloadProject">Export Project</button>
+					<button id="UploadProject">Import Project</button>
+					<button id="LoadDemo">Load Demo</button>
+				</div>
+
+			</li>
+
+		</div>
 		<ul class="sk-menu">
 			<li>
 				<div>Language:&nbsp;</div>
@@ -196,47 +114,17 @@
 			<div class="sk-column">
 				<div class="sk-header sk-header-indent">
 					<div class="flex-column">
+						<button type="button" id="restartProgram" style="display:none"><i
+								class="bi bi-arrow-repeat">Restart</i></button>
+						<button type="button" id="continueProgram" style="display:none"><i
+								class="bi bi-play-fill">Continue</i></button>
+						<button type="button" id="runProgram" class="run-program">
+							<i class="bi bi-gear-fill">Stop</i>
+							<i class="bi bi-play-fill">Build and Run</i>
+						</button>
 
-
-
-						<div class="navbar">
-							<button type="button" id="runProgram" class="run-program">
-							  <i class="bi bi-gear-fill"></i>
-							  <i class="bi bi-play-fill"></i> Build and Run
-							</button>
-							<div class="dropdown" id="functionsDropdown">
-							  <button class="dropbtn">
-								Functions <i class="fa fa-caret-down"></i>
-							  </button>
-							  <div class="dropdown-content">
-								<button type="button" id="restartProgram" style="display:none">
-								  <i class="bi bi-arrow-repeat"></i> Restart
-								</button>
-								<button type="button" id="continueProgram" style="display:none">
-								  <i class="bi bi-play-fill"></i> Continue
-								</button>
-								<button type="button" id="stopProgram" style="display:none">
-								  <i class="bi bi-pause-fill"></i> Pause
-								</button>
-							  </div>
-							</div>
-						  </div>
-						  
-						  <script>
-							// Get the "Build and Run" button and "Functions" dropdown
-							const runProgramButton = document.getElementById('runProgram');
-							const functionsDropdown = document.getElementById('functionsDropdown');
-						  
-							// Add a click event listener to the "Build and Run" button
-							runProgramButton.addEventListener('click', function () {
-							  // Show the "Functions" dropdown by setting its display to 'inline-block'
-							  functionsDropdown.style.display = 'inline-block';
-							});
-						  </script>
-
-
-
-
+						<button type="button" id="stopProgram" style="display:none"><i
+								class="bi bi-pause-fill">Pause</i></button>
 					</div>
 					<div class="sk-header-title">
 						PROGRAM
