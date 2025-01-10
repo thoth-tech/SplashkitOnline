@@ -105,7 +105,8 @@ async function StartIDE() {
         let projectID = SKO.projectID;
         if (projectID) {
             storedProject = new IDBStoredProject(appStorage, projectID);  // Use project ID if available
-        } else {
+        } 
+        else {
             storedProject = new IDBStoredProject(appStorage, activeLanguageSetup.getDefaultProject());  // Default project
         }
 
