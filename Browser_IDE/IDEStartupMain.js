@@ -28,6 +28,8 @@ async function StartIDE() {
     setupFilePanelAndEvents();
 
     setupMinifiedInterface();
+    
+    let projectID = SKO.projectID; //get the projectID
 
     // Initialize compiler in parallel with everything else
     // This is where the bulk of the startup occurs
@@ -43,10 +45,14 @@ async function StartIDE() {
                 executionEnviroment.initialize(),
                 (async () => {
                     await appStorage.attach();
-                    await storedProject.attachToProject();
+                    if (projectID) {
+                        await storedProject.attachToProject(projectID);
+                    } else {
+                        await storedProject.attachToProject();
+                    }
                     openCodeEditors();
                 })()
-            ])
+            ]);
 
             makingNewProject = false;
 
