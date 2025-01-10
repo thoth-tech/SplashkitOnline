@@ -28,5 +28,7 @@ let SKO = (function(){
         useCompressedBinaries: getEnvParam("useCompressedBinaries", "on", true) == "on",
         useMinifiedInterface: getEnvParam("useMinifiedInterface") == "on",
         isPRPreview: getEnvParam("isPRPreview", isPreview ? "on" : "off") == "on",
+        // add projectID
+        projectID: getEnvParam("projectID", null, true) 
     };
 })();

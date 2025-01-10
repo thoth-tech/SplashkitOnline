@@ -98,10 +98,17 @@ async function StartIDE() {
         setupIDEButtonEvents(); // uses current language
 
         // Create execution environment and project storage objects
-        // These constructors don't _do_ anything important.
         executionEnviroment = new ExecutionEnvironment(document.getElementById("ExecutionEnvironment"), activeLanguageSetup);
         appStorage = new AppStorage();
-        storedProject = new IDBStoredProject(appStorage, activeLanguageSetup.getDefaultProject());
+        
+        // Check if projectID exists in URL, if so, load that project
+        let projectID = SKO.projectID;
+        if (projectID) {
+            storedProject = new IDBStoredProject(appStorage, projectID);  // Use project ID if available
+        } else {
+            storedProject = new IDBStoredProject(appStorage, activeLanguageSetup.getDefaultProject());  // Default project
+        }
+
         unifiedFS = new UnifiedFS(storedProject, executionEnviroment);
 
         // Setup callbacks/listeners
