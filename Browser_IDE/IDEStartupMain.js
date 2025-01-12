@@ -66,6 +66,15 @@ let CompileQueue = new ActionQueue("CompileQueue", {
     cancelOn: [InitializeProjectQueue],
 });
 
+// add loadUserProject!!!!!!!!!!!!!!!!
+let LoadUserProjectQueue = new ActionQueue("LoadUserProjectQueue", {
+    cancelRunning: false,
+    replaceQueued: false,
+    maxQueued: 100,
+    waitOn: [ExecutionEnvironmentLoadQueue, InitializeProjectQueue],
+    cancelOn: [InitializeProjectQueue, ExecutionEnvironmentLoadQueue],
+});
+
 // Whenever both execution environment and load project queue clear, mirror the project
 ActionQueue.OnClear([ExecutionEnvironmentLoadQueue, InitializeProjectQueue], async function(){
     MirrorProjectQueue.Schedule("Mirror", async function(){
@@ -124,6 +133,10 @@ async function StartIDE() {
         setupMinifiedInterface();
     });
 
+    // use LoadUserProjectQueue to load user projects!!!!!!!!!
+    LoadUserProjectQueue.Schedule("LoadUserProjects", async function() {
+        await ShowProjectLoader("Choose a project to load:", loadUserProjects);
+    });
 
     CompilerInitQueue.Schedule("CompilerInit", async function CompilerInitQueue (isCanceled){
         await initializeLanguageCompilerFiles(activeLanguageSetup);

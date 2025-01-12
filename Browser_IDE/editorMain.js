@@ -906,7 +906,8 @@ function setupIDEButtonEvents() {
     setupProjectButton("DownloadProject", downloadProject);
     setupProjectButton("NewProject", () => scheduleProjectReInitialization(activeLanguageSetup.getDefaultProject()));
     setupProjectButton("LoadDemo", () => ShowProjectLoader("Choose a demo project:", LoadDemoProjects));
-
+    // Add the new "Load Project" button and its event!!!!!!!!!!!!!!!!
+    setupProjectButton("LoadProject", () =>  ShowProjectLoader("Choose a project to load:", loadUserProjects));
     if (!activeLanguageSetup.supportHotReloading) document.getElementById("runOne").children[0].innerText = "Syntax Check File";
 }
 
