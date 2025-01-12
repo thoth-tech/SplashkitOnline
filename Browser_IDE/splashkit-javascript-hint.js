@@ -65,7 +65,8 @@ loadSplashKitAutocompletes();
     if (innerMode.mode.helperType === "json") return;
     token.state = innerMode.state;
 
-    if (currentCur && currentCur.ch == cur.ch) {
+    // What is this??? TODO
+    if ((currentCur && currentCur.ch == cur.ch) || (currentCur && cur.line !== currentCur.line)) {
       currentCur = null;
       startParameter = false;
       currentFound = null;
@@ -85,7 +86,7 @@ loadSplashKitAutocompletes();
     }
 
     if (currentFound) {
-      if (token.string == ")") {
+      if (token.string == ")" || token.string == ";") {
         currentFound = null;
         startParameter = false;
         token = {start: cur.ch, end: cur.ch, string: "", state: token.state,
