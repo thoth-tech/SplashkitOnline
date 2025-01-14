@@ -36,9 +36,9 @@
 	<script type="module">import mime from "./mime/src/index.js"; window.mime = mime;</script>
 
 	<style>
-		
 
-		
+
+
 	</style>
 
 </head>
@@ -114,17 +114,24 @@
 			<div class="sk-column">
 				<div class="sk-header sk-header-indent">
 					<div class="flex-column">
-						<button type="button" id="restartProgram" style="display:none"><i
-								class="bi bi-arrow-repeat">Restart</i></button>
-						<button type="button" id="continueProgram" style="display:none"><i
-								class="bi bi-play-fill">Continue</i></button>
-						<button type="button" id="runProgram" class="run-program">
-							<i class="bi bi-gear-fill">Stop</i>
-							<i class="bi bi-play-fill">Build and Run</i>
+						<button type="button" id="restartProgram" style="display:none">
+							<i class="bi bi-arrow-repeat">Restart</i>
 						</button>
+						<button type="button" id="continueProgram" style="display:none">
+							<i class="bi bi-play-fill">Pause</i>
+						</button>
+						<button type="button" id="runProgram" class="run-program">
+							<i class="bi bi-gear-fill">Build and Run </i>
+						</button>
+						<button type="button" id="pauseProgram" style="display:none">
+							<i class="bi bi-pause-fill">Pause</i>
+						</button>
+						<button type="button" id="stopProgram" style="display:none">
+							<i class="bi bi-stop-fill">Stop</i>
+						</button>
+						<button type="button" id="terminateProgram" style="display:none"><i
+								class="bi bi-x-circle"></i>Terminate</button>
 
-						<button type="button" id="stopProgram" style="display:none"><i
-								class="bi bi-pause-fill">Pause</i></button>
 					</div>
 					<div class="sk-header-title">
 						PROGRAM
@@ -137,20 +144,27 @@
 				</div>
 			</div>
 			<div class="sk-collapsed-column sk-hidden">
-				<button type="button" title="Expand Program" onclick="collapseProgramViewToggle()"><i
-						class="bi bi-terminal"></i></button>
+				<button type="button" title="Expand Program" onclick="collapseProgramViewToggle()">
+					<i class="bi bi-terminal"></i>
+				</button>
 				<button id="collapsedRunProgram" type="button" class="run-program" title="Build and Run">
 					<i class="bi bi-gear-fill"></i>
-					<i class="bi bi-play-fill"></i>
 				</button>
-				<button type="button" id="collapsedRestartProgram" title="Restart" style="display:none"><i
-						class="bi bi-arrow-repeat"></i></button>
-				<button type="button" id="collapsedContinueProgram" title="Continue" style="display:none"><i
-						class="bi bi-play-fill"></i></button>
-				<button type="button" id="collapsedStopProgram" title="Pause" style="display:none"><i
-						class="bi bi-pause-fill"></i></button>
+				<button type="button" id="collapsedRestartProgram" title="Restart" style="display:none">
+					<i class="bi bi-arrow-repeat"> Restart</i>
+				</button>
+				<button type="button" id="collapsedContinueProgram" title="Continue" style="display:none">
+					<i class="bi bi-play-fill"> Continue</i>
+				</button>
+				<button type="button" id="collapsedPauseProgram" title="Pause" style="display:none">
+					<i class="bi bi-pause-fill"> Pause</i>
+				</button>
+				<button type="button" id="collapsedStopProgram" title="Stop" style="display:none">
+					<i class="bi bi-stop-fill"> Stop</i>
+				</button>
 			</div>
 		</div>
+
 	</div>
 </body>
 
