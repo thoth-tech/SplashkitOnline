@@ -1,7 +1,6 @@
 // CodeMirror, copyright (c) by Marijn Haverbeke and others
 // Distributed under an MIT license: https://codemirror.net/5/LICENSE
 
-let splashKitAutocompletes = null;
 
 // Function that returns a promise which resolves once the file is loaded
 function loadSplashKitAutocompletes() {
@@ -10,17 +9,18 @@ function loadSplashKitAutocompletes() {
         xhr.onreadystatechange = function() {
             if (xhr.readyState === 4) {
                 if (xhr.status === 0 || xhr.status === 200) {
-                    splashKitAutocompletes = JSON.parse(xhr.responseText);
+                    CodeMirror.splashKitAutocompletesC = JSON.parse(xhr.responseText);
                     resolve(); // Resolve the promise when data is successfully loaded
                 } else {
                     reject(new Error("Couldn't load SplashKit Autocompletes!"));
                 }
             }
         };
-        xhr.open("GET", "splashkit/splashkit_autocomplete.json", true);
+        xhr.open("GET", "splashkit/splashkit_autocomplete_c.json", true);
         xhr.send(null);
     });
 }
+loadSplashKitAutocompletes();
 
 (function(mod) {
   if (typeof exports == "object" && typeof module == "object") // CommonJS
@@ -399,7 +399,6 @@ CodeMirror.defineMode("clike", function(config, parserConfig) {
     add(mode.types);
     add(mode.builtin);
     add(mode.atoms);
-    add(mode.functions);
     if (words.length) {
       mode.helperType = mimes[0];
       CodeMirror.registerHelper("hintWords", mimes[0], words);
@@ -409,27 +408,13 @@ CodeMirror.defineMode("clike", function(config, parserConfig) {
       CodeMirror.defineMIME(mimes[i], mode);
   }
 
-  // TODO:
-  // CodeMirror.hint.fromList(cm, {words: words})
-  // This line is important
-  // Just need to get cm
-  // And make sure fromList works
-
   // Function to dynamically load a script after waiting for the data to load
   async function createCppHelper() {
     try {
-        // Wait for the data to load before proceeding
-        await loadSplashKitAutocompletes();
-        // Create the functions string
-        const skFunctions = splashKitAutocompletes.functions.map(func => func.name).join(" ");
-        // Create the keywords string
-        const skKeywords = splashKitAutocompletes.keywords.join(" ");
-
         def(["text/x-c++src", "text/x-c++hdr"], {
           name: "clike",
-          keywords: words(cppKeywords + " " + skKeywords),
+          keywords: words(cppKeywords),
           types: cTypes,
-          function: words(skFunctions),
           blockKeywords: words(cBlockKeywords + " class try catch"),
           defKeywords: words(cDefKeywords + " class namespace"),
           typeFirstDefinitions: true,
@@ -457,7 +442,7 @@ CodeMirror.defineMode("clike", function(config, parserConfig) {
             token: function(stream, state, style) {
               if (style == "variable" && stream.peek() == "(" &&
                   (state.prevToken == ";" || state.prevToken == null ||
-                   state.prevToken == "}") &&
+                  state.prevToken == "}") &&
                   cppLooksLikeConstructor(stream.current()))
                 return "def";
             }

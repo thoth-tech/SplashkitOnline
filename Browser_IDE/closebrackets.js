@@ -106,7 +106,7 @@
       newRanges.push({anchor: pos, head: pos})
     }
     cm.setSelections(newRanges, primary)
-    // Ethan edit
+    // If there is any existing autocomplete data, display autocomplete suggestions
     if (CodeMirror.autocompleteData) CodeMirror.commands.autocomplete(cm, null, cm.options);
   }
 

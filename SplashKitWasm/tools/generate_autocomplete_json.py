@@ -11,6 +11,9 @@ with open(sys.argv[1], "r", encoding='utf-8') as inJSON:
 
 api = json_api_reader.read_json_api(api_json)
 
+# Check if we are generating for JavaScript or C++
+is_c = sys.argv[4] == "c++"
+
 functions = []
 keywords = []
 
@@ -18,10 +21,12 @@ def js_print_type(_type):
     '''Returns a representation of a type that's more relevant to JavaScript'''
 
     ret = _type.typename
+    if is_c:
+        return ret
     if _type.typename == "int":
         ret = "number"
     elif _type.typename == "unsigned int":
-        ret = "number"
+        ret = "number" 
     elif _type.typename == "double":
         ret = "number"
     elif _type.typename == "float":
@@ -33,7 +38,7 @@ def js_print_type(_type):
     elif _type.typename == "void":
         ret = ""
     elif _type.typename == "vector":
-        ret = "array of " + js_print_type(_type.template_type)+"s" # a bit of a cludge...
+        ret = "array of " + js_print_type(_type.template_type)+"s"
 
     return ret
 

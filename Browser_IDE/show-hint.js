@@ -2,8 +2,6 @@
 // Distributed under an MIT license: https://codemirror.net/5/LICENSE
 
 // declare global: DOMRect
-// Ethan edit
-// var BigGlobal = {};
 (function(mod) {
   if (typeof exports == "object" && typeof module == "object") // CommonJS
     mod(require("../../lib/codemirror"));
@@ -224,7 +222,7 @@
     }
   }
   function Widget(completion, data) {
-    // Ethan edit
+    // Store the autocomplete data, that way we can later check if it exists
     CodeMirror.autocompleteData = data;
 
     this.id = "cm-complete-" + Math.floor(Math.random(1e6))
@@ -263,11 +261,10 @@
     var cur = ranges[0].head;
 
     var token = editors[0].editor.getTokenAt(cur);
-    var tokenString = token.string;
 
-    // Ethan edit
+    // If the token is a (, then we want to delete it, so we can type the function
     var pos = cm.cursorCoords(completion.options.alignWithWord ? data.from : null);
-    if (tokenString == "(") cm.replaceRange("", CodeMirror.Pos(cur.line, cur.ch), CodeMirror.Pos(cur.line, cur.ch), "+delete");
+    if (token.string == "(") cm.replaceRange("", CodeMirror.Pos(cur.line, cur.ch), CodeMirror.Pos(cur.line, cur.ch), "+delete");
 
     // TODO: I need a way to tell if we're done typing parameters
     // - if the line changes, obviously they're done
@@ -490,7 +487,24 @@
       resolved.supportsSelection = true
       return resolved
     } else if (words = cm.getHelper(cm.getCursor(), "hintWords")) {
-      return function(cm) { return CodeMirror.hint.fromList(cm, {words: words}) }
+      return function(cm) {
+        let sk = CodeMirror.splashKitAutocompletesC;
+        if (sk) {
+          // Add the keywords to the words
+          for (let keyword of sk.keywords) {
+            if (!words.includes(keyword)) words.push(keyword);
+          }
+          // Add the functions to the words
+          for (let func of sk.functions) {
+            let paramList = "";
+            for (let param of func.params) paramList += param + ", ";
+            let text = func.name + "(" + paramList.slice(0, paramList.length - 2) + ")";
+            if (!words.includes(text)) words.push(text);
+          }
+        }
+        
+        return CodeMirror.hint.fromList(cm, {words: words});
+      }
     } else if (CodeMirror.hint.anyword) {
       return function(cm, options) { return CodeMirror.hint.anyword(cm, options) }
     } else {
