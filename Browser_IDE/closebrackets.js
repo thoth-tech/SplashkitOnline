@@ -107,7 +107,7 @@
     }
     cm.setSelections(newRanges, primary)
     // If there is any existing autocomplete data, display autocomplete suggestions
-    if (CodeMirror.autocompleteData) CodeMirror.commands.autocomplete(cm, null, cm.options);
+    if (CodeMirror.autocompleteData && SKO.language != "C++") CodeMirror.commands.autocomplete(cm, null, cm.options);
   }
 
   function contractSelection(sel) {

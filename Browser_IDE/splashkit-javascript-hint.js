@@ -4,7 +4,6 @@
 // - Improve behaviour when performing continous autocompletion
 // - Since was already modifying the file, added SplashKit autocompletion here too
 
-// TODO: can this be moved down?
 let startParameter = false;
 let currentFound = null;
 let currentCur = null;
@@ -76,7 +75,6 @@ loadSplashKitAutocompletes();
       // Get the token before the current one
       let prevCur = JSON.parse(JSON.stringify(cur));
       prevCur.ch--;
-      // TODO: what if ch is 0?
       let prevToken = getToken(editor, prevCur);
       token = prevToken;
       startParameter = true;
