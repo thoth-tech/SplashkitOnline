@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SplashKit Online</title>
+
+    <link rel="stylesheet" href="codemirror-5.65.15/lib/codemirror.css">
+    <link rel="stylesheet" href="codemirror-5.65.15/theme/ayu-mirage.css">
+    <link rel="stylesheet" href="codemirror-5.65.15/addon/hint/show-hint.css">
+    <link rel="stylesheet" href="codemirror-5.65.15/addon/fold/foldgutter.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.9.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="stylesheet.css">
+
+    <script src="codemirror-5.65.15/lib/codemirror.js"></script>
+    <script src="jszip/jszip.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-OERcA2EqjJCMA+/3y+gxIOqMEjwtxJY7qPCqsdltbNJuaOe923+mo//f6V8Qbsw3"
+        crossorigin="anonymous"></script>
+    <script src="codemirror-5.65.15/mode/javascript/javascript.js"></script>
+    <script src="codemirror-5.65.15/addon/edit/closebrackets.js"></script>
+    <script src="codemirror-5.65.15/addon/selection/active-line.js"></script>
+    <script src="codemirror-5.65.15/addon/hint/show-hint.js"></script>
+    <script src="splashkit-javascript-hint.js"></script>
+    <script src="codemirror-5.65.15/addon/fold/foldcode.js"></script>
+    <script src="codemirror-5.65.15/addon/fold/foldgutter.js"></script>
+    <script src="codemirror-5.65.15/addon/fold/brace-fold.js"></script>
+    <script src="codemirror-5.65.15/addon/fold/comment-fold.js"></script>
+    <script src="split.js/split.min.js"></script>
+    <script type="module">import mime from "./mime/src/index.js"; window.mime = mime;</script>
+	
+</head>
+<body class="sk-body">
+	<div class="sk-header">
+		<ul class="sk-menu">
+			<li><img src="splashkit_logo.webp" style="width:2em; height:2em;"></li>
+			<li><button id="NewProject">New Project</button></li>
+			<li><button id="DownloadProject">Export Project</button></li>
+			<li><button id="UploadProject">Import Project</button></li>
+			<span style="border-left:#404040 1px solid;"></span>
+			<li><button id="LoadDemo">Load Demo</button></li>
+		</ul>
+        <ul class="sk-menu">
+            <li>
+                <div>Language:&nbsp;</div>
+                <select id="languageSelection">
+                </select>
+            </li>
+        </ul>
+	</div>
+	<div class="sk-main-columns">
+		<div id="fileViewContainer">
+			<div class="sk-column">
+				<div class="sk-header sk-header-indent">
+					<div class="sk-header-title">
+						<button type="button" title="Collapse Files" onclick="collapseFileViewToggle()">
+							<i class="bi bi-chevron-double-left"></i>
+						</button>
+						FILES
+					</div>
+				</div>
+				<input type="file" id="fileuploader" onchange="uploadFileFromInput()" style="display:none;">
+				<input type="file" id="projectuploader" onchange="uploadProjectFromInput()" style="display:none;">
+				<div class = "sk-header-indent sk-contents sk-contents-focusable" tabindex="0">
+					<div id="fileView"></div>
+				</div>
+			</div>
+			<div class="sk-collapsed-column sk-hidden">
+				<button type="button" title="Expand Files" onclick="collapseFileViewToggle()">
+					<i class="bi bi-files"></i>
+				</button>
+			</div>
+		</div>
+		<div class="sk-column" id="codeViewContainer">
+			<div class="sk-header sk-header-indent">
+				<div class="sk-menu">
+                    <ul class="sk-tabs" id="codeViewTabs"></ul>
+                    <button type="button" id="addSourceFile"><i class="bi bi-plus"></i></button>
+				</div>
+				<div class="flex-column">
+                    <button type="button" id="runOne"><i class="bi bi-upload"> Update File</i></button>
+				</div>
+			</div>
+            <div class="sk-contents" style="background-color:#24262d !important; position:relative;" id="codeEditorContainer">
+                <div class="sk-code-view-message" id="noEditorsMessage">
+                    <h1>Let's write some code!</h1>
+                    <p>You can add a new code file with the <b>+</b> button, or open one from the <b>FILES</b> view on the left.</p>
+                </div>
+            </div>
+		</div>
+		<div id="runtimeContainer">
+			<div class="sk-column">
+				<div class="sk-header sk-header-indent">
+					<div class="flex-column">
+						<button type="button" id="restartProgram" style="display:none"><i class="bi bi-arrow-repeat">Restart</i></button>
+						<button type="button" id="continueProgram" style="display:none"><i class="bi bi-play-fill">Continue</i></button>
+						<button type="button" id="runProgram" class="run-program">
+							<i class="bi bi-gear-fill"></i>
+							<i class="bi bi-play-fill">Build and Run</i>
+						</button>
+						<button type="button" id="stopProgram" style="display:none"><i class="bi bi-pause-fill">Pause</i></button>
+					</div>
+					<div class="sk-header-title">
+						PROGRAM
+						<button type="button" title="Collapse Program" onclick="collapseProgramViewToggle()">
+							<i class="bi bi-chevron-double-right"></i>
+						</button>
+					</div>
+				</div>
+				<div class="sk-contents" id="ExecutionEnvironment">
+				</div>
+			</div>
+			<div class="sk-collapsed-column sk-hidden">
+				<button type="button" title="Expand Program" onclick="collapseProgramViewToggle()"><i class="bi bi-terminal"></i></button>
+				<button id="collapsedRunProgram" type="button" class="run-program" title="Build and Run">
+					<i class="bi bi-gear-fill"></i>
+					<i class="bi bi-play-fill"></i>
+				</button>
+				<button type="button" id="collapsedRestartProgram" title="Restart" style="display:none"><i class="bi bi-arrow-repeat"></i></button>
+				<button type="button" id="collapsedContinueProgram" title="Continue" style="display:none"><i class="bi bi-play-fill"></i></button>
+				<button type="button" id="collapsedStopProgram" title="Pause" style="display:none"><i class="bi bi-pause-fill"></i></button>
+			</div>
+		</div>
+	</div>
+</body>
+
+<script src="splashKitOnlineEnvParams.js"></script>
+<script src="downloadHandler.js"></script>
+<script src="compilers/compiler.js"></script>
+<script src="languageDefinitions.js"></script>
+<script src="HTMLBuilderUtil.js"></script>
+<script src="executionEnvironment.js"></script>
+<script src="AppStorage.js"></script>
+<script src="IDBStoredProject.js"></script>
+<script src="unifiedfs.js"></script>
+<script src="projectInitializer.js"></script>
+<script src="modal.js"></script>
+<script src="notifications.js"></script>
+<script src="treeview.js"></script>
+<script src="fallibleMessage.js"></script>
+<script src="editorMain.js"></script>
+<script src="fileview.js"></script>
+<script src="projectLoadUI.js"></script>
+<script src="IDEStartupMain.js"></script>
+</html>
