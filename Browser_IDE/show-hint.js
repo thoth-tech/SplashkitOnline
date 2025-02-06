@@ -257,6 +257,7 @@
 
     var container = completion.options.container || ownerDocument.body;
 
+    // Collect the token and cur objects
     var ranges = cm.listSelections();
     var cur = ranges[0].head;
 
@@ -265,12 +266,6 @@
     // If the token is a (, then we want to delete it, so we can type the function
     var pos = cm.cursorCoords(completion.options.alignWithWord ? data.from : null);
     if (token.string == "(") cm.replaceRange("", CodeMirror.Pos(cur.line, cur.ch), CodeMirror.Pos(cur.line, cur.ch), "+delete");
-
-    // TODO: I need a way to tell if we're done typing parameters
-    // - if the line changes, obviously they're done
-    // - any kind of clicking?
-    // - if they type )
-    // - if they type ;
 
     // var pos = cm.cursorCoords(null);
     var left = pos.left, top = pos.bottom, below = true;
@@ -370,10 +365,10 @@
     });
 
     // The first hint doesn't need to be scrolled to on init
-    // var selectedHintRange = this.getSelectedHintRange();
-    // if (selectedHintRange.from !== 0 || selectedHintRange.to !== 0) {
-    //   this.scrollToActive();
-    // }
+    var selectedHintRange = this.getSelectedHintRange();
+    if (selectedHintRange.from !== 0 || selectedHintRange.to !== 0) {
+      this.scrollToActive();
+    }
 
     CodeMirror.signal(data, "select", completions[this.selectedHint], hints.childNodes[this.selectedHint]);
     return true;
