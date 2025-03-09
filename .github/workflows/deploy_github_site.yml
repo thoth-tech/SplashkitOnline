@@ -1,0 +1,86 @@
+name: Deploy current 'deployed'/PR previews
+
+on:
+  workflow_run:
+    workflows: ['Build Static Site']
+    types:
+      - completed
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+permissions: {}
+
+# Allow only one concurrent deployment per PR, skipping runs queued between the run in-progress and latest queued.
+# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
+concurrency:
+  group: "finalbuild"
+  cancel-in-progress: false
+
+jobs:
+  # This part takes that artifact, merges it in to `static-site` in its respective folder,
+  # and deploys.
+  deploy:
+    # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+      pull-requests: write
+    environment:
+      name: static-site
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout de-duplicate script # This way it's safe...
+        uses: actions/checkout@v4
+        with:
+          path: script
+          sparse-checkout: |
+            .github/workflows/
+          sparse-checkout-cone-mode: false
+
+      - name: Download Built Sites
+        working-directory: ./
+        run: |
+          sudo apt-get install tree
+          python3 ./script/.github/workflows/download_github_site_previews.py "WhyPenguins/SplashkitOnline" static-site
+          tree
+
+          cd static-site
+          mkdir -p "./branch" # just in case
+          mkdir -p "./pr" # just in case
+          mv branch branch-previews
+          mv pr pr-previews
+          tree
+          
+
+      - name: Structure Deployment # Put everything inside the `deployed` branch's folder
+        working-directory: ./static-site
+        run: |
+          mkdir -p "./branch-previews/deployed" # just in case
+          mv "./branch-previews/deployed" ../deployed
+          mv ./* ../deployed/
+          tree
+          tree ../
+
+      - name: De-duplicate # I really wish GitHub supported hardlinks at least, this would have been much less painful...and save them space!
+        working-directory: ./deployed
+        run: python3 ../script/.github/workflows/generate_pr_map.py
+
+      - name: Delete existing page artifact # allows re-run of workflow
+        uses: geekyeggo/delete-artifact@v5
+        with:
+            name: github-pages
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # Upload IDE site
+          path: './deployed'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
