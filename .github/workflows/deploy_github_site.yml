@@ -44,7 +44,7 @@ jobs:
         working-directory: ./
         run: |
           sudo apt-get install tree
-          python3 ./script/.github/workflows/download_github_site_previews.py "WhyPenguins/SplashkitOnline" static-site
+          python3 ./script/.github/workflows/download_github_site_previews.py "${{ github.repository }}" static-site
           tree
 
           cd static-site

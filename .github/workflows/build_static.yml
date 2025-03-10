@@ -7,6 +7,7 @@ on:
 
   pull_request_target: # use trusted workflow (as opposed to `pull_request`)
     types:
+      - labeled # workaround for manual triggering...if we actually start using labels this might need to be removed
       - opened
       - reopened
       - synchronize
@@ -53,7 +54,7 @@ jobs:
       - name: Build static site
         working-directory: ./
         run: |
-          bash ./splashkitonline/.github/workflows/build_static_site.sh "${{ github.sha }}" "${{ github.event_name }}"
+          bash ./splashkitonline/.github/workflows/build_static_site.sh "${{ github.sha }}" "${{ github.event_name }}" "${{ github.repository }}"
         env:
           GITHUB_TOKEN: ''
 
@@ -127,7 +128,7 @@ jobs:
           zip -r "../splashkitonline-static-site-$file_name.zip" ./ # note: this name is expected in download_github_site_previews.py
           echo "../splashkitonline-static-site-$file_name.zip" >> ../../script/.github/workflows/release_assets.txt
           
-          python3 ../../script/.github/workflows/release.py "update" "${{ secrets.GITHUB_TOKEN }}" "WhyPenguins/SplashkitOnline" "$tag_name" "${{ github.sha }}" yes "../../script/.github/workflows/release_assets.txt" "# Static Site Build ($tag_name)\nA static build of $tag_name, used in the live deployment :smiley:"
+          python3 ../../script/.github/workflows/release.py "update" "${{ secrets.GITHUB_TOKEN }}" "${{ github.repository }}" "$tag_name" "${{ github.sha }}" yes "../../script/.github/workflows/release_assets.txt" "# Static Site Build ($tag_name)\nA static build of $tag_name, used in the live deployment :smiley:"
 
       - name: Or delete the release...
         if: ${{ github.event_name == 'pull_request_target' && github.event.action == 'closed' }}
@@ -135,7 +136,7 @@ jobs:
         run: |
           echo " PR Release Delete! ${{ github.ref_name }}"
           if [ github.event.action == "closed" ]; then
-            python3 ../../script/.github/workflows/release.py "delete" "${{ secrets.GITHUB_TOKEN }}" "WhyPenguins/SplashkitOnline" "pr/${{ github.event.number }}"
+            python3 ../../script/.github/workflows/release.py "delete" "${{ secrets.GITHUB_TOKEN }}" "${{ github.repository }}" "pr/${{ github.event.number }}"
           fi
 
       # The following bits assume the GitHub Pages site is about to be updated with this new release preview

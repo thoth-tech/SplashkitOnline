@@ -1,7 +1,9 @@
 set -e
+#build_static_site.sh <sha> <workflow event_name> <username/repo>
 
 # Do we need to build?
 cd ./splashkitonline
+# only build if the SplashKitWasm folder has changed, or if this was a push to a branch (so branches always build)
 if ! git diff --quiet $(git merge-base main "$1").."$1" -- SplashKitWasm &>/dev/null || [ "$2" == "push" ]; then
     cd ../
 
@@ -39,7 +41,8 @@ if ! git diff --quiet $(git merge-base main "$1").."$1" -- SplashKitWasm &>/dev/
     source ./emsdk_env.sh
     cd ../
     mkdir -p ./splashkitonline/SplashKitWasm/prebuilt/cxx/compiler/
-    wget -O ./splashkitonline/SplashKitWasm/prebuilt/cxx/compiler/sysroot.zip https://github.com/WhyPenguins/SplashkitOnline/tree/cxx_language_backend_binaries/SplashKitWasm/prebuilt/sysroot.zip
+    # build this as well...
+    wget -O ./splashkitonline/SplashKitWasm/prebuilt/cxx/compiler/sysroot.zip https://github.com/WhyPenguins/SplashkitOnline/raw/refs/heads/cxx_language_backend_binaries/SplashKitWasm/prebuilt/sysroot.zip
 
 
     cd ./splashkitonline/SplashKitWasm/cmake/
@@ -51,21 +54,37 @@ if ! git diff --quiet $(git merge-base main "$1").."$1" -- SplashKitWasm &>/dev/
 
 else
     cd ../
-
-    cd ./splashkitonline/Browser_IDE
-
-    wget -O splashkit/splashkit_autocomplete.json https://raw.githubusercontent.com/WhyPenguins/SplashkitOnline/github-live/Browser_IDE/splashkit/splashkit_autocomplete.json
-    wget -O runtimes/javascript/bin/SplashKitBackendWASM.js https://raw.githubusercontent.com/WhyPenguins/SplashkitOnline/github-live/Browser_IDE/runtimes/javascript/bin/SplashKitBackendWASM.js
-    wget -O runtimes/javascript/bin/SplashKitBackendWASM.wasm https://raw.githubusercontent.com/WhyPenguins/SplashkitOnline/github-live/Browser_IDE/runtimes/javascript/bin/SplashKitBackendWASM.wasm
-    wget -O compilers/cxx/bin/wasi-sysroot.zip.lzma https://raw.githubusercontent.com/WhyPenguins/SplashkitOnline/github-live/Browser_IDE/compilers/cxx/bin/wasi-sysroot.zip.lzma
-    wget -O compilers/cxx/bin/clang++.js https://raw.githubusercontent.com/WhyPenguins/SplashkitOnline/github-live/Browser_IDE/compilers/cxx/bin/clang++.js
-    wget -O compilers/cxx/bin/clang.wasm.lzma https://raw.githubusercontent.com/WhyPenguins/SplashkitOnline/github-live/Browser_IDE/compilers/cxx/bin/clang.wasm.lzma
-    wget -O compilers/cxx/bin/wasm-ld.js https://raw.githubusercontent.com/WhyPenguins/SplashkitOnline/github-live/Browser_IDE/compilers/cxx/bin/wasm-ld.js
-    wget -O compilers/cxx/bin/lld.wasm.lzma https://raw.githubusercontent.com/WhyPenguins/SplashkitOnline/github-live/Browser_IDE/compilers/cxx/bin/lld.wasm.lzma
-    wget -O runtimes/cxx/bin/SplashKitBackendWASMCPP.js https://raw.githubusercontent.com/WhyPenguins/SplashkitOnline/github-live/Browser_IDE/runtimes/cxx/bin/SplashKitBackendWASMCPP.js
-    wget -O runtimes/cxx/bin/SplashKitBackendWASMCPP.worker.js https://raw.githubusercontent.com/WhyPenguins/SplashkitOnline/github-live/Browser_IDE/runtimes/cxx/bin/SplashKitBackendWASMCPP.worker.js
-
-    cd ../../
+    
+    # rather than building, we'll just grab the compiled binaries from the main release
+    # to do this, we'll copy over all completely untracked files from it, which will correctly
+    # handle if the PR has deleted files since branching from main
+    # Perhaps there's a cleaner way :)
+    
+    # first let's get a list of files _not_ to copy
+    cd ./splashkitonline
+    TRACKED_FILES=$(git log --pretty=format: --name-only --diff-filter=A -- Browser_IDE| sort - | sed '/^$/d')
+    EXCLUDE_FILE=$(mktemp)
+    echo "$TRACKED_FILES" | sed "s|^Browser_IDE||" > "$EXCLUDE_FILE"
+    
+    # add some explicit excludes
+    echo "/codemirror-5.65.15" >> "$EXCLUDE_FILE"
+    echo "/jszip" >> "$EXCLUDE_FILE"
+    echo "/babel" >> "$EXCLUDE_FILE"
+    echo "/split.js" >> "$EXCLUDE_FILE"
+    echo "/mime" >> "$EXCLUDE_FILE"
+    echo "/DemoProjects" >> "$EXCLUDE_FILE"
+    
+    cd ../
+    
+    mkdir prebuilt
+    cd prebuilt
+    wget https://github.com/WhyPenguins/SplashkitOnline/releases/download/branch%2Fmain/splashkitonline-static-site-branch_main.zip
+    unzip splashkitonline-static-site-branch_main.zip
+    rm splashkitonline-static-site-branch_main.zip
+    cd ../
+    
+    # copy all the untracked files!
+    rsync -av --progress --exclude-from="$EXCLUDE_FILE" "prebuilt/" "splashkitonline/Browser_IDE/"
 
 fi
 
@@ -86,6 +105,7 @@ echo "Re-Structure Static Site"
 echo "========================================"
 cd ./splashkitonline/Browser_IDE
 
+# if changed, remember to update the explicit excludes above
 mv node_modules/codemirror codemirror-5.65.15
 mv node_modules/jszip/dist jszip
 mv node_modules/@babel/standalone babel
