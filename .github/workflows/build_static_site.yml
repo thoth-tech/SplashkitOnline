@@ -20,7 +20,7 @@ on:
 permissions: {}
 
 concurrency:
-  group: preview-${{ github.ref }}
+  group: preview-${{ github.ref_name }}
   cancel-in-progress: true
 
 jobs:
