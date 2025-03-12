@@ -415,6 +415,7 @@ if (EMSCRIPTEN)
             OUTPUT
                 "${SK_OUT}/cxx/compiler/wasi-sysroot.zip"
             COMMENT "Bundling C++ Compilation System Root..."
+            COMMAND ${CMAKE_COMMAND} -E make_directory "${SK_OUT}/cxx/compiler/"
             COMMAND python "${SK_WASMEXT}/tools/cxx_backend_systemroot_builder.py"
                 $<TARGET_FILE:SplashKitBackendCXX>
                 "${SK_SRC}/coresdk/"

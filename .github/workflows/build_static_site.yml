@@ -1,0 +1,188 @@
+name: Build Static Site
+
+on:
+  # Runs on pushes targeting the default branch
+  push:
+    branches: ["deployed", "main"]
+
+  pull_request_target: # use trusted workflow (as opposed to `pull_request`)
+    types:
+      - labeled # workaround for manual triggering...if we actually start using labels this might need to be removed
+      - unlabeled # same
+      - opened
+      - reopened
+      - synchronize
+      - closed
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: preview-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Creates a build of the website and uploads it as an artifact
+  # May be running untrusted code, so it's been given very restricted permissions
+  # Hopefully it can't do anything too bad...
+  build:
+    if: ${{ github.event_name != 'pull_request_target' || github.event.action != 'closed' }}
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+        env:
+          GITHUB_TOKEN: ''
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: splashkitonline
+          submodules: 'recursive'
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          fetch-depth: '0'
+        env:
+          GITHUB_TOKEN: ''
+
+      - name: Checkout scripts
+        uses: actions/checkout@v4
+        with:
+          path: script
+          sparse-checkout: |
+            .github/workflows/
+          sparse-checkout-cone-mode: false
+
+      - name: Build static site
+        working-directory: ./
+        run: |
+          GITHUB_SHA=${{ github.sha }}
+          if [ "${{ github.event_name }}" == "pull_request_target" ]; then
+            GITHUB_SHA="${{ github.event.pull_request.head.sha }}"
+          fi
+
+          cd ./splashkitonline
+          # only run the `build_static_site.sh` in the PR if the user changed it - otherwise use the latest in main.
+          if ! git diff --quiet $(git merge-base "origin/main" "$GITHUB_SHA").."$GITHUB_SHA" -- .github/workflows/ &>/dev/null; then
+            script_path="./splashkitonline/.github/workflows/build_static_site.sh" # use the PR's
+          else
+            script_path="./script/.github/workflows/build_static_site.sh" # use main's
+          fi
+          cd ../
+          echo "using $script_path"
+
+          bash "$script_path" "$GITHUB_SHA" "${{ github.event_name }}" "${{ github.repository }}"
+        env:
+          GITHUB_TOKEN: ''
+
+      - name: Upload the build as an artifact
+        uses: actions/upload-artifact@v4.4.3
+        with:
+          name: preview-${{ github.sha }}
+          path: ./splashkitonline/Browser_IDE
+          retention-days: 1
+          compression-level: 8
+          overwrite: true
+
+  # This part takes that artifact and uploads it as a release
+  # Perhaps this can be merged into the previous job - just seperated it out for
+  # potential security concerns (if for instance scripts in the previous job poisoned something)
+  # We never run the artifact here, so should be completely safe this way.
+  # Todo: Investigate!
+  deploy:
+    needs: build
+    if: ${{ always() && !failure() && !cancelled() }} # run this job even if the previous one is skipped
+    # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+    permissions:
+      contents: write
+      id-token: write
+      pull-requests: write
+    environment:
+      name: static-site
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout scripts # This way it's safe...
+        uses: actions/checkout@v4
+        with:
+          path: script
+          sparse-checkout: |
+            .github/workflows/
+          sparse-checkout-cone-mode: false
+
+      - name: Checkout Repo for Tagging
+        uses: actions/checkout@v4
+        with:
+          path: repo
+          submodules: 'false'
+          fetch-depth: '0'
+
+      # Note, we download it _into_ the git folder (so a .git is in a parent dir)
+      # The edit_release.py script will upload the assets in release_assets.txt, _relative_ to where the script is
+      # called from. However, it also updates tags in the repo, and so a `.git` directory needs to be somewhere.
+      # This is all a bit messy, but it works for now. Can be someone else's job to untangle it :P
+      - name: Download built site
+        if: ${{ github.event_name != 'pull_request_target' || github.event.action != 'closed' }}
+        uses: actions/download-artifact@v4.1.8
+        with:
+          name: preview-${{ github.sha }}
+          path: ./repo/built-site
+
+      - name: Create/Update release
+        if: ${{ github.event_name != 'pull_request_target' || github.event.action != 'closed' }}
+        working-directory: ./repo/built-site
+        run: |
+          sudo apt-get install zip sed
+
+          if [ "${{ github.event_name }}" == "pull_request_target" ]; then
+            echo " PR Release! ${{ github.event.number }}"
+            tag_name="pr/${{ github.event.number }}"
+          else
+            echo "Branch Release! ${{ github.ref_name }}"
+            tag_name="branch/${{ github.ref_name }}"
+          fi
+          file_name=$(echo $tag_name | sed "s#/#_#")
+
+          zip -r "../splashkitonline-static-site-$file_name.zip" ./ # note: this name is expected in download_github_site_previews.py
+          echo "../splashkitonline-static-site-$file_name.zip" >> ../../script/.github/workflows/release_assets.txt
+
+          python3 ../../script/.github/workflows/edit_release.py "update" "${{ secrets.GITHUB_TOKEN }}" "${{ github.repository }}" "$tag_name" "${{ github.sha }}" yes "../../script/.github/workflows/release_assets.txt" "# Static Site Build ($tag_name)\nA static build of $tag_name, used in the live deployment :smiley:"
+
+          repoSiteURL=$(echo ${{ github.repository }} | sed 's/\//.github.io\//')
+          echo "repoSiteURL=$repoSiteURL" >> $GITHUB_ENV
+
+      - name: Or delete the release...
+        if: ${{ github.event_name == 'pull_request_target' && github.event.action == 'closed' }}
+        working-directory: ./repo
+        run: |
+          echo " PR Release Delete! ${{ github.ref_name }}"
+          python3 ../script/.github/workflows/edit_release.py "delete" "${{ secrets.GITHUB_TOKEN }}" "${{ github.repository }}" "pr/${{ github.event.number }}"
+
+      # The following bits assume the GitHub Pages site is about to be updated with this new release preview
+      - name: Leave a link on the PR
+        if: ${{ success() && github.event_name == 'pull_request_target' && github.event.action != 'closed' }}
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: pr-preview
+          message: |
+            | :whale2: **PR Preview!** |
+            | :-----: |
+            | Preview at https://${{ env.repoSiteURL }}/pr-previews/${{ github.event.number }} |
+            | for commit ${{ github.event.pull_request.head.sha }} |
+
+      - name: Or delete the link...
+        if: ${{ github.event_name == 'pull_request_target' && github.event.action == 'closed' }}
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: pr-preview
+          message: |
+            | :whale2: **PR Preview!** |
+            | :-----: |
+            | The preview is no more! |
+            | Congrats if this was merged! :smile: |
