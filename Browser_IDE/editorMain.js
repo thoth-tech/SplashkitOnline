@@ -85,7 +85,7 @@ class CodeViewer {
     setupCodeArea(element) {
         let editor = CodeMirror.fromTextArea(element, {
             mode: "text/javascript",
-            theme: "dracula",
+            theme: "ayu-mirage",
             lineNumbers: true,
             autoCloseBrackets: true,
             styleActiveLine: true,
