@@ -84,7 +84,7 @@ class CodeViewer {
 
     setupCodeArea(element) {
         let editor = CodeMirror.fromTextArea(element, {
-            mode: "text/javascript",
+            mode: SKO.language == "C++" ? "text/x-c++src" : "text/javascript",
             theme: "dracula",
             lineNumbers: true,
             autoCloseBrackets: true,

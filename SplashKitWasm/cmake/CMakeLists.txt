@@ -289,12 +289,19 @@ endif()
             "${SK_CMAKE}/../../generated/docs/api.json"
             "${SK_WASMEXT}/tools/generate_autocomplete_json.py"
             "${SK_WASMEXT}/tools/json_api_reader.py"
-        OUTPUT "${SK_OUT}/api/splashkit_autocomplete.json"
+        OUTPUT
+            "${SK_OUT}/api/splashkit_autocomplete.json"
+            "${SK_OUT}/api/splashkit_autocomplete_c.json"
         COMMENT "Generating Autocomplete JSON..."
         COMMAND python "${SK_WASMEXT}/tools/generate_autocomplete_json.py"
             "${SK_CMAKE}/../../generated/docs/api.json"
             "${SK_OUT}/api/splashkit_autocomplete.json"
             "${FUNCTION_OVERLOADING}"
+        COMMAND python "${SK_WASMEXT}/tools/generate_autocomplete_json.py"
+            "${SK_CMAKE}/../../generated/docs/api.json"
+            "${SK_OUT}/api/splashkit_autocomplete_c.json"
+            "${FUNCTION_OVERLOADING}"
+            "C++"
     )
 
     add_dependencies(AutocompleteJSON SKAPIDirectory)

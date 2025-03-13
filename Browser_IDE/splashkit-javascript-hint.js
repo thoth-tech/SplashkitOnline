@@ -4,6 +4,9 @@
 // - Improve behaviour when performing continous autocompletion
 // - Since was already modifying the file, added SplashKit autocompletion here too
 
+let startParameter = false;
+let currentFound = null;
+let currentCur = null;
 
 // Sean Edit: Load SplashKit Autocompletes
 let splashKitAutocompletes = null;
@@ -59,8 +62,34 @@ loadSplashKitAutocompletes();
     if (innerMode.mode.helperType === "json") return;
     token.state = innerMode.state;
 
-    // If it's not a 'word-style' token, ignore the token.
-    if (!/^[\w$_]*$/.test(token.string)) {
+    // Reset stored autocomplete data if the line changes or the character is the same
+    if ((currentCur && currentCur.ch == cur.ch) || (currentCur && cur.line !== currentCur.line)) {
+      currentCur = null;
+      startParameter = false;
+      currentFound = null;
+    } 
+
+    // Check if this is the beginning of a function call
+    // If so, we want to show the function parameters
+    if (token.string == "(") {
+      // Get the token before the current one
+      let prevCur = JSON.parse(JSON.stringify(cur));
+      prevCur.ch--;
+      let prevToken = getToken(editor, prevCur);
+      token = prevToken;
+      startParameter = true;
+      currentCur = prevCur;
+    }
+
+    // Check if an autocomplete suggestion was written out
+    if ((currentFound) || !/^[\w$_]*$/.test(token.string)) { // If it's not a 'word-style' token, ignore the token.
+      // Reset autocomplete data if someone types a closing ) or ;
+      if (currentFound && (token.string == ")" || token.string == ";")) {
+        currentFound = null;
+        startParameter = false;
+        token = {start: cur.ch, end: cur.ch, string: "", state: token.state,
+          type: token.string == "." ? "property" : null};
+      }
       token = {start: cur.ch, end: cur.ch, string: "", state: token.state,
                type: token.string == "." ? "property" : null};
     } else if (token.end > cur.ch) {
@@ -79,7 +108,7 @@ loadSplashKitAutocompletes();
     }
 
     // Sean Edit: Skip tokens when too short (or literally empty)
-    if (token.string.length<2) return;
+    if (!currentFound && token.string.length<2) return;
 
     return {list: getCompletions(token, context, keywords, options),
             from: Pos(cur.line, token.start),
@@ -165,18 +194,20 @@ loadSplashKitAutocompletes();
     // Sean Edit: Handle SplashKit Keywords
     forEach(splashKitAutocompletes.keywords, maybeAdd);
 
+    // If there is a complete suggestion and the user has started typing parameters, return the previously stored data for that
+    if (currentFound && startParameter) return currentFound;
 
     // Sean Edit: Handle Splashkit Functions specially
-    // TODO: Show when writing parameters, and bold current parameter
-    for (func of splashKitAutocompletes.functions){
-        if (func.name.lastIndexOf(start, 0) == 0 && !arrayContains(found, func.name)){
-            paramList = ""
-            for (param of func.params)
-                paramList += param+", "
+    for (func of splashKitAutocompletes.functions) {
+        if (func.name.lastIndexOf(start, 0) == 0 && !arrayContains(found, func.name)) {
+            paramList = "";
+            for (param of func.params) paramList += param + ", ";
             found.push({
                 text: func.name,
                 displayText: (func.return!="" ? func.return + " " : "") + func.name + "(" + paramList.slice(0, paramList.length - 2) + ")"
             });
+            // If there is a complete match between what the user typed and the function name, store it for later
+            if (func.name == start) currentFound = found;
         }
     }
 
