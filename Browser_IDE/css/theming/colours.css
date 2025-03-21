@@ -1,0 +1,34 @@
+:root {
+    /* Colour for the code editor */
+    --keyword : #ff79c6;
+    --comment: #6272a4;
+    --gutter: #282a36;
+    --lineNumber: #6D8A88;
+    --functionsAndObject: #50fa7b;
+    --property: #66d9ef;
+    --number: #bd93f9;
+    --selected: rgba(255, 255, 255, 0.10);
+    --string: #f1fa8c;
+    --meta: #f8f8f2;
+    --variable2: white;
+    --variable3: #ffb86c;
+
+    /* Colours for other things */
+    --fileColour: #9fff69;
+    --gutterColour: #1f1f1f;
+    /* The primary colour for all text */
+    --primary: white;
+    --iconHover: lime;
+    --nodeConflict: lightcoral;
+    --terminalBackground: #161616;
+    --shadowColour: #404040;
+    --activeTabColour: #3AF;
+
+
+    /* Demo colours */
+    --language: #68ff00;
+    --tagBackground: #303724;
+    --demoTitleBackground: #111D;
+    --demoThumbnailBackground: rgba(0,0,0,0.2);
+
+}
