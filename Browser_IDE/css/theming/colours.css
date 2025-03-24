@@ -14,31 +14,39 @@
     --variable3: #ffb86c;
     --errorLineBackground: #6c514f;
 
-    --warning: #FA0;
 
-    /* Colours for other things */
-    --fileColour: #9fff69;
+    /* Colours for UI */
     --gutterColour: #1f1f1f;
-    --editorBackgroundColour: #24262d;
     --disabled: #AAA;
-    --iconHover: #9fff69;
     --errorColour: #d94747;
-    /* The primary colour for all text */
-    --primary: white;
-    --nodeConflict: lightcoral;
-    --terminalBackground: #161616;
-    --shadowColour: #404040;
-    --nodeHover: #242732;
+    --warning: #FA0;    
     --activeTabColour: #3AF;
+    --nodeConflict: lightcoral;    
     --languageSelectBackground: #303030;
 
+
+    /* Gutter colouring */
+    --shadowColour: #404040;
+    --nodeHover: #242732;
+    --editorBackgroundColour: #24262d;
+    --fileColour: #9fff69;
+    --iconHover: #9fff69;
+
+    /* Terminal colouring */
+    --terminalBackground: #161616;
+
+    /* The primary colour for all text */
+    --primary: white;
 
     /* Demo colours */
     --language: #68ff00;
     --tagBackground: #303724;
     --demoTitleBackground: #111D;
+    /* This variable is also used  */
     --demoThumbnailBackground: rgba(0,0,0,0.2);
 
+    /* Font for UI */
     --font: system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue","Noto Sans","Liberation Sans",Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";
+    /* Font for code editor */
     --editorFont: monospace, serif;
 }
