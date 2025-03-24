@@ -12,17 +12,25 @@
     --meta: #f8f8f2;
     --variable2: white;
     --variable3: #ffb86c;
+    --errorLineBackground: #6c514f;
+
+    --warning: #FA0;
 
     /* Colours for other things */
     --fileColour: #9fff69;
     --gutterColour: #1f1f1f;
+    --editorBackgroundColour: #24262d;
+    --disabled: #AAA;
+    --iconHover: #9fff69;
+    --errorColour: #d94747;
     /* The primary colour for all text */
     --primary: white;
-    --iconHover: lime;
     --nodeConflict: lightcoral;
     --terminalBackground: #161616;
     --shadowColour: #404040;
+    --nodeHover: #242732;
     --activeTabColour: #3AF;
+    --languageSelectBackground: #303030;
 
 
     /* Demo colours */
@@ -31,4 +39,6 @@
     --demoTitleBackground: #111D;
     --demoThumbnailBackground: rgba(0,0,0,0.2);
 
+    --font: system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue","Noto Sans","Liberation Sans",Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";
+    --editorFont: monospace, serif;
 }

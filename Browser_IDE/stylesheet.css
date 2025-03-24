@@ -53,7 +53,7 @@ button {
     line-height: 1em;
 }
 button:disabled {
-    color: #AAA !important;
+    color: var(--disabled) !important;
     cursor: wait;
 }
 
@@ -67,7 +67,7 @@ select {
 
     margin: 0px 3px;
     border-radius: 3px;
-    border: 0px black solid;
+    border: 0px transparent solid;
     background-color: transparent;
     color: inherit;
     cursor: pointer;
@@ -76,11 +76,11 @@ select {
 }
 
 select:disabled {
-    color: #AAA;
+    color: var(--disabled);
 }
 
 select:hover {
-    background-color: #303030;
+    background-color: var(--languageSelectBackground);
 }
 
 input {
@@ -93,9 +93,7 @@ input {
     line-height: 1em;
 }
 
-a:visited {
-    color: #0A0;
-}
+
 
 .sk-body {
     position: relative;
@@ -110,7 +108,7 @@ a:visited {
     display:flex;
     flex-direction: column;
 
-    font-family: system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue","Noto Sans","Liberation Sans",Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";
+    font-family: var(--font);
 }
 
 .sk-header {
@@ -158,11 +156,11 @@ a:visited {
     list-style: none;
     padding: 0;
     justify-content: space-between;
-    color:#AAA;
+    color:var(--disabled);
     min-width: 0;
 }
 .sk-tabs li:hover {
-    background-color: #222328;
+    background-color: var(--languageSelectBackground);
 }
 .sk-tabs li {
     display:flex;
@@ -180,7 +178,7 @@ a:visited {
 }
 
 .sk-tabs-active {
-    background-color: #24262d;
+    background-color: var(--editorBackgroundColour);
     box-shadow: none;
     z-index: 5;
     border-top: var(--activeTabColour) 1px solid !important;
@@ -245,7 +243,7 @@ textarea {
     z-index:1000;
     padding: 10% 20%;
     /*backdrop-filter: blur(1px) brightness(80%);*/
-    background-color: #0005;
+    background-color: var(--demoThumbnailBackground);
 }
 
 .sk-demo-window{
@@ -397,7 +395,7 @@ textarea {
     border:0;
     padding-left:1em;
     resize: none;
-    font-family: monospace, serif;
+    font-family: var(--editorFont);
     white-space: pre-wrap;
     background-color: var(--terminalBackground);
 }
@@ -436,11 +434,11 @@ textarea {
 }
 
 .node{
-    color:#f8f8f2;
+    color:var(--primary);
     cursor: pointer;
 }
 .node-label:hover{
-    background-color:#242732;
+    background-color:var(--nodeHover);
     cursor: pointer;
 }
 .node-label{
@@ -465,10 +463,10 @@ textarea {
 }
 .node-transient{
     opacity: 0.7;
-    color: #f8f8f2;
+    color: var(--errorColour);
 }
 .node-persistent{
-    color: #f8f8f2;
+    color: var(--primary);
 }
 .node-persistent.node-transient{
     color: var(--fileColour);
@@ -496,8 +494,6 @@ textarea {
     transition: max-height 0.3s ease;
     overflow:hidden;
 }
-.closed-directory{}
-.open-directory{}
 
 
 [class^="bi-"]::before, [class*=" bi-"]::before {
@@ -520,19 +516,19 @@ textarea {
     left:0px;
 }
 .error-line{
-    text-decoration-color: #d94747 !important;
+    text-decoration-color: var(--errorColour) !important;
     text-decoration: underline wavy;
-    background-color: #6c514f;
+    background-color: var(--errorLineBackground);
 }
 
 /* make the CodeMirror theme match the rest of the UI a little more */
 .cm-s-dracula.CodeMirror, .cm-s-dracula .CodeMirror-gutters {
-    background-color: #24262d !important;
+    background-color: var(--editorBackgroundColour) !important;
 }
 
 
 .CodeMirror-scrollbar-filler {
-    background-color: #282a36 !important;
+    background-color: var(--nodeHover) !important;
 }
 .CodeMirror-activeline-background {
     opacity: 0;
@@ -556,8 +552,8 @@ textarea {
     border-radius: 3px;
     border: 1px solid silver;
 
-    background-color: #282a36 !important;
-    color: #f8f8f2 !important;
+    background-color: var(--nodeHover) !important;
+    color: var(--primary) !important;
     font-size: 90%;
     font-family: monospace;
 
@@ -572,7 +568,7 @@ textarea {
     padding: 0 4px;
     border-radius: 2px;
     white-space: pre;
-    color: #f8f8f2 !important;
+    color: var(--primary) !important;
     cursor: pointer;
 }
 
@@ -595,14 +591,14 @@ li.CodeMirror-hint-active {
   width: 1em;
   height: 1em;
   padding: 0.25em 0.25em;
-  color: #000;
+  color: var(--nodeHover);
   background: transparent url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23000'%3e%3cpath d='M.293.293a1 1 0 0 1 1.414 0L8 6.586 14.293.293a1 1 0 1 1 1.414 1.414L9.414 8l6.293 6.293a1 1 0 0 1-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 0 1-1.414-1.414L6.586 8 .293 1.707a1 1 0 0 1 0-1.414z'/%3e%3c/svg%3e") center/1em auto no-repeat;
   border: 0;
   border-radius: 0.375rem;
   opacity: 0.5;
 }
 .btn-close:hover {
-  color: #000;
+  color: var(--nodeHover);
   text-decoration: none;
   opacity: 0.75;
 }
@@ -719,7 +715,7 @@ li.CodeMirror-hint-active {
   z-index: 1050;
   width: 100vw;
   height: 100vh;
-  background-color: #000;
+  background-color: var(--nodeHover);
 }
 .modal-backdrop.fade {
   opacity: 0;
@@ -768,7 +764,7 @@ li.CodeMirror-hint-active {
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.4);
+  background-color: var(--demoThumbnailBackground);
   z-index: 1000;
   flex-direction: column;
   pointer-events: none;
@@ -785,7 +781,7 @@ li.CodeMirror-hint-active {
 .loading-progress {
   width: 0;
   height: 1.4em;
-  background-color: #24262d;
+  background-color: var(--editorBackgroundColour);
 }
 
 .loading-text {
@@ -813,7 +809,7 @@ li.CodeMirror-hint-active {
 
 .btn {
   transition: background-color 0.3s, box-shadow 0.3s;
-  box-shadow: 3px 3px 6px rgba(0,0,0,0.2);
+  box-shadow: 3px 3px 6px var(--demoThumbnailBackground);
   line-height: 1em;
   padding: 0.5em;
 }
@@ -832,7 +828,7 @@ li.CodeMirror-hint-active {
 }
 
 .btn-success:hover, .btn-success:focus {
-  background-color: #2d332f;
+  background-color: var(--nodeHover);
 }
 
 .flex-column {

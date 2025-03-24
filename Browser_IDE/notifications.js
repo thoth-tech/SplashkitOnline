@@ -2,10 +2,10 @@
 
 const NotificationIcons = Object.freeze({
   CONSTRUCTION:   { class: "bi-box-seam-fill", color: "var(--primary)" },
-  CRITICAL_ERROR:  { class: "bi-exclamation-octagon", color: "#F00" },
-  ERROR:  { class: "bi-exclamation-triangle", color: "#F00" },
-  WARNING: { class: "bi-exclamation-triangle", color: "#FA0" },
-  SUCCESS: { class: "bi-patch-check", color: "#0F0" },
+  CRITICAL_ERROR:  { class: "bi-exclamation-octagon", color: "var(--errorColour)" },
+  ERROR:  { class: "bi-exclamation-triangle", color: "var(--errorColour)" },
+  WARNING: { class: "bi-exclamation-triangle", color: "var(--warning)" },
+  SUCCESS: { class: "bi-patch-check", color: "var(--fileColour)" },
   INFO: { class: "bi-exclamation-circle", color: "var(--primary)" },
   NONE: { class: "", color: "var(--primary)" }
 });
