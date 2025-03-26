@@ -35,8 +35,6 @@ class JsonParser
         sb.AppendLine("    public partial class SplashKit");
         sb.AppendLine("    {");
 
-        var methodNames = new HashSet<string>(); // To track unique method names
-
         if (jsonData != null)
         {
             foreach (var module in jsonData.Values) // Iterate over all modules (terminal, graphics, etc.)
@@ -45,18 +43,9 @@ class JsonParser
                 {
                     foreach (var method in module.Functions)
                     {
-                        // Skip if method already exists in the generated file
-                        if (!methodNames.Add(method.Name))
-                        {
-                            Console.WriteLine($"Skipping duplicate method: {method.Name}");
-                            continue;
-                        }
-
                         sb.AppendLine($"        [JSImport(\"{method.JsImport}\", \"main.js\")]");
-
                         sb.Append($"        public static partial {method.ReturnType} {method.Name}(");
 
-                        // Handle parameters
                         if (method.Params != null && method.Params.Length > 0)
                         {
                             sb.Append(string.Join(", ", method.Params.Select(p => $"{p.Type} {p.Name}")));
@@ -76,7 +65,6 @@ class JsonParser
         sb.AppendLine("    }");
         sb.AppendLine("}");
 
-        // Always overwrite the file with new content
         File.WriteAllText(outputPath, sb.ToString());
         Console.WriteLine($"Generated file: {outputPath}");
     }
