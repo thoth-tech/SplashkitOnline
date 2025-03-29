@@ -7,33 +7,33 @@ class CodeViewer {
         let self = this;
 
         this.filename = filename;
-        this.basename = filename.slice(filename.lastIndexOf("/")+1);
+        this.basename = filename.slice(filename.lastIndexOf("/") + 1);
 
         let viewArea = document.getElementById("codeEditorContainer");
         let tabArea = document.getElementById("codeViewTabs");
 
-        let editorElem = elem("textarea", {type: "text", style:{height:'100%'}});
+        let editorElem = elem("textarea", { type: "text", style: { height: '100%' } });
 
-        this.editorContainer = elem("div", {class: "sk-contents sk-tab-hidden", file: filename}, [
+        this.editorContainer = elem("div", { class: "sk-contents sk-tab-hidden", file: filename }, [
             editorElem
         ]);
 
-        let closeButton = elem("button", { class: "bi bi-x", style:{'margin-right': '-20px'} });
+        let closeButton = elem("button", { class: "bi bi-x", style: { 'margin-right': '-20px' } });
 
-        closeButton.addEventListener('click', function(event){
+        closeButton.addEventListener('click', function (event) {
             closeCodeEditor(self);
             event.stopPropagation();
         })
 
-        this.label = elem("div", {class: "sk-tab-label", title: this.filename}, [this.basename]);
+        this.label = elem("div", { class: "sk-tab-label", title: this.filename }, [this.basename]);
         this.tab = elem("li", {}, [this.label, closeButton]);
 
-        this.tab.addEventListener('click', function(){
+        this.tab.addEventListener('click', function () {
             SwitchToTab(self);
             event.stopPropagation();
         })
 
-        this.tab.addEventListener('dblclick', function(){
+        this.tab.addEventListener('dblclick', function () {
             self.showRenameInput();
             event.stopPropagation();
         })
@@ -65,12 +65,12 @@ class CodeViewer {
         };
 
         let keydownListener = (e) => {
-            if(e.key == "Escape"){
+            if (e.key == "Escape") {
                 resetRenameInput();
                 self.label.innerText = self.basename;
             }
 
-            if(e.key == "Enter"){
+            if (e.key == "Enter") {
                 resetRenameInput();
                 self.renameBasename(self.label.innerText);
                 e.preventDefault();
@@ -89,7 +89,7 @@ class CodeViewer {
             lineNumbers: true,
             autoCloseBrackets: true,
             styleActiveLine: true,
-            extraKeys: {"Ctrl-Space": "autocomplete"},
+            extraKeys: { "Ctrl-Space": "autocomplete" },
             hintOptions: {
                 alignWithWord: false,
                 completeSingle: false,
@@ -121,12 +121,12 @@ class CodeViewer {
     async save() {
         let self = this;
         try {
-            await storedProject.access(async function(project){
+            await storedProject.access(async function (project) {
                 let source = self.editor.getValue();
                 if (await project.exists(self.filename) || source != "")
                     await project.writeFile(self.filename, source);
             });
-        } catch(err){
+        } catch (err) {
             let errEv = new Event("filesystemError");
             errEv.shortMessage = "Save failed";
             errEv.longMessage = "An error occured and " + self.filename + " could not be saved.\n\nReason:\n" + err;
@@ -139,10 +139,10 @@ class CodeViewer {
         let self = this;
         let newVal = undefined;
         try {
-            newVal = await fileAsString(await storedProject.access(function(project){
+            newVal = await fileAsString(await storedProject.access(function (project) {
                 return project.readFile(self.filename);
             }));
-        } catch(err){
+        } catch (err) {
             let errEv = new Event("filesystemError");
             errEv.shortMessage = "Load failed";
             errEv.longMessage = "An error occured and " + self.filename + " could not be loaded.\n\nReason:\n" + err;
@@ -161,7 +161,7 @@ class CodeViewer {
             return;
         }
 
-        let newFilename = self.filename.slice(0, self.filename.lastIndexOf("/")+1)+basename;
+        let newFilename = self.filename.slice(0, self.filename.lastIndexOf("/") + 1) + basename;
 
         try {
             let newExists = await storedProject.access((project) => project.exists(newFilename));
@@ -178,7 +178,7 @@ class CodeViewer {
                 // don't really care if the execution environment fails - should the code be mirrored there in the first place?
                 try {
                     executionEnviroment.rename(self.filename, newFilename);
-                } catch {};
+                } catch { };
             }
 
             self.filename = newFilename;
@@ -186,7 +186,7 @@ class CodeViewer {
 
             self.label.innerText = self.basename;
         }
-        catch(err) {
+        catch (err) {
             let errEv = new Event("filesystemError");
             errEv.shortMessage = "Rename failed";
             errEv.longMessage = "An error occured and " + self.filename + " could not be renamed to " + newFilename + ".\n\nReason:\n" + err;
@@ -210,7 +210,7 @@ class CodeViewer {
 }
 
 function getExtension(filename) {
-    return filename.slice(filename.lastIndexOf('.')+1);
+    return filename.slice(filename.lastIndexOf('.') + 1);
 }
 
 async function getFilesByExtension(extensions) {
@@ -231,7 +231,7 @@ let editors = [];
 
 function getCodeEditor(filename) {
 
-    for(let i = 0; i < editors.length; i ++) {
+    for (let i = 0; i < editors.length; i++) {
         if (editors[i].filename == filename)
             return editors[i];
     }
@@ -239,7 +239,7 @@ function getCodeEditor(filename) {
     return null;
 }
 
-function openCodeEditor(filename, setFocus=true, load=true) {
+function openCodeEditor(filename, setFocus = true, load = true) {
     let existing = getCodeEditor(filename);
     if (existing) {
         if (setFocus)
@@ -277,7 +277,7 @@ async function openCodeEditors(editorLimit = 3) {
     }
 
     let promises = [];
-    for(let i = 0; i < sourceFiles.length; i ++) {
+    for (let i = 0; i < sourceFiles.length; i++) {
         promises.push(openCodeEditor(sourceFiles[i], false));
     }
     await Promise.all(promises);
@@ -293,12 +293,11 @@ async function openCodeEditors(editorLimit = 3) {
 const shownRenameMessageKey = 'sk-online-shown-rename-message';
 async function openUntitledCodeEditor() {
     let number = 0;
-    let filename = "/code/untitled."+activeLanguage.defaultSourceExtension;
+    let filename = "/code/untitled." + activeLanguage.defaultSourceExtension;
 
-    while(await storedProject.access((project) => project.exists(filename)))
-    {
-        number ++;
-        filename = "/code/untitled (" + number + ")."+activeLanguage.defaultSourceExtension;
+    while (await storedProject.access((project) => project.exists(filename))) {
+        number++;
+        filename = "/code/untitled (" + number + ")." + activeLanguage.defaultSourceExtension;
     }
 
     openCodeEditor(filename, true, false);
@@ -336,7 +335,7 @@ async function closeCodeEditor(editor, autosave = true) {
 }
 
 function closeAllCodeEditors() {
-    for(let i = 0; i < editors.length; i ++) {
+    for (let i = 0; i < editors.length; i++) {
         editors[i].close();
     }
     editors = [];
@@ -349,7 +348,7 @@ function closeAllCodeEditors() {
 async function saveAllOpenCode() {
     let promises = [];
 
-    for(let i = 0; i < editors.length; i ++) {
+    for (let i = 0; i < editors.length; i++) {
         promises.push(
             editors[i].save()
         );
@@ -358,7 +357,7 @@ async function saveAllOpenCode() {
     await Promise.all(promises);
 }
 
-function createGutterSplitters(){
+function createGutterSplitters() {
     var sizes = localStorage.getItem('sk-online-split-sizes')
 
     if (sizes) {
@@ -392,15 +391,15 @@ function createGutterSplitters(){
 
         // fix position
         gutters[i].style.position = 'absolute';
-        gutters[i].style.left = "-"+(gutterWidth/2).toString()+"px";
+        gutters[i].style.left = "-" + (gutterWidth / 2).toString() + "px";
         gutters[i].style.height = '100%';
     }
 }
 // -------------------- Setup Tabs --------------------
 let currentEditor = null;
 
-function SwitchToTab(editor){
-    for (let i = 0; i < editors.length; i ++) {
+function SwitchToTab(editor) {
+    for (let i = 0; i < editors.length; i++) {
         if (editors[i] == editor) {
             editors[i].editorContainer.style.display = 'flex';
             editors[i].tab.classList.add('sk-tabs-active');
@@ -413,7 +412,7 @@ function SwitchToTab(editor){
         }
     }
 
-    for (let i = 0; i < editors.length; i ++) {
+    for (let i = 0; i < editors.length; i++) {
         // Before refreshing the editor, get the scroll position of the editor window
         let display = currentEditor.editor.display;
         let scrollTop = display.scroller.scrollTop;
@@ -428,29 +427,29 @@ function SwitchToTab(editor){
 // currently just reloads the page with the 'language' parameter set
 // in the future, ideally this will work _without_ reloading the page,
 // by unloading the existing language scripts then loading the new ones
-function switchActiveLanguage(language){
-     let page_url = new URL(window.location.href);
-     page_url.searchParams.set('language', language.replaceAll("+"," ") /* spaces become + in url */);
-     window.location = page_url;
+function switchActiveLanguage(language) {
+    let page_url = new URL(window.location.href);
+    page_url.searchParams.set('language', language.replaceAll("+", " ") /* spaces become + in url */);
+    window.location = page_url;
 }
 
-function schedulePotentialLanguageSwitch(language){
-    LanguageSwitchAfterLoadQueue.Schedule("PotentiallySwitchLanguage", async function(){
+function schedulePotentialLanguageSwitch(language) {
+    LanguageSwitchAfterLoadQueue.Schedule("PotentiallySwitchLanguage", async function () {
         if (activeLanguage.name != language)
             switchActiveLanguage(language);
     });
 }
 
 let languageSelectElem = null;
-function setupLanguageSelectionBox(){
+function setupLanguageSelectionBox() {
     // setup language selection box
     languageSelectElem = document.getElementById("languageSelection");
     for (let i = 0; i < SplashKitOnlineLanguageDefinitions.length; i++) {
         let language = SplashKitOnlineLanguageDefinitions[i];
-        languageSelectElem.append(elem("option", {value: language.name}, [language.userVisibleName]));
+        languageSelectElem.append(elem("option", { value: language.name }, [language.userVisibleName]));
     }
 
-    languageSelectElem.addEventListener('change', function(event) {
+    languageSelectElem.addEventListener('change', function (event) {
         // just switch active language
         // TODO: store chosen language inside project
         switchActiveLanguage(event.target.value);
@@ -464,15 +463,15 @@ let activeLanguage = null;
 let activeLanguageSetup = null;
 
 
-function setupActiveLanguage(){
+function setupActiveLanguage() {
     if (SKO.language in SplashKitOnlineLanguageAliasMap) {
         activeLanguage = SplashKitOnlineLanguageAliasMap[SKO.language];
     } else {
         activeLanguage = SplashKitOnlineLanguageAliasMap["JavaScript"];
 
-        displayEditorNotification("Unable to switch to language "+SKO.language+", defaulting to JavaScript.", NotificationIcons.ERROR, -1);
-        displayEditorNotification("Available languages are: <br/><ul>"+
-            SplashKitOnlineLanguageDefinitions.map(val => `<li>${val.userVisibleName}</li>`).join("")+
+        displayEditorNotification("Unable to switch to language " + SKO.language + ", defaulting to JavaScript.", NotificationIcons.ERROR, -1);
+        displayEditorNotification("Available languages are: <br/><ul>" +
+            SplashKitOnlineLanguageDefinitions.map(val => `<li>${val.userVisibleName}</li>`).join("") +
             "</ul>", NotificationIcons.ERROR, -1
         );
     }
@@ -493,11 +492,11 @@ let unifiedFS = null;
 // making a new project shouldn't delete
 // the current one...
 // TODO: Rationalize project handling
-async function scheduleProjectReInitialization(initializer){
-    ExecutionEnvironmentLoadQueue.Schedule("Reset", async function (isCanceled){
+async function scheduleProjectReInitialization(initializer) {
+    ExecutionEnvironmentLoadQueue.Schedule("Reset", async function (isCanceled) {
         await executionEnviroment.resetEnvironment();
     });
-    InitializeProjectQueue.Schedule("ProjectReInitialization", async function (isCanceled){
+    InitializeProjectQueue.Schedule("ProjectReInitialization", async function (isCanceled) {
         let projectID = storedProject.projectID;
 
         disableCodeExecution();
@@ -519,7 +518,7 @@ async function scheduleProjectReInitialization(initializer){
     });
 }
 
-async function mirrorProject(){
+async function mirrorProject() {
     if (!activeLanguageSetup.persistentFilesystem)
         return;
 
@@ -531,23 +530,23 @@ async function mirrorProject(){
     await MirrorToExecutionEnvironment();
 }
 
-async function MirrorToExecutionEnvironment(){
+async function MirrorToExecutionEnvironment() {
     try {
-        let tree = await storedProject.access((project)=>project.getFileTree());
+        let tree = await storedProject.access((project) => project.getFileTree());
 
         let promises = []
 
-        async function mirror(tree, path){
+        async function mirror(tree, path) {
             let dirs_files = tree;
 
-            for(let node of dirs_files){
-                let abs_path = path+""+node.label;
-                if (node.children != null){
+            for (let node of dirs_files) {
+                let abs_path = path + "" + node.label;
+                if (node.children != null) {
                     promises.push(FSEnsureDir(executionEnviroment, abs_path));
-                    await mirror(node.children, abs_path+"/");
+                    await mirror(node.children, abs_path + "/");
                 }
-                else{
-                    promises.push(executionEnviroment.writeFile(abs_path, await storedProject.access((project)=>project.readFile(abs_path))));
+                else {
+                    promises.push(executionEnviroment.writeFile(abs_path, await storedProject.access((project) => project.readFile(abs_path))));
                 }
             }
         }
@@ -555,7 +554,7 @@ async function MirrorToExecutionEnvironment(){
         await mirror(tree, "/");
 
         await Promise.all(promises);
-    } catch(err){
+    } catch (err) {
         let errEv = new Event("filesystemError");
         errEv.shortMessage = "Internal error";
         errEv.longMessage = "Failed to sync execution environment filesystem.\n\nReason:\n" + err;
@@ -571,14 +570,14 @@ let haveUploadedCodeOnce = false;
 
 // Functions to disable/enable code-execution
 
-function disableCodeExecution(){
+function disableCodeExecution() {
     if (executionEnviroment.executionStatus != ExecutionStatus.Unstarted)
         stopProgram();
 
     allowExecution = false;
     updateButtons();
 }
-function enableCodeExecution(){
+function enableCodeExecution() {
     if (!allowExecution)
         displayEditorNotification("IDE is ready to run projects!", NotificationIcons.SUCCESS);
 
@@ -586,13 +585,13 @@ function enableCodeExecution(){
     updateButtons();
 }
 // automatically enable/disable based on IDE state
-function updateCodeExecutionState(){
+function updateCodeExecutionState() {
     if (InitializeProjectQueue.isClear() &&
         MirrorProjectQueue.isClear() &&
         LoadProjectQueue.isClear() &&
         getCompiler(activeLanguageSetup.compilerName) &&
         executionEnviroment.readyForExecution
-    ){
+    ) {
         executionEnviroment.updateCompilerLoadProgress(1);
         enableCodeExecution();
     }
@@ -600,18 +599,18 @@ function updateCodeExecutionState(){
         disableCodeExecution();
 }
 
-function reportCompilationError(error){
+function reportCompilationError(error) {
     executionEnviroment.reportError(error.name, error.line, error.message, error.formatted);
 }
 
 function setupCodeEditorCallbacks() {
-    storedProject.addEventListener('onWriteToFile', function(e) {
+    storedProject.addEventListener('onWriteToFile', function (e) {
         let editor = getCodeEditor(e.path);
         if (editor)
             editor.load();
     });
 
-    storedProject.addEventListener('onDeletePath', function(e) {
+    storedProject.addEventListener('onDeletePath', function (e) {
         let editor = getCodeEditor(e.path);
         if (editor)
             closeCodeEditor(editor, false);
@@ -644,7 +643,7 @@ async function runFile(name, code) {
         }
     }
     catch (err) {
-        displayEditorNotification("Internal error while preparing file! <br/>"+err.toString(), NotificationIcons.CRITICAL_ERROR);
+        displayEditorNotification("Internal error while preparing file! <br/>" + err.toString(), NotificationIcons.CRITICAL_ERROR);
     }
 }
 async function syntaxCheckFile(name, code) {
@@ -668,12 +667,12 @@ async function syntaxCheckFile(name, code) {
             displayEditorNotification(`${name} is all good!`, NotificationIcons.SUCCESS);
     }
     catch (err) {
-        displayEditorNotification("Internal error while syntax checking! <br/>"+err.toString(), NotificationIcons.CRITICAL_ERROR);
+        displayEditorNotification("Internal error while syntax checking! <br/>" + err.toString(), NotificationIcons.CRITICAL_ERROR);
     }
 }
 
 
-function asyncSleep(time=0) {
+function asyncSleep(time = 0) {
     return new Promise(resolve => setTimeout(resolve, time));
 }
 
@@ -755,159 +754,164 @@ function audioFunctionNotification(source) {
 }
 
 // Functions to run/pause/continue/stop/restart the program itself
-async function runProgram(){
+async function runProgram() {
     try {
         clearErrorLines();
-       // the notification object returned by displayEditorNotification
+        // Notification for building/compiling
         const notificationMessage = activeLanguageSetup.compiled ? "Compiling project..." : "Building project...";
-        let currentNotification = displayEditorNotification(notificationMessage,NotificationIcons.CONSTRUCTION,-1);   
-        // give the notification a chance to show
+        let currentNotification = displayEditorNotification(notificationMessage, NotificationIcons.CONSTRUCTION, -1);
         await asyncSleep();
-        let currentCompiler = await getCurrentCompiler();
 
-        if (currentCompiler == null) {
-            currentNotification.deleteNotification(); // delete the current notification if no compiler is found
+        let currentCompiler = await getCurrentCompiler();
+        if (!currentCompiler) {
+            currentNotification.deleteNotification();
             return;
         }
 
-        async function mapBit(filename){
+        async function mapBit(filename) {
             let source = await fileAsString(await storedProject.access((project) => project.readFile(filename)));
             if (SKO.language == "C++" && !audioNotificationRunOnce) audioNotification = audioFunctionNotification(source);
-            return {
-                name: filename,
-                source: source
-            };
+            return { name: filename, source: source };
         }
+
         let compilableFiles = await findAllCompilableFiles();
         let sourceFiles = await findAllSourceFiles();
-        if (compilableFiles.length == 0) {
-            currentNotification.deleteNotification(); 
-            const notificationMessage = "Project has no source files! In a " + activeLanguage.name + " project, valid source files end with:</br><ul>" + 
-            activeLanguage.compilableExtensions.map((s) => "<li>." + s + "</li>").join("") + "</ul>";
-            displayEditorNotification(notificationMessage,NotificationIcons.ERROR,-1);
+        if (compilableFiles.length === 0) {
+            currentNotification.deleteNotification();
+            const notificationMessage = "Project has no source files! In a " + activeLanguage.name + " project, valid source files end with:</br><ul>" +
+                activeLanguage.compilableExtensions.map((s) => "<li>." + s + "</li>").join("") + "</ul>";
+            displayEditorNotification(notificationMessage, NotificationIcons.ERROR, -1);
             return;
         }
 
-        let compiled = await currentCompiler.compileAll(await Promise.all(compilableFiles.map(mapBit)), await Promise.all(sourceFiles.map(mapBit)), reportCompilationError);
+        let compiled = await currentCompiler.compileAll(
+            await Promise.all(compilableFiles.map(mapBit)),
+            await Promise.all(sourceFiles.map(mapBit)),
+            reportCompilationError
+        );
 
         currentNotification.deleteNotification();
 
-        if (compiled.output != null) {
+        if (compiled.output) {
             executionEnviroment.runProgram(compiled.output);
-        } 
-        else {
-            displayEditorNotification("Project has errors! Please see terminal for details.",NotificationIcons.ERROR,-1);
+        } else {
+            displayEditorNotification("Project has errors! Please see terminal for details.", NotificationIcons.ERROR, -1);
         }
-    }
-    catch (err) {
-        displayEditorNotification("Failed to run program!<br/>"+err.toString(),NotificationIcons.ERROR,-1);
+    } catch (err) {
+        displayEditorNotification("Failed to run program!<br/>" + err.toString(), NotificationIcons.ERROR, -1);
     }
 }
 
-async function continueProgram(){
+async function continueProgram() {
     clearErrorLines();
-
     try {
         await executionEnviroment.continueProgram();
-    }
-    catch (err) {
+    } catch (err) {
         displayEditorNotification("Failed to continue program!", NotificationIcons.ERROR);
     }
 }
 
-async function pauseProgram(){
+async function pauseProgram() {
     try {
         await executionEnviroment.pauseProgram();
-    }
-    catch (err) {
+    } catch (err) {
         displayEditorNotification("Failed to pause program!", NotificationIcons.ERROR);
     }
 }
 
-async function stopProgram(){
+async function stopProgram() {
     try {
         await executionEnviroment.stopProgram();
-    }
-    catch (err) {
+    } catch (err) {
         displayEditorNotification("Failed to stop program!", NotificationIcons.ERROR);
     }
 }
 
-async function restartProgram(){
+async function restartProgram() {
     clearErrorLines();
 
-    if (executionEnviroment.executionStatus != ExecutionStatus.Unstarted)
-        await executionEnviroment.stopProgram(); // Make sure we wait for it to stop via await.
-    await executionEnviroment.cleanEnvironment();
+    if (executionEnviroment.executionStatus !== ExecutionStatus.Unstarted)
+        await executionEnviroment.stopProgram(); // Ensure program stops completely
 
+    await executionEnviroment.cleanEnvironment();
     runProgram();
 }
+async function terminateProgram() {
+    try {
+        await executionEnviroment.stopProgram(); // Ensure the environment stops execution
+    } catch (err) {
+        displayEditorNotification("Failed to terminate program!", NotificationIcons.ERROR);
+    }
+}
+
 
 // ------ Setup code editor buttons ------
 
-// Updates buttons based on the state of the ExecutionEnvironment
 function updateButtons() {
-    // First disable the update code button if we can't execute
-    document.getElementById("runOne").disabled = !allowExecution;
-
-    // Get if the program buttons should be on
-    let runProgramButtonOn = executionEnviroment.executionStatus == ExecutionStatus.Unstarted && !executionEnviroment.hasRunOnce;
-    let continueProgramButtonOn = executionEnviroment.executionStatus == ExecutionStatus.Paused
+    let runProgramButtonOn = executionEnviroment.executionStatus === ExecutionStatus.Unstarted && !executionEnviroment.hasRunOnce;
+    let continueProgramButtonOn = executionEnviroment.executionStatus === ExecutionStatus.Paused;
     let restartProgramButtonOn = executionEnviroment.hasRunOnce;
-    let stopProgramButtonOn = executionEnviroment.executionStatus == ExecutionStatus.Running;
+    let stopProgramButtonOn = executionEnviroment.executionStatus === ExecutionStatus.Running;
 
-    // Update the main program buttons
     updateProgramButton("runProgram", allowExecution, runProgramButtonOn);
     updateProgramButton("continueProgram", allowExecution, continueProgramButtonOn);
     updateProgramButton("restartProgram", allowExecution, restartProgramButtonOn);
     updateProgramButton("stopProgram", allowExecution, stopProgramButtonOn);
 
-    // Update the collapsed program buttons
     updateProgramButton("collapsedRunProgram", allowExecution, runProgramButtonOn);
     updateProgramButton("collapsedContinueProgram", allowExecution, continueProgramButtonOn);
     updateProgramButton("collapsedRestartProgram", allowExecution, restartProgramButtonOn);
     updateProgramButton("collapsedStopProgram", allowExecution, stopProgramButtonOn);
+
+    // Logic to toggle terminate/stop button text dynamically
+    const terminateButton = document.getElementById("terminateProgram");
+    if (executionEnviroment.executionStatus === ExecutionStatus.Paused) {
+        terminateButton.innerText = "Stop";
+        terminateButton.style.display = ""; // Ensure visibility
+    } else if (executionEnviroment.executionStatus === ExecutionStatus.Running) {
+        terminateButton.innerText = "Terminate";
+        terminateButton.style.display = ""; // Ensure visibility
+    } else {
+        terminateButton.style.display = "none"; // Hide when not applicable
+    }
 }
 
-// Update the visibility and disabled state of a program button based on the state of the ExecutionEnvironment
 function updateProgramButton(buttonId, allowExecution, buttonOn) {
     let button = document.getElementById(buttonId);
     button.disabled = !(allowExecution && buttonOn);
-    button.style.display = !buttonOn ? "none" : "";
+    button.style.display = buttonOn ? "" : "none";
 }
 
 function setupIDEButtonEvents() {
-    // Add events for the code view
-    document.getElementById("runOne").addEventListener("click", function () {
-        if (currentEditor == null) return;
+    document.getElementById("runOne").addEventListener("click", () => {
+        if (!currentEditor) return;
         currentEditor.save();
         if (activeLanguageSetup.supportHotReloading) currentEditor.runOne();
         else currentEditor.syntaxCheck();
     });
 
-    // Add events to new file source file button
     document.getElementById("addSourceFile").addEventListener("click", openUntitledCodeEditor);
 
-    // Add events for the main program buttons
     setupProgramButton("runProgram", runProgram);
     setupProgramButton("continueProgram", continueProgram);
     setupProgramButton("restartProgram", restartProgram);
     setupProgramButton("stopProgram", pauseProgram);
+    setupProgramButton("terminateProgram", terminateProgram);
 
-    // Add events for the collapsed program buttons
     setupProgramButton("collapsedRunProgram", runProgram, true);
     setupProgramButton("collapsedContinueProgram", continueProgram, true);
     setupProgramButton("collapsedRestartProgram", restartProgram, true);
     setupProgramButton("collapsedStopProgram", pauseProgram, true);
 
-    // Add events for the project buttons
     document.getElementById("UploadProject").addEventListener("click", () => document.getElementById("projectuploader").click());
 
     setupProjectButton("DownloadProject", downloadProject);
     setupProjectButton("NewProject", () => scheduleProjectReInitialization(activeLanguageSetup.getDefaultProject()));
     setupProjectButton("LoadDemo", () => ShowProjectLoader("Choose a demo project:", LoadDemoProjects));
 
-    if (!activeLanguageSetup.supportHotReloading) document.getElementById("runOne").children[0].innerText = "Syntax Check File";
+    if (!activeLanguageSetup.supportHotReloading) {
+        document.getElementById("runOne").children[0].innerText = "Syntax Check File";
+    }
 }
 
 function setupProjectButton(buttonId, callback) {
@@ -921,6 +925,9 @@ function setupProgramButton(buttonId, callback, collapseView) {
         callback();
     });
 }
+
+
+
 
 /*
 Toggle collapsed view
@@ -983,14 +990,14 @@ function setupMinifiedInterface() {
 }
 
 // Utility function for saving/loading the code blocks
-async function fileAsString(buffer){
-    return new Promise((resolve,error) => {
+async function fileAsString(buffer) {
+    return new Promise((resolve, error) => {
         //_arrayBufferToString from https://stackoverflow.com/a/14078925
         // Thanks Will Scott!
         function _arrayBufferToString(buffer) {
             var bb = new Blob([new Uint8Array(buffer)]);
             var f = new FileReader();
-            f.onload = function(e) {
+            f.onload = function (e) {
                 resolve(e.target.result);
             };
             f.readAsText(bb);
@@ -1008,13 +1015,13 @@ This is not great design. A better refactor would be to make the various
 inherit from a class that defines these functions. Already this is duplicating
 some stuff that exists in StoredProject.
 */
-function FSsplitPath(path){
+function FSsplitPath(path) {
     return path.split("/").slice(1);
 }
 async function FSEnsureDir(FS, path) {
     try {
         await FS.mkdir(path);
-    } catch (err){
+    } catch (err) {
         if (err.toString() != "ErrnoError: File exists" /*again, a hack to deal with our various error types. Something like err.errno != 20 (from Module['ERRNO_CODES']['EEXIST']) would be nicer*/)
             throw err;
     }
@@ -1022,10 +1029,10 @@ async function FSEnsureDir(FS, path) {
 async function FSEnsurePath(FS, path) {
     let pathBits = FSsplitPath(path);
     let dir = "/";
-    for (let ii = 0; ii < pathBits.length-1; ii ++) {
+    for (let ii = 0; ii < pathBits.length - 1; ii++) {
         try {
             await FS.mkdir(dir + pathBits[ii]);
-        } catch (err){
+        } catch (err) {
             if (err.toString() != "ErrnoError: File exists" /*again, a hack to deal with our various error types. Something like err.errno != 20 (from Module['ERRNO_CODES']['EEXIST']) would be nicer*/)
                 throw err;
         }
@@ -1034,47 +1041,47 @@ async function FSEnsurePath(FS, path) {
 }
 
 // ------ Project Zipping/Unzipping Functions ------
-async function projectFromZip(file, isCanceled = function(){}){
+async function projectFromZip(file, isCanceled = function () { }) {
     let promises = [];
 
     try {
         await JSZip.loadAsync(file)
-        .then(async function(zip) {
-            zip.forEach(async function (rel_path, zipEntry) {
+            .then(async function (zip) {
+                zip.forEach(async function (rel_path, zipEntry) {
 
-                let abs_path = "/"+rel_path;
+                    let abs_path = "/" + rel_path;
 
-                if (zipEntry.dir){
-                    abs_path = abs_path.substring(0, abs_path.length-1);
-                    promises.push(async function () {
-                        await isCanceled();
+                    if (zipEntry.dir) {
+                        abs_path = abs_path.substring(0, abs_path.length - 1);
+                        promises.push(async function () {
+                            await isCanceled();
 
-                        await FSEnsurePath(unifiedFS, abs_path+"/");
-                    });
-                }
-                else{
-                    promises.push(async function () {
-                        await isCanceled();
+                            await FSEnsurePath(unifiedFS, abs_path + "/");
+                        });
+                    }
+                    else {
+                        promises.push(async function () {
+                            await isCanceled();
 
-                        let uint8_view = await zip.file(rel_path).async("uint8array");
+                            let uint8_view = await zip.file(rel_path).async("uint8array");
 
-                        await isCanceled();
+                            await isCanceled();
 
-                        await FSEnsurePath(unifiedFS, abs_path);
+                            await FSEnsurePath(unifiedFS, abs_path);
 
-                        await isCanceled();
+                            await isCanceled();
 
-                        await unifiedFS.writeFile(abs_path, uint8_view)
-                    }());
-                }
+                            await unifiedFS.writeFile(abs_path, uint8_view)
+                        }());
+                    }
+                });
             });
-        });
 
         await Promise.allSettled(promises); // ensure we wait for all to complete, even if one throws
         await Promise.all(promises); // now throw if needed
 
-    } catch(err){
-        if (err instanceof ActionCancelled){
+    } catch (err) {
+        if (err instanceof ActionCancelled) {
             return;
         }
         let errEv = new Event("filesystemError");
@@ -1085,29 +1092,29 @@ async function projectFromZip(file, isCanceled = function(){}){
     }
 }
 
-async function projectToZip(){
+async function projectToZip() {
     try {
         let zip = new JSZip();
 
-        let tree = await storedProject.access((project)=>project.getFileTree());
+        let tree = await storedProject.access((project) => project.getFileTree());
 
-        async function addFolderToZip(tree, path, zip){
+        async function addFolderToZip(tree, path, zip) {
             let dirs_files = tree;
 
-            for(let node of dirs_files){
-                let abs_path = path+""+node.label;
-                if (node.children != null){
-                    addFolderToZip(node.children, abs_path+"/", zip.folder(node.label));
+            for (let node of dirs_files) {
+                let abs_path = path + "" + node.label;
+                if (node.children != null) {
+                    addFolderToZip(node.children, abs_path + "/", zip.folder(node.label));
                 }
-                else{
-                    zip.file(node.label, storedProject.access((project)=>project.readFile(abs_path)), {base64: false});
+                else {
+                    zip.file(node.label, storedProject.access((project) => project.readFile(abs_path)), { base64: false });
                 }
             }
         }
 
-        await addFolderToZip(tree, "/",zip);
-        return zip.generateAsync({type:"blob"});
-    } catch(err){
+        await addFolderToZip(tree, "/", zip);
+        return zip.generateAsync({ type: "blob" });
+    } catch (err) {
         let errEv = new Event("filesystemError");
         errEv.shortMessage = "Export failed";
         errEv.longMessage = "An error occured and the project could not be exported.\n\nReason:\n" + err;
@@ -1119,19 +1126,19 @@ async function projectToZip(){
 
 // ------ File System Upload/Download Functions ------
 let reader = null;
-function uploadFileFromInput(){
-    reader= new FileReader();
+function uploadFileFromInput() {
+    reader = new FileReader();
     let files = document.getElementById('fileuploader').files;
     let file = files[0]; // maybe should handle multiple at once?
-    reader.addEventListener('loadend', async function(e){
+    reader.addEventListener('loadend', async function (e) {
         let result = reader.result;
         const uint8_view = new Uint8Array(result);
 
         let path = document.getElementById('fileuploader').dataset.uploadDirectory;
 
         try {
-            await unifiedFS.writeFile(path+"/"+file.name, uint8_view);
-        } catch(err){
+            await unifiedFS.writeFile(path + "/" + file.name, uint8_view);
+        } catch (err) {
             let errEv = new Event("filesystemError");
             errEv.shortMessage = "Upload failed";
             errEv.longMessage = "An error occured and the file could not be created.\n\nReason:\n" + err;
@@ -1149,7 +1156,7 @@ function downloadFileGeneric(content, filename, mime) {
 
     let a = document.createElement('a');
     a.download = filename;
-    a.href = URL.createObjectURL(new Blob([content], {type: mime}));
+    a.href = URL.createObjectURL(new Blob([content], { type: mime }));
     a.style.display = 'none';
 
     document.body.appendChild(a);
@@ -1165,8 +1172,8 @@ async function FSviewFile(filename) {
     let content = undefined;
 
     try {
-        content = await storedProject.access((project)=>project.readFile(filename));
-    } catch(err){
+        content = await storedProject.access((project) => project.readFile(filename));
+    } catch (err) {
         let errEv = new Event("filesystemError");
         errEv.shortMessage = "Open failed";
         errEv.longMessage = "An error occured and the file could not be opened.\n\nReason:\n" + err;
@@ -1175,11 +1182,11 @@ async function FSviewFile(filename) {
     }
 
     let mimeType = mime.getType(filename) || 'application/octet-stream';
-    let blob = new Blob([content], {type: mimeType});
+    let blob = new Blob([content], { type: mimeType });
 
     let url = URL.createObjectURL(blob);
 
-    window.open(url+"#"+filename, '_blank');
+    window.open(url + "#" + filename, '_blank');
     setTimeout(() => {
         URL.revokeObjectURL(url);
     }, 2000);
@@ -1190,7 +1197,7 @@ async function FSviewFiletran(filename) {
 
     try {
         content = await executionEnviroment.readFile(filename);
-    } catch(err){
+    } catch (err) {
         let errEv = new Event("filesystemError");
         errEv.shortMessage = "Open failed";
         errEv.longMessage = "An error occured and the file could not be opened.\n\nReason:\n" + err;
@@ -1199,11 +1206,11 @@ async function FSviewFiletran(filename) {
     }
 
     let mimeType = mime.getType(filename) || 'application/octet-stream';
-    let blob = new Blob([content], {type: mimeType});
+    let blob = new Blob([content], { type: mimeType });
 
     let url = URL.createObjectURL(blob);
 
-    window.open(url+"#"+filename, '_blank');
+    window.open(url + "#" + filename, '_blank');
     setTimeout(() => {
         URL.revokeObjectURL(url);
     }, 2000);
@@ -1213,8 +1220,8 @@ async function FSdownloadFile(filename, mime) {
     let content = undefined;
 
     try {
-        content = await storedProject.access((project)=>project.readFile(filename));
-    } catch(err){
+        content = await storedProject.access((project) => project.readFile(filename));
+    } catch (err) {
         let errEv = new Event("filesystemError");
         errEv.shortMessage = "Download failed";
         errEv.longMessage = "An error occured and the file could not be read.\n\nReason:\n" + err;
@@ -1226,7 +1233,7 @@ async function FSdownloadFile(filename, mime) {
 }
 
 
-async function downloadProject(){
+async function downloadProject() {
     let projectName = (await appStorage.access((s) => s.getProject(storedProject.projectID))).name;
     downloadFileGeneric(await projectToZip(), projectName + ".zip");
 }
@@ -1240,10 +1247,10 @@ function openProjectFile(filename) {
     }
 }
 
-async function scheduleLoadProjectFromURL(url){
-    scheduleProjectReInitialization(function(){});
+async function scheduleLoadProjectFromURL(url) {
+    scheduleProjectReInitialization(function () { });
 
-    LoadProjectQueue.Schedule("loadProjectFromURL", async function (isCanceled){
+    LoadProjectQueue.Schedule("loadProjectFromURL", async function (isCanceled) {
         return fetch(url).then(res => res.blob()).then(async blob => {
             await projectFromZip(blob, isCanceled);
 
@@ -1255,14 +1262,14 @@ async function scheduleLoadProjectFromURL(url){
 }
 
 // ------ Project Zipping/Unzipping Click Handling ------
-async function scheduleUploadProjectFromInput(){
+async function scheduleUploadProjectFromInput() {
     let reader = new FileReader();
     let files = document.getElementById('projectuploader').files;
     let file = files[0];
 
-    scheduleProjectReInitialization(function(){});
+    scheduleProjectReInitialization(function () { });
 
-    LoadProjectQueue.Schedule("uploadProjectFromInput", async function (isCanceled){
+    LoadProjectQueue.Schedule("uploadProjectFromInput", async function (isCanceled) {
         await projectFromZip(file, isCanceled);
 
         await isCanceled();
@@ -1273,8 +1280,8 @@ async function scheduleUploadProjectFromInput(){
 
 
 // ----- Program Runtime & Error Reporting -----
-function clearErrorLines(){
-    for (let editor of editors){
+function clearErrorLines() {
+    for (let editor of editors) {
         for (var i = 0; i < editor.editor.lineCount(); i++) {
             editor.editor.removeLineClass(i, "wrap", "error-line");
         }
@@ -1282,50 +1289,50 @@ function clearErrorLines(){
 }
 
 // Update buttons when the state of the ExecutionEnvironment changes
-function setupProgramExecutionEvents(){
-    executionEnviroment.addEventListener("programStarted", function(e){
+function setupProgramExecutionEvents() {
+    executionEnviroment.addEventListener("programStarted", function (e) {
         displayEditorNotification("Running project!", NotificationIcons.SUCCESS);
 
         updateButtons();
     });
-    executionEnviroment.addEventListener("programContinued", function(e){
+    executionEnviroment.addEventListener("programContinued", function (e) {
         updateButtons();
     });
-    executionEnviroment.addEventListener("programStopped", function(e){
+    executionEnviroment.addEventListener("programStopped", function (e) {
         updateButtons();
         displayEditorNotification("Program Stopped!", NotificationIcons.INFO);
     });
-    executionEnviroment.addEventListener("programPaused", function(e){
+    executionEnviroment.addEventListener("programPaused", function (e) {
         updateButtons();
     });
 
     // Also highlight errors when they come
-    executionEnviroment.addEventListener("error", function(e){
-        for(let i = 0; i < editors.length; i ++) {
+    executionEnviroment.addEventListener("error", function (e) {
+        for (let i = 0; i < editors.length; i++) {
             if (editors[i].filename != e.block)
                 continue;
 
             let editor = editors[i].editor;
 
-            if (e.line != null){
+            if (e.line != null) {
                 if (editor.lineCount() < e.line)
                     e.line = editor.lineCount();
-                editor.addLineClass(e.line-1, "wrap", "error-line");
-                editor.scrollIntoView({line:e.line-1, char:0}, 200);
-                editor.setCursor({line:e.line-1, char:0});
+                editor.addLineClass(e.line - 1, "wrap", "error-line");
+                editor.scrollIntoView({ line: e.line - 1, char: 0 }, 200);
+                editor.setCursor({ line: e.line - 1, char: 0 });
             }
 
             editor.focus();
         }
     });
 
-    executionEnviroment.addEventListener("mirrorRequest", async function(e){
+    executionEnviroment.addEventListener("mirrorRequest", async function (e) {
         try {
             displayEditorNotification("Loading project files...", NotificationIcons.INFO);
             await MirrorToExecutionEnvironment();
             e.resolve();
         }
-        catch(err) {
+        catch (err) {
             e.reject(err);
         }
     });
@@ -1341,35 +1348,39 @@ function setupProjectConflictAndConfirmationModals() {
         "projectConflictModal",
         "Project open in another tab!",
 
-        "<b>Reload now to avoid losing work!</b><br>"+
-        "This project is already open in another tab and has been modified.<br>"+
+        "<b>Reload now to avoid losing work!</b><br>" +
+        "This project is already open in another tab and has been modified.<br>" +
         "Continuing to edit it in this tab will result in losing work! Please reload the project to continue working.",
 
-        {label:"Reload Now", callback: function(){
-            location.reload();
-        }},
-        {label:"Ignore", callback: function(){
-            userHasIgnoredProjectConflict = true;
-            // Remind the user in 60 seconds
-            setTimeout(function(){
-                userHasIgnoredProjectConflict = false;
-            }, 60000);
-            projectConflictModal.hide();
-        }}
+        {
+            label: "Reload Now", callback: function () {
+                location.reload();
+            }
+        },
+        {
+            label: "Ignore", callback: function () {
+                userHasIgnoredProjectConflict = true;
+                // Remind the user in 60 seconds
+                setTimeout(function () {
+                    userHasIgnoredProjectConflict = false;
+                }, 60000);
+                projectConflictModal.hide();
+            }
+        }
     );
 
     // Check for conflict every 2 seconds - if the lastWriteTime changes without us changing it,
     // the user must be modifying the project in another tab - so show the conflict modal.
-    setInterval(function(){
+    setInterval(function () {
         storedProject.checkForWriteConflicts();
     }, 2000);
 
     // Also check on focus/visibilitychange (different compatability)
-    window.addEventListener("focus", function(){
+    window.addEventListener("focus", function () {
         storedProject.checkForWriteConflicts();
     });
 
-    window.addEventListener("visibilitychange", function(){
+    window.addEventListener("visibilitychange", function () {
         // Calling checkForWriteConflicts() directly inside visibilitychange
         // seems to cause the connection made to not close properly,
         // leading to strange timeouts and other issues - particularly when
@@ -1377,20 +1388,20 @@ function setupProjectConflictAndConfirmationModals() {
         // or more. This bug tends to manifest _after_ a page reload, making it
         // particularly confusing.
         // The fix is simple - do the check after a short timeout instead.
-        setTimeout(function(){
+        setTimeout(function () {
             storedProject.checkForWriteConflicts();
         }, 1);
     });
 
     // If the conflict is detected, show the modal
-    storedProject.addEventListener("timeConflict", async function() {
+    storedProject.addEventListener("timeConflict", async function () {
         if (!userHasIgnoredProjectConflict)
             projectConflictModal.show();
     });
 
 
 
-    window.addEventListener("needConfirmation", async function(ev){
+    window.addEventListener("needConfirmation", async function (ev) {
         let confirmLabel = ev.confirmLabel || "Confirm";
         let cancelLabel = ev.cancelLabel || "Cancel";
 
@@ -1398,31 +1409,35 @@ function setupProjectConflictAndConfirmationModals() {
             "confirmationModal",
             ev.shortMessage,
             ev.longMessage,
-            {label: cancelLabel, callback: ()=>{
-                ev.oncancel();
-                confirmationModal.hide();
-            }},
-            {label: confirmLabel, callback: ()=>{
-                ev.onconfirm();
-                confirmationModal.hide();
-            }}
+            {
+                label: cancelLabel, callback: () => {
+                    ev.oncancel();
+                    confirmationModal.hide();
+                }
+            },
+            {
+                label: confirmLabel, callback: () => {
+                    ev.onconfirm();
+                    confirmationModal.hide();
+                }
+            }
         );
         confirmationModal.show();
 
         let confirmationModalEl = document.getElementById("confirmationModal");
-        confirmationModalEl.addEventListener("hidden.bs.modal", function(innerEv){
+        confirmationModalEl.addEventListener("hidden.bs.modal", function (innerEv) {
             confirmationModal.dispose();
         });
     });
 }
 
 
-function addErrorEventListeners(){
-    executionEnviroment.addEventListener("onDownloadFail", function(data) {
-        displayEditorNotification("Failed to load critical part of IDE: "+data.name+". Click for more details.", NotificationIcons.CRITICAL_ERROR, -1,
-             function() {
-                displayEditorNotification("If you are a <i>developer</i>, please ensure you have placed the file '"+data.url.slice(data.url.lastIndexOf("/")+1)+"' inside your /Browser_IDE/splashkit/ folder."+
-                    "<hr/>Status: "+data.status+" "+data.statusText, NotificationIcons.CRITICAL_ERROR
+function addErrorEventListeners() {
+    executionEnviroment.addEventListener("onDownloadFail", function (data) {
+        displayEditorNotification("Failed to load critical part of IDE: " + data.name + ". Click for more details.", NotificationIcons.CRITICAL_ERROR, -1,
+            function () {
+                displayEditorNotification("If you are a <i>developer</i>, please ensure you have placed the file '" + data.url.slice(data.url.lastIndexOf("/") + 1) + "' inside your /Browser_IDE/splashkit/ folder." +
+                    "<hr/>Status: " + data.status + " " + data.statusText, NotificationIcons.CRITICAL_ERROR
                 );
                 displayEditorNotification("If you are a <i>user</i>, please report this issue on our <a href=\"https://github.com/thoth-tech/SplashkitOnline/\">GitHub page</a>!",
                     NotificationIcons.CRITICAL_ERROR
@@ -1431,13 +1446,13 @@ function addErrorEventListeners(){
         );
     });
 
-    executionEnviroment.addEventListener("onCriticalInitializationFail", function(data) {
-        displayEditorNotification("Failed to load critical part of IDE: "+data.message+". ", NotificationIcons.CRITICAL_ERROR);
+    executionEnviroment.addEventListener("onCriticalInitializationFail", function (data) {
+        displayEditorNotification("Failed to load critical part of IDE: " + data.message + ". ", NotificationIcons.CRITICAL_ERROR);
     });
 
 
 
-    window.addEventListener("filesystemError", async function(ev){
+    window.addEventListener("filesystemError", async function (ev) {
         // We should find a way to reuse this.
         // I am unsure what the interface of a modal is
         // beyond the show and hide methods.
@@ -1451,24 +1466,24 @@ function addErrorEventListeners(){
         errorModal.show();
 
         let errorModelEl = document.getElementById("filesystemErrorModal");
-        errorModelEl.addEventListener("hidden.bs.modal", function(innerEv){
+        errorModelEl.addEventListener("hidden.bs.modal", function (innerEv) {
             errorModal.dispose();
         });
     });
 }
 
-function AddWindowListeners(){
-    window.addEventListener('message', async function(m){
-        switch (m.data.eventType){
+function AddWindowListeners() {
+    window.addEventListener('message', async function (m) {
+        switch (m.data.eventType) {
             case "InitializeProjectFromOutsideWorld":
-                scheduleProjectReInitialization(async function(storedProject){
+                scheduleProjectReInitialization(async function (storedProject) {
                     // load individual files
                     await initializeFromFileList(storedProject, m.data.files)
                 });
                 if (m.data.zips) {
-                    LoadProjectQueue.Schedule("InitializeProjectFromOutsideWorld_ProjectFromZip", async function (){
+                    LoadProjectQueue.Schedule("InitializeProjectFromOutsideWorld_ProjectFromZip", async function () {
                         // load from requested zips
-                        for(let i = 0; i < m.data.zips.length; i ++) {
+                        for (let i = 0; i < m.data.zips.length; i++) {
                             await projectFromZip(m.data.zips[i].data);
                         }
                     });
@@ -1476,5 +1491,5 @@ function AddWindowListeners(){
                 break;
         }
     }, false);
-    parent.postMessage({type:"SplashKitOnlineListening"}, "*");
+    parent.postMessage({ type: "SplashKitOnlineListening" }, "*");
 }
