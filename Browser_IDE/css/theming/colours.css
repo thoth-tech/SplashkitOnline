@@ -14,7 +14,7 @@
     /* This variable is used when a variable is passed to a function is an argument */
     --editorVariable2: white;
     /* This variable is only used for types in langauges which use static typing  */
-    --editorType: red;
+    --editorType: #ffb86c;
 
 
     /* Colours for UI */

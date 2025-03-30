@@ -67,7 +67,7 @@ select {
 
     margin: 0px 3px;
     border-radius: 3px;
-    border: 0px transparent solid;
+    border: none;
     background-color: transparent;
     color: inherit;
     cursor: pointer;
@@ -202,7 +202,6 @@ input {
 .sk-contents {
     background-color: var(--gutterColour);
     box-shadow: 0 0 0 1px var(--shadowColour);
-    /*border: 1px var(--shadowColour) solid;*/
 
     display:flex;
     flex-direction: column;
@@ -242,7 +241,6 @@ textarea {
     height:100%;
     z-index:1000;
     padding: 10% 20%;
-    /*backdrop-filter: blur(1px) brightness(80%);*/
     background-color: var(--demoThumbnailBackground);
 }
 
