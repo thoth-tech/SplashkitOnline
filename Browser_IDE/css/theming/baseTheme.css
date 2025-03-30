@@ -1,31 +1,31 @@
 .cm-s-dracula.CodeMirror, .cm-s-dracula .CodeMirror-gutters {
     background-color: #282a36 !important;
-    color: var(--meta) !important;
+    color: var(--editorMeta) !important;
     border: none;
 
 }
-  .cm-s-dracula .CodeMirror-gutters { color: var(--gutter); }
-  .cm-s-dracula .CodeMirror-cursor { border-left: solid thin var(--selected); }
-  .cm-s-dracula .CodeMirror-linenumber { color: var(--lineNumber); }
-  .cm-s-dracula .CodeMirror-selected { background: var(--selected); }
-  .cm-s-dracula .CodeMirror-line::selection, .cm-s-dracula .CodeMirror-line > span::selection, .cm-s-dracula .CodeMirror-line > span > span::selection { background: var(--selected); }
-  .cm-s-dracula .CodeMirror-line::-moz-selection, .cm-s-dracula .CodeMirror-line > span::-moz-selection, .cm-s-dracula .CodeMirror-line > span > span::-moz-selection { background: var(--selected); }
-  .cm-s-dracula span.cm-comment { color: var(--comment); }
-  .cm-s-dracula span.cm-string, .cm-s-dracula span.cm-string-2 { color: var(--string); }
-  .cm-s-dracula span.cm-number { color: var(--number); }
-  .cm-s-dracula span.cm-variable { color: var(--functionsAndObject); }
-  .cm-s-dracula span.cm-variable-2 { color: var(--variable2); }
-  .cm-s-dracula span.cm-def { color: var(--functionsAndObject); }
-  .cm-s-dracula span.cm-operator { color: var(--keyword); }
-  .cm-s-dracula span.cm-keyword { color: var(--keyword); }
-  .cm-s-dracula span.cm-atom { color: var(--number); }
-  .cm-s-dracula span.cm-meta { color: var(--meta); }
-  .cm-s-dracula span.cm-tag { color: var(--keyword); }
-  .cm-s-dracula span.cm-attribute { color: var(--functionsAndObject); }
-  .cm-s-dracula span.cm-qualifier { color: var(--functionsAndObject); }
-  .cm-s-dracula span.cm-property { color: var(--property); }
-  .cm-s-dracula span.cm-builtin { color: var(--functionsAndObject); }
-  .cm-s-dracula span.cm-variable-3, .cm-s-dracula span.cm-type { color: var(--variable3); }
+  .cm-s-dracula .CodeMirror-gutters { color: var(--editorGutterBackground); }
+  .cm-s-dracula .CodeMirror-cursor { border-left: solid thin var(--editorSelected); }
+  .cm-s-dracula .CodeMirror-linenumber { color: var(--editorLineNumber); }
+  .cm-s-dracula .CodeMirror-selected { background: var(--editorSelected); }
+  .cm-s-dracula .CodeMirror-line::selection, .cm-s-dracula .CodeMirror-line > span::selection, .cm-s-dracula .CodeMirror-line > span > span::selection { background: var(--editorSelected); }
+  .cm-s-dracula .CodeMirror-line::-moz-selection, .cm-s-dracula .CodeMirror-line > span::-moz-selection, .cm-s-dracula .CodeMirror-line > span > span::-moz-selection { background: var(--editorSelected); }
+  .cm-s-dracula span.cm-comment { color: var(--editorComment); }
+  .cm-s-dracula span.cm-string, .cm-s-dracula span.cm-string-2 { color: var(--editorString); }
+  .cm-s-dracula span.cm-number { color: var(--editorNumber); }
+  .cm-s-dracula span.cm-variable { color: var(--editorFunctionsAndObject); }
+  .cm-s-dracula span.cm-variable-2 { color: var(--editorVariable2); }
+  .cm-s-dracula span.cm-def { color: var(--editorFunctionsAndObject); }
+  .cm-s-dracula span.cm-operator { color: var(--editorKeyword); }
+  .cm-s-dracula span.cm-keyword { color: var(--editorKeyword); }
+  .cm-s-dracula span.cm-atom { color: var(--editorNumber); }
+  .cm-s-dracula span.cm-meta { color: var(--editorMeta); }
+  .cm-s-dracula span.cm-tag { color: var(--editorKeyword); }
+  .cm-s-dracula span.cm-attribute { color: var(--editorFunctionsAndObject); }
+  .cm-s-dracula span.cm-qualifier { color: var(--editorFunctionsAndObject); }
+  .cm-s-dracula span.cm-property { color: var(--editorProperty); }
+  .cm-s-dracula span.cm-builtin { color: var(--editorFunctionsAndObject); }
+  .cm-s-dracula span.cm-variable-3, .cm-s-dracula span.cm-type { color: var(--editorType); }
   
-  .cm-s-dracula .CodeMirror-activeline-background { background: var(--selected); }
-  .cm-s-dracula .CodeMirror-matchingbracket { text-decoration: underline; color: var(--variable2) !important; }
+  .cm-s-dracula .CodeMirror-activeline-background { background: var(--editorSelected); }
+  .cm-s-dracula .CodeMirror-matchingbracket { text-decoration: underline; color: var(--editorVariable2) !important; }

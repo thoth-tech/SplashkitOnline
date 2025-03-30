@@ -1,18 +1,20 @@
 :root {
     /* Colour for the code editor */
-    --keyword : #ff79c6;
-    --comment: #6272a4;
-    --gutter: #282a36;
-    --lineNumber: #6D8A88;
-    --functionsAndObject: #50fa7b;
-    --property: #66d9ef;
-    --number: #bd93f9;
-    --selected: rgba(255, 255, 255, 0.10);
-    --string: #f1fa8c;
-    --meta: #f8f8f2;
-    --variable2: white;
-    --variable3: #ffb86c;
-    --errorLineBackground: #6c514f;
+    --editorKeyword : #ff79c6;
+    --editorComment: #6272a4;
+    --editorGutterBackground: #282a36;
+    --editorLineNumber: #6D8A88;
+    --editorFunctionsAndObject: #50fa7b;
+    --editorProperty: #66d9ef;
+    --editorNumber: #bd93f9;
+    --editorSelected: rgba(255, 255, 255, 0.10);
+    --editorString: #f1fa8c;
+    /* This variable is the variable used for brackets and semicolons  */
+    --editorMeta: #f8f8f2;
+    /* This variable is used when a variable is passed to a function is an argument */
+    --editorVariable2: white;
+    /* This variable is only used for types in langauges which use static typing  */
+    --editorType: red;
 
 
     /* Colours for UI */
@@ -23,6 +25,7 @@
     --activeTabColour: #3AF;
     --nodeConflict: lightcoral;    
     --languageSelectBackground: #303030;
+    --errorLineBackground: #6c514f;
 
 
     /* Gutter colouring */
