@@ -1,0 +1,102 @@
+/*  */
+
+/* All sk header related styles */
+.sk-header {
+    background-color: var(--gutterColour);
+    box-shadow: 0 1px 0 0.4px var(--shadowColour) inset;
+    color: var(--primary);
+    display: flex;
+    list-style: none;
+    margin: 0px;
+    padding: 0px 10px 0px 0px;
+    justify-content: space-between;
+    height: 2em;
+    line-height: 2em;
+}
+
+.sk-menu {
+    background-color: var(--gutterColour);
+    color: var(--primary);
+    display: flex;
+    list-style: none;
+    padding: 0;
+    justify-content: space-between;
+    border-top: 1px var(--shadowColour) solid;
+    min-width: 0;
+}
+
+.sk-menu li {
+    display:flex;
+    min-width: 0;
+}
+
+.sk-menu li *{
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+}
+
+/* This class holds all elements of the IDE */
+.sk-main-columns {
+    overflow: hidden;
+    display: flex;
+    flex-direction: row;
+    flex-grow: 1;
+}
+
+.sk-column {
+    width: 100%;
+}
+
+/* 
+    Pixel calculations:
+    This comes from the width of the gutters
+    There are two gutters between the thre sections of content
+    They must add up to 12px
+*/
+
+#codeViewContainer {
+    /* See pixel calculations for where 6px comes from */
+    width: calc(50% - 6px);
+}
+
+#fileViewContainer {
+    /* See pixel calculations for where 3px comes from */
+    width: calc(20% - 3px);
+}
+
+#runtimeContainer {
+    /* See pixel calculations for where 3px comes from */
+    width: calc(30% - 3px);
+}
+
+/* Styling for mobile view */
+@media screen and (max-width: 600px) {
+    .sk-main-columns {
+        display: flex;
+        flex-direction: column;
+        overflow: scroll;
+    }
+
+    #codeViewContainer, #fileViewContainer, #runtimeContainer {
+        width: 100%;
+    }
+
+    .sk-header {
+        flex-direction: column;
+        justify-content: initial;
+        height: fit-content;
+    }
+
+    .sk-menu {
+        flex-direction: column;
+        justify-content: initial;
+        width: 100%;
+        height: 100%;
+        align-items: center;
+    }
+
+    .sk-menu li button {
+        width: 100%;
+    }
+}

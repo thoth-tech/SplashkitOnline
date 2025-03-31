@@ -111,44 +111,11 @@ input {
     font-family: var(--font);
 }
 
-.sk-header {
-    background-color: var(--gutterColour);
-    box-shadow: 0 1px 0 0.4px var(--shadowColour) inset;
-    color: var(--primary);
-    display: flex;
-    list-style: none;
-    margin: 0px;
-    padding: 0px 10px 0px 0px;
-    justify-content: space-between;
-    height: 2em;
-    line-height: 2em;
-}
 
 .sk-header-indent {
     padding-left: 1em;
 }
 
-.sk-menu {
-    background-color: var(--gutterColour);
-    color: var(--primary);
-    display: flex;
-    list-style: none;
-    padding: 0;
-    justify-content: space-between;
-    border-top: 1px var(--shadowColour) solid;
-    min-width: 0;
-}
-
-.sk-menu li {
-    display:flex;
-    min-width: 0;
-}
-
-.sk-menu li *{
-    overflow: hidden;
-    text-overflow: ellipsis;
-    min-width: 0;
-}
 
 .sk-tabs {
     background-color: var(--gutterColour);
@@ -325,12 +292,6 @@ textarea {
 
 
 
-.sk-main-columns {
-    overflow: hidden;
-    display: flex;
-    flex-direction: row;
-    flex-grow: 1;
-}
 
 .sk-column {
     display: flex;

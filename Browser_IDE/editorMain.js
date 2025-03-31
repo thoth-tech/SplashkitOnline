@@ -364,7 +364,7 @@ function createGutterSplitters(){
     if (sizes) {
         sizes = JSON.parse(sizes)
     } else {
-        sizes = [20, 50, 30]
+        sizes = []
     }
     // Create the splitters.
     // One problem is that they are too visible.
@@ -373,7 +373,7 @@ function createGutterSplitters(){
     // on whatever you return, making it difficult to create a wrapper
     // that lets the events pass through to the real gutter
     let gutterWidth = 6;
-    Split(['#fileViewContainer', '#codeViewContainer', '#runtimeContainer'], {
+    Split(['#fileViewContainer', '#runtimeContainer'], {
         gutterSize: gutterWidth,
         sizes: sizes,
         onDragEnd: function (sizes) {
