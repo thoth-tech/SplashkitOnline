@@ -1,0 +1,16 @@
+
+
+
+
+@media screen and (max-width: 600px) {
+    
+    #canvasContainer {
+        width: 100% !important;
+    }
+
+    #canvas {
+        width: 100vw !important;
+        height: 100vh !important;
+    }
+
+}

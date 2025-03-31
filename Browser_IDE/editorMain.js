@@ -373,7 +373,7 @@ function createGutterSplitters(){
     // on whatever you return, making it difficult to create a wrapper
     // that lets the events pass through to the real gutter
     let gutterWidth = 6;
-    Split(['#fileViewContainer', '#runtimeContainer'], {
+    Split(['#fileViewContainer', "#codeViewContainer", '#runtimeContainer'], {
         gutterSize: gutterWidth,
         sizes: sizes,
         onDragEnd: function (sizes) {
