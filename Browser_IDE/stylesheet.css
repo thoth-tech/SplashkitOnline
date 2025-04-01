@@ -103,6 +103,7 @@ input {
     margin: 0;
     padding: 0px;
     color: var(--primary);
+    /* This gutter content needs to be kept as  */
     background-color: var(--gutterColour);
 
     display:flex;
@@ -112,7 +113,6 @@ input {
 }
 
 .sk-header {
-    background-color: var(--gutterColour);
     box-shadow: 0 1px 0 0.4px var(--shadowColour) inset;
     color: var(--primary);
     display: flex;
@@ -129,7 +129,6 @@ input {
 }
 
 .sk-menu {
-    background-color: var(--gutterColour);
     color: var(--primary);
     display: flex;
     list-style: none;
@@ -151,7 +150,6 @@ input {
 }
 
 .sk-tabs {
-    background-color: var(--gutterColour);
     display: flex;
     list-style: none;
     padding: 0;
@@ -200,6 +198,7 @@ input {
 }
 
 .sk-contents {
+    /* This background colour needs to be kept to ensure the easy of view of demo menu */
     background-color: var(--gutterColour);
     box-shadow: 0 0 0 1px var(--shadowColour);
 
@@ -210,9 +209,7 @@ input {
     min-height: 0;
 }
 
-.sk-contents-darker {
-    background-color: #1B1B1B;
-}
+
 .sk-contents-focusable:focus-within {
     box-shadow: 0 0 0 1px var(--activeTabColour);
     z-index:10;
@@ -771,7 +768,7 @@ li.CodeMirror-hint-active {
 
 .loading-bar {
   width: 50%;
-  background-color: #444;
+  background-color: var(--editorBackgroundColour);
   border-radius: 25px;
   overflow: hidden;
 }
@@ -779,7 +776,7 @@ li.CodeMirror-hint-active {
 .loading-progress {
   width: 0;
   height: 1.4em;
-  background-color: var(--editorBackgroundColour);
+  background-color: var(--loadingBackground);
 }
 
 .loading-text {

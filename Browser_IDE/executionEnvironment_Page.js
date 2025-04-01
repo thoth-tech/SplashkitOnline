@@ -188,7 +188,7 @@ function showDownloadFailure() {
     const progressBar = document.getElementById('loading-progress');
     const loadingText = document.getElementById('loading-text');
     if (progressBar && loadingText) {
-        progressBar.style.backgroundColor = 'red';
+        progressBar.style.backgroundColor = 'var(--errorColour)';
         loadingText.textContent = 'Download Failed';
     }
 }
