@@ -27,7 +27,8 @@
     --nodeConflict: lightcoral;    
     --languageSelectBackground: #303030;
     --errorLineBackground: #6c514f;
-
+    /* The transientColour is used for any temporary files, such as logs that are created at runtime */
+    --transientColour: #f8f8f2;
 
 
     /* Gutter colouring */
