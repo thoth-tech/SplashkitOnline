@@ -458,7 +458,7 @@ textarea {
 }
 .node-transient{
     opacity: 0.7;
-    color: var(--errorColour);
+    color: var(--transientColour);
 }
 .node-persistent{
     color: var(--primary);
