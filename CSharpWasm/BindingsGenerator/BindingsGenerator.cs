@@ -1,15 +1,14 @@
 using System.Text.Json;
-using System.Text;
 using System.Text.Json.Serialization;
+using System.Text;
 using System.IO;
-using System.Linq;
 using System.Collections.Generic;
 
 class BindingsGenerator
 {
     public void ProcessJSON(string jsonPath)
     {
-        string outputPath = "SplashKit.Generated.cs";
+        string outputPath = "SplashKitInterop.cs";
 
         if (!File.Exists(jsonPath))
         {
@@ -36,35 +35,22 @@ class BindingsGenerator
         {
             foreach (var module in jsonData.Values)
             {
-                if (module.Functions != null)
+                if (module.Functions == null) continue;
+
+                foreach (var function in module.Functions)
                 {
-                    foreach (var method in module.Functions)
+                    if (function.Signatures != null &&
+                        function.Signatures.TryGetValue("csharp", out var csharpSigs))
                     {
-                        string pascalMethodName = ToPascalCase(method.Name);
-
-                        string jsImportValue = !string.IsNullOrWhiteSpace(method.JsImport)
-                            ? method.JsImport
-                            : $"SplashKitBackendWASM.{method.Name}";
-
-                        sb.AppendLine($"        [JSImport(\"{jsImportValue}\", \"main.js\")]");
-
-                        // Format the return type.
-                        string returnType = method.Return?.Type ?? "void";
-                        returnType = FormatType(returnType);
-
-                        sb.Append($"        public static partial {returnType} {pascalMethodName}(");
-
-                        // Build parameter list using the Parameters dictionary.
-                        // Parameter names remain unchanged.
-                        if (method.Parameters != null && method.Parameters.Any())
+                        foreach (var sig in csharpSigs)
                         {
-                            string paramList = string.Join(", ", method.Parameters.Select(kvp =>
-                                $"{FormatType(kvp.Value.Type)} {kvp.Key}"));
-                            sb.Append(paramList);
+                            if (sig.Contains(" SplashKit."))
+                            {
+                                sb.AppendLine($"        [JSImport(\"SplashKitBackendWASM.{function.Name}\", \"main.js\")]");
+                                sb.AppendLine($"        {CleanSignature(sig)}");
+                                sb.AppendLine();
+                            }
                         }
-
-                        sb.AppendLine(");");
-                        sb.AppendLine();
                     }
                 }
             }
@@ -81,60 +67,38 @@ class BindingsGenerator
         Console.WriteLine($"Generated new file: {outputPath}");
     }
 
-    // Helper to convert snake_case to PascalCase.
-    private string ToPascalCase(string input)
+    private string CleanSignature(string raw)
     {
-        if (string.IsNullOrEmpty(input))
-            return input;
-        var parts = input.Split('_');
-        return string.Join("", parts.Select(s => char.ToUpperInvariant(s[0]) + s.Substring(1)));
-    }
+        // Only keep the part after " SplashKit."
+        var idx = raw.IndexOf(" SplashKit.");
+        if (idx == -1) return raw;
 
-    // Format a type name to PascalCase if not a built-in type.
-    private string FormatType(string typeName)
-    {
-        var builtInTypes = new HashSet<string>
-        {
-            "int", "string", "bool", "double", "float", "decimal", "object", "void", "long", "short", "byte", "char"
-        };
-        if (builtInTypes.Contains(typeName.ToLowerInvariant()))
-        {
-            return typeName.ToLowerInvariant();
-        }
+        string partialSig = raw.Substring(idx + " SplashKit.".Length).TrimEnd(';');
 
-        return ToPascalCase(typeName);
+        // Extract return type and modifiers
+        var prefix = raw.Substring(0, idx).Trim();
+        var parts = prefix.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+        if (parts.Length < 2) return raw; // Ensure we have at least "public static <type>"
+
+        // Insert 'partial' before the return type
+        var modifiers = string.Join(" ", parts.Take(parts.Length - 1));
+        var returnType = parts.Last();
+
+        return $"{modifiers} partial {returnType} {partialSig};";
     }
 
     public class Module
     {
         [JsonPropertyName("functions")]
-        public Method[] Functions { get; set; } = Array.Empty<Method>();
+        public List<Method> Functions { get; set; }
     }
 
     public class Method
     {
         public string Name { get; set; }
-        public string JsImport { get; set; }
 
-        // JSON contains parameters as an object/dictionary.
-        [JsonPropertyName("parameters")]
-        public Dictionary<string, Param> Parameters { get; set; } = new Dictionary<string, Param>();
-
-        public ReturnType Return { get; set; }
-    }
-
-    public class Param
-    {
-        public string Type { get; set; }
-        public string Description { get; set; }
-    }
-
-    public class ReturnType
-    {
-        public string Type { get; set; }
-        public string Description { get; set; }
-        public bool IsPointer { get; set; }
-        public bool IsReference { get; set; }
-        public bool IsVector { get; set; }
+        [JsonPropertyName("signatures")]
+        public Dictionary<string, List<string>> Signatures { get; set; }
     }
 }
