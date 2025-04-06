@@ -1,0 +1,5 @@
+# Build results
+bin/
+obj/
+SplashKit.Generated.cs
+SplashKitInterop.cs
