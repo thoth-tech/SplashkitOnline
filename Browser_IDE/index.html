@@ -8,11 +8,12 @@
     <title>SplashKit Online</title>
 
     <link rel="stylesheet" href="codemirror-5.65.15/lib/codemirror.css">
-    <link rel="stylesheet" href="codemirror-5.65.15/theme/dracula.css">
-    <link rel="stylesheet" href="codemirror-5.65.15/addon/hint/show-hint.css">
+	<link rel="stylesheet" href="codemirror-5.65.15/addon/hint/show-hint.css">
     <link rel="stylesheet" href="codemirror-5.65.15/addon/fold/foldgutter.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.9.1/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="stylesheet.css">
+	<link rel="stylesheet" href="./css/theming/baseTheme.css"/>
+	<link rel="stylesheet" href="./css/theming/colours.css"/>
+    <link rel="stylesheet" href="stylesheet.css"/>
 
     <script src="codemirror-5.65.15/lib/codemirror.js"></script>
     <script src="jszip/jszip.min.js"></script>
@@ -39,7 +40,7 @@
 			<li><button id="NewProject">New Project</button></li>
 			<li><button id="DownloadProject">Export Project</button></li>
 			<li><button id="UploadProject">Import Project</button></li>
-			<span style="border-left:#404040 1px solid;"></span>
+			<span style="border-left:var(--shadowColour) 1px solid;"></span>
 			<li><button id="LoadDemo">Load Demo</button></li>
 		</ul>
         <ul class="sk-menu">
@@ -83,7 +84,7 @@
                     <button type="button" id="runOne"><i class="bi bi-upload"> Update File</i></button>
 				</div>
 			</div>
-            <div class="sk-contents" style="background-color:#24262d !important; position:relative;" id="codeEditorContainer">
+            <div class="sk-contents" style="position:relative;" id="codeEditorContainer">
                 <div class="sk-code-view-message" id="noEditorsMessage">
                     <h1>Let's write some code!</h1>
                     <p>You can add a new code file with the <b>+</b> button, or open one from the <b>FILES</b> view on the left.</p>
