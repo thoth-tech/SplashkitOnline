@@ -35,10 +35,10 @@ const themes = {
 };
 
 
-// Build a simple <select id="themeSelection"> if it’s in the page
+//Build a simple <select id="themeSelection">
 document.addEventListener("DOMContentLoaded", () => {
   const sel = document.getElementById("themeSelection");
-  if (!sel) return;                            // ignore if you haven’t added the element yet
+  if (!sel) return;        
   Object.keys(themes).forEach(name => sel.add(new Option(name, name)));
   sel.onchange = () => applyTheme(themes[sel.value]);
 });
