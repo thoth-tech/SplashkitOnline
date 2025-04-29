@@ -59,11 +59,15 @@ const themes = {
 
 
 //Build a simple <select id="themeSelection">
+//Wait until the page Content has been loaded
 document.addEventListener("DOMContentLoaded", () => {
   const sel = document.getElementById("themeSelection");
+  //Stop if the <select> isn’t there
   if (!sel) return;
-  sel.add(new Option("default / none", ""));   //empty value triggers reset        
-  Object.keys(themes).forEach(name => sel.add(new Option(name, name)));
+  sel.add(new Option("default / none", ""));   //Blank value = go back to default  
+  //Add every theme as an option
+  Object.keys(themes).forEach(name => sel.add(new Option(name, name))); /Visible text, value
+  //Change the theme when the user picks something
   sel.onchange = () => applyTheme(themes[sel.value]);
 });
 
