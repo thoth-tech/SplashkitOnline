@@ -17,37 +17,43 @@ window.applyTheme = applyTheme;
 //Avaliable themes that can be applied
 const themes = {
   light: {
-    "editorBackgroundColour": "#fdfdfd",
+    "editorBackgroundColour": "#8d8d8d",
+    //"gutterColour": "#8d8d8d",
+    "shadowColour": "#8d8d8d",
     "editorKeyword": "#28282B",
     "editorComment": "#00A36C",
     "editorLineNumber": "#353935",
-    "primary"              : "#202020",
-    "activeTabColour"      : "#268bd2"
+    "editorGutterBackground": "#202020",
+    "editorString": "#1f1f1f"
     //More can be added from the colours.css file
   },
   dark: {
     "editorBackgroundColour": "#1e1e1e",
+    //"gutterColour": "#1e1e1e",
+    "shadowColour": "#1e1e1e",
     "editorKeyword": "#FAF9F6",
     "editorComment": "#228B22",
     "editorLineNumber": "#FFFFF0",
-    "primary"              : "#dcdcdc",
-    "activeTabColour"      : "#3af"
+    "editorGutterBackground": "#dcdcdc",
+    "editorString": "#fdfdfd"
   },
   "professional-grey": {
     "editorBackgroundColour": "#2b2b2b",
+    //"gutterColour": "#2b2b2b",
+    "shadowColour": "#2b2b2b",
     "editorKeyword": "#FAF9F6",
     "editorComment": "#5F8575",
     "editorLineNumber": "#FFFFFF",
-    "primary"              : "#e0e0e0",
-    "activeTabColour"      : "#6a9fb5"
+    "editorGutterBackground": "#e0e0e0"
   },
   space: {
     "editorBackgroundColour": "#0d1117",
-    "primary"              : "#c9d1d9",
+    //"gutterColour": "#0d1117",
+    "shadowColour": "#0d1117",
     "editorKeyword": "#A7C7E7",
     "editorComment": "#191970",
     "editorLineNumber": "#191970",
-    "activeTabColour"      : "#8a63d2"
+    "editorGutterBackground": "#c9d1d9"
   }
 };
 
