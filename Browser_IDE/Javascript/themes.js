@@ -1,6 +1,6 @@
 //Applies a theme by overriding CSS variables using a JSON object
 function applyTheme(theme) {
-  if (!theme) {                           // empty/null/undefined ⇒ reset
+  if (!theme) {                           //empty/null/undefined = reset
     document.documentElement.removeAttribute("style");
     return;
   }
