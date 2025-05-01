@@ -70,6 +70,10 @@
     width: calc(30% - 3px);
 }
 
+#tabBar {
+    display: none;
+}
+
 /* Styling for mobile view */
 @media screen and (max-width: 600px) {
     .sk-main-columns {
@@ -98,5 +102,25 @@
 
     .sk-menu li button {
         width: 100%;
+    }
+
+    #codeViewContainer {
+        width: 100% ;
+    }
+
+    #tabBar {
+        display: block;
+        height: 10vh;
+        background-color: aqua;
+        position: fixed;
+        display: flex;
+        justify-content: space-around;
+        bottom: 0;
+        right: 0;
+        left: 0;
+    }
+
+    #fileViewContainer, #codeViewContainer, #runtimeContainer, #menu {
+        display: none;
     }
 }
