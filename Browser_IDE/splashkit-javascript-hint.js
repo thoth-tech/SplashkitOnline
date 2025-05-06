@@ -114,8 +114,7 @@ loadSplashKitAutocompletes();
   function getCompletions(token, context, keywords, options) {
     var found = [], start = token.string, global = options && options.globalScope || window;
     function maybeAdd(str) {
-        // Sean Edit: Skip matches that are identical to the token itself
-      if (str.lastIndexOf(start, 0) == 0 && !arrayContains(found, str) && str != start) found.push(str);
+      if (str.lastIndexOf(start, 0) == 0 && !arrayContains(found, str)) found.push(str);
     }
     function gatherCompletions(obj) {
       if (typeof obj == "string") forEach(stringProps, maybeAdd);
