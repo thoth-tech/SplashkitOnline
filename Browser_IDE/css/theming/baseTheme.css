@@ -5,7 +5,7 @@
 
 }
   .cm-s-dracula .CodeMirror-gutters { color: var(--editorGutterBackground); }
-  .cm-s-dracula .CodeMirror-cursor { border-left: solid thin var(--editorSelected); }
+  .cm-s-dracula .CodeMirror-cursor { border-left: solid thin var(--editorMeta); }
   .cm-s-dracula .CodeMirror-linenumber { color: var(--editorLineNumber); }
   .cm-s-dracula .CodeMirror-selected { background: var(--editorSelected); }
   .cm-s-dracula .CodeMirror-line::selection, .cm-s-dracula .CodeMirror-line > span::selection, .cm-s-dracula .CodeMirror-line > span > span::selection { background: var(--editorSelected); }
