@@ -3,7 +3,7 @@ import methods from "./splashKitMethods.generated.js";
 
 const parseMethods = (methods) => {
   const methodList = methods
-    .split(",") // split into array
+    .split(",")
     .map((method) => method.trim().replace("\n", ""))
     .filter(Boolean);
 
