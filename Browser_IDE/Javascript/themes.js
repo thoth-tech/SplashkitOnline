@@ -66,7 +66,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (!sel) return;
   sel.add(new Option("default / none", ""));   //Blank value = go back to default  
   //Add every theme as an option
-  Object.keys(themes).forEach(name => sel.add(new Option(name, name))); /Visible text, value
+  Object.keys(themes).forEach(name => sel.add(new Option(name, name))); //Visible text, value
   //Change the theme when the user picks something
   sel.onchange = () => applyTheme(themes[sel.value]);
 });
