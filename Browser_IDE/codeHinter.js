@@ -220,15 +220,11 @@ function createCodeHinter(editor){
     let overloadNextButton = elemFromText(`<button><i class="bi bi-chevron-up"></i></button>`).children[0];
     let overloadPrevButton = elemFromText(`<button><i class="bi bi-chevron-down"></i></button>`).children[0];
 
-    let overloadSelector = elem("div", {style:{"text-align": "center", "font-size": "0.8em", "display": "flex", "justify-content":"end", "flex-direction":"column"}}, [
+    let overloadSelector = elem("div", {class: "sk-function-hint-overload-selector"}, [
         overloadNextButton, overloadCounter, overloadPrevButton
     ]);
 
-    let functionHintInner = elem("div", {style:{
-        display: "flex",
-        justifyContent: "center",
-        flexDirection: "column"
-    }});
+    let functionHintInner = elem("div", {class: "sk-function-hint-inner"});
 
     let functionHint = elem("div", {class: "sk-contents sk-notification sk-function-hint sk-contents-focusable", tabindex: "10"}, [
         overloadSelector,
@@ -264,13 +260,13 @@ function createCodeHinter(editor){
     }
 
     overloadNextButton.addEventListener("mousedown", function (e){
-        setOverload(currentOverload + 1);
         e.preventDefault(); // avoid taking focus from the editor
+        setOverload(currentOverload + 1);
     });
 
     overloadPrevButton.addEventListener("mousedown", function (e){
-        setOverload(currentOverload - 1);
         e.preventDefault(); // avoid taking focus from the editor
+        setOverload(currentOverload - 1);
     });
 
 
@@ -316,30 +312,39 @@ function createCodeHinter(editor){
         for (let k = 0; k < matches.length; k ++){
             let func = matches[k];
 
-            let paramList = "";
+            let paramList = [];
+
+            if (func.return != "")
+                paramList.push(func.return + " ");
+
+            paramList.push(func.name + "(");
+
             // We'll loop over all params including the guessed 'optional' ones
             let totalParams = func.params.concat(func.optParams);
 
             for (let i = 0; i < totalParams.length; i ++) {
-                let param = totalParams[i];
+                let paramText = totalParams[i];
 
                 // group the '<type> <name>' parts together when wrapping
-                param = "<div style='display: inline-block;'>"+param+"</div>";
+                let param = elem("div", {style: {display: "inline-block"}}, [paramText]);
 
                 // if we're up to the optional params, give them lower opacity
                 if (i >= func.params.length)
-                    param = "<span style='opacity:0.7;'><i>"+param+"</i></span>"
+                    param = elem("i", {style: {opacity: "0.7"}}, [param]);
 
                 // If this is where the cursor is, highlight it
                 if (i == Math.max(0, context[0].arg_pos))
-                    param = "<b><u style = 'color: var(--editorFunctionsAndObject);'>"+param+"</u></b>"
+                    param = elem("b", {}, [elem("u", {style: {color: "var(--editorFunctionsAndObject)"}}, [param])]);
 
                 // Now add the param to the paramList
-                paramList += param+", "
+                paramList.push(param);
+                if (i < totalParams.length - 1)
+                    paramList.push(", ");
             }
 
-            let sig = (func.return!="" ? func.return + " " : "") + func.name + "(" + paramList.slice(0, paramList.length - 2) + ")";
-            let div = elemFromText("<div style=\"display:none;\">"+sig+"</div>").children[0];
+            paramList.push(")");
+
+            let div = elem("div", {style:{display: "none"}}, paramList);
 
             if (func.possible && bestOverload == null) bestOverload = k;
 

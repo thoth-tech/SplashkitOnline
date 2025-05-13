@@ -905,3 +905,17 @@ li.CodeMirror-hint-active {
   margin:0;
   transition: opacity 0.1s;
 }
+
+.sk-function-hint-overload-selector {
+  text-align: center;
+  font-size: 0.8em;
+  display: flex;
+  justify-content: end;
+  flex-direction: column;
+}
+
+.sk-function-hint-inner {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+}
