@@ -13,6 +13,17 @@ function loadSplashKitAutocompletes() {
         if (xhr.readyState === 4) {
             if (xhr.status === 0 || xhr.status === 200) {
                 splashKitAutocompletes = JSON.parse(xhr.responseText);
+
+                // Sort the functions by name -> argument count
+                splashKitAutocompletes.functions.sort((a,b) => {
+                    let nameComparison = a.name.localeCompare(b.name);
+
+                    if (nameComparison == 0)
+                        return a.params.length - b.params.length;
+
+                    return nameComparison
+                });
+
             }
             else{
                 throw new Error("Couldn't load SplashKit Autocompletes!");
@@ -114,8 +125,7 @@ loadSplashKitAutocompletes();
   function getCompletions(token, context, keywords, options) {
     var found = [], start = token.string, global = options && options.globalScope || window;
     function maybeAdd(str) {
-        // Sean Edit: Skip matches that are identical to the token itself
-      if (str.lastIndexOf(start, 0) == 0 && !arrayContains(found, str) && str != start) found.push(str);
+      if (str.lastIndexOf(start, 0) == 0 && !arrayContains(found, str)) found.push(str);
     }
     function gatherCompletions(obj) {
       if (typeof obj == "string") forEach(stringProps, maybeAdd);
@@ -167,16 +177,12 @@ loadSplashKitAutocompletes();
 
 
     // Sean Edit: Handle Splashkit Functions specially
-    // TODO: Show when writing parameters, and bold current parameter
     for (func of splashKitAutocompletes.functions){
         if (func.name.lastIndexOf(start, 0) == 0 && !arrayContains(found, func.name)){
             paramList = ""
             for (param of func.params)
                 paramList += param+", "
-            found.push({
-                text: func.name,
-                displayText: (func.return!="" ? func.return + " " : "") + func.name + "(" + paramList.slice(0, paramList.length - 2) + ")"
-            });
+            found.push(func.name);
         }
     }
 
