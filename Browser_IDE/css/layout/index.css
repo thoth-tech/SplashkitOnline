@@ -122,5 +122,7 @@
 
     #fileViewContainer, #codeViewContainer, #runtimeContainer, #menu {
         display: none;
+        height: 90vh;
+        max-height: 90vh;
     }
 }
