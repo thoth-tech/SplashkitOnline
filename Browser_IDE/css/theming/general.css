@@ -1,0 +1,96 @@
+/* general.css purpose is to store any default styling on elements */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+* {
+  margin: 0;
+}
+html {
+  height: 100%;
+}
+body {
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  color-scheme: dark;
+}
+img, picture, video, canvas, svg {
+  display: block;
+  max-width: 100%;
+}
+input, button, textarea, select {
+  font: inherit;
+}
+p, h1, h2, h3, h4, h5, h6 {
+  overflow-wrap: break-word;
+}
+
+#root, #__next {
+  isolation: isolate;
+}
+
+
+iframe {
+    border: 0;
+}
+
+h3 {
+    font-weight:400;
+}
+
+
+/* SplashKit Online */
+button {
+    margin: 0px 3px;
+    border-radius: 3px;
+    border: 0;
+    background-color: transparent;
+    color: inherit;
+    cursor: pointer;
+    transition: color 0.4s, background-color 0.1s;
+    line-height: 1em;
+}
+button:disabled {
+    color: var(--disabled) !important;
+    cursor: wait;
+}
+
+button:hover:enabled {
+    background-color: var(--shadowColour);
+}
+
+select {
+    -webkit-appearance: button;
+    -moz-appearance: button;
+
+    margin: 0px 3px;
+    border-radius: 3px;
+    border: none;
+    background-color: transparent;
+    color: inherit;
+    cursor: pointer;
+    outline:none;
+    line-height: 1em;
+}
+
+select:disabled {
+    color: var(--disabled);
+}
+
+select:hover {
+    background-color: var(--languageSelectBackground);
+}
+
+input {
+    margin: 0px 3px;
+    border-radius: 3px;
+    border: 0;
+    background-color: transparent;
+    color: inherit;
+    outline:none;
+    line-height: 1em;
+}
+
+textarea {
+    outline: none;
+}
