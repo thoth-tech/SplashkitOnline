@@ -74,6 +74,17 @@
     display: none;
 }
 
+/* Editor code */
+
+
+/* New changes for scrollbar in FILES explorer section */
+
+#fileViewContainer .sk-contents-focusable {
+  overflow: auto;
+}
+
+
+
 /* Styling for mobile view */
 @media screen and (max-width: 600px) {
     .sk-main-columns {

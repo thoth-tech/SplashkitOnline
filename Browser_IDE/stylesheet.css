@@ -413,15 +413,6 @@ li.CodeMirror-hint-active {
     display: flex;
 }
 
-/* Canvas scaling fix */
-
-#canvas {
-  max-height: 100% !important;
-  max-width: 100% !important;
-  height: auto !important;
-  width: auto !important;
-}
-
 .sk-collapsed-column {
   box-shadow: 0 1px 0 0.4px var(--shadowColour) inset;
   display: flex;
