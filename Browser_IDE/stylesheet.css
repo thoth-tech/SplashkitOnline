@@ -94,9 +94,6 @@
     box-shadow: 0 0 0 1px var(--activeTabColour);
     z-index:10;
 }
-textarea {
-    outline: none;
-}
 
 
 

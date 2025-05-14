@@ -111,7 +111,8 @@
     #tabBar {
         display: block;
         height: 10vh;
-        background-color: aqua;
+        background-color: var(--editorBackgroundColour);
+        box-shadow: 1px 1px var(--shadowColour);
         position: fixed;
         display: flex;
         justify-content: space-around;
