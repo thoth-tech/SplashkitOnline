@@ -1,0 +1,15 @@
+.sk-body {
+    position: relative;
+    box-sizing: border-box;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0px;
+    color: var(--primary);
+    background-color: var(--gutterColour);
+
+    display:flex;
+    flex-direction: column;
+
+    font-family: var(--font);
+}
