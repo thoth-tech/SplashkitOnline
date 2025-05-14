@@ -527,20 +527,7 @@ li.CodeMirror-hint-active {
   color: var(--primary);
 }
 
-/* Modal UI changes */
 
-.modal .sk-header {
-  padding: 1.5em 1em; 
-  display: flex; 
-  align-items: center; 
-}
-
-.modal .sk-modal-footer {
-  padding: 1.3em 1em; 
-  display: flex; 
-  align-items: center; 
-  justify-content: flex-end; 
-}
 
 .btn {
   transition: background-color 0.3s, box-shadow 0.3s;
