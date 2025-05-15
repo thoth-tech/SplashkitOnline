@@ -273,7 +273,7 @@
 }
 
 
-#codeViewContainer, #fileViewContainer, #runtimeContainer {
+#fileViewContainer, #codeViewContainer, #runtimeContainer, #menu {
     display: block;    
 }
 
