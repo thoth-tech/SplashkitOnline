@@ -9,7 +9,7 @@
 */
 
 //This function is used to toggle the active tab
-function updateActive(tabIndex) {
+function toggleActiveTab(tabIndex) {
     console.log("called")
     fileViewContainer.style.display = tabIndex == 1 ? "block" : "none";
     codeViewContainer.style.display = tabIndex == 2 ? "block" : "none";
@@ -34,16 +34,16 @@ const menu = document.getElementById("menu");
 
 
 fsButton.addEventListener("click", () => {
-    updateActive(1);
+    toggleActiveTab(1);
 });
 editorButton.addEventListener("click", () => {
-    updateActive(2);
+    toggleActiveTab(2);
 });
 executionEnviromentButton.addEventListener("click", () => {
-    updateActive(3);
+    toggleActiveTab(3);
 });
 menuButton.addEventListener("click", () => {
-    updateActive(4);
+    toggleActiveTab(4);
 });
 
 
