@@ -48,6 +48,46 @@
 }
 
 
+.sk-terminal-input-wrapper input {
+    flex-grow: 1;
+    margin: 0;
+    padding: 0;
+}
+
+.sk-terminal-input-wrapper {
+    padding: 0 1em;
+    overflow: hidden;
+    box-shadow: 4px 4px 10px var(--demoThumbnailBackground) inset;
+    display: flex;
+    font-family: monospace, serif;
+    white-space: pre-wrap;
+}
+
+.sk-terminal > :nth-child(2) {
+    margin-top: auto !important;
+}
+
+#runProgram,
+#collapsedRunProgram {
+    color: var(--fileColour);
+}
+
+.sk-terminal {
+    overflow-y: scroll;
+    flex-basis: 0;
+    border:0;
+    padding-left:1em;
+    resize: none;
+    font-family: var(--editorFont);
+    white-space: pre-wrap;
+    background-color: var(--terminalBackground);
+}
+
+.sk-contents-darker {
+    background-color: var(--terminalBackground);
+}
+
+
 @media screen and (max-width: 600px) {
     
     #canvasContainer {

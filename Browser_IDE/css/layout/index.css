@@ -14,6 +14,34 @@
     line-height: 2em;
 }
 
+.sk-header-indent {
+    padding-left: 1em;
+}
+
+
+
+.sk-column {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    height: 100%;
+}
+
+.gutter {
+    display: flex;
+    flex-direction: row;
+    cursor: e-resize;
+    z-index:100;
+}
+
+.gutter-vertical {
+  cursor: ns-resize;
+}
+
+.gutter-horizontal {
+  cursor: e-resize;
+}
+
 .sk-menu {
     background-color: var(--gutterColour);
     color: var(--primary);
@@ -84,6 +112,167 @@
 }
 
 
+/* Run program button icons - join the gear and play icons together */
+.run-program .bi-gear-fill {
+  position: absolute;
+  font-size: 0.5em;
+  margin-left: -0.1em;
+  margin-top: 0.64em;
+  opacity: 0.5;
+}
+
+
+.sk-hidden {
+  display: none !important;
+}
+
+.sk-header-title {
+  text-wrap: nowrap;
+}
+
+.sk-minified .directory-contents {
+  padding-left: 15px;
+}
+
+
+/* Fs related styles */
+.node{
+    color:var(--primary);
+    cursor: pointer;
+}
+.node-label:hover{
+    background-color:var(--nodeHover);
+    cursor: pointer;
+}
+.node-label{
+    width:100%;
+    display:flex;
+    flex-direction: row !important;
+    padding: 0px 20px 0px 0px;
+}
+.node-label-text{
+    flex: 1;
+    padding: 0px 0px 0px 3px;
+}
+.node-button{
+    background: none;
+    border: none;
+    color: var(--primary);
+    padding: 0;
+    margin: 0;
+}
+.node-button:hover{
+    color: var(--iconHover);
+}
+.node-transient{
+    opacity: 0.7;
+    color: var(--errorColour);
+}
+.node-persistent{
+    color: var(--primary);
+}
+.node-persistent.node-transient{
+    color: var(--fileColour);
+    opacity: 1.0;
+}
+.node-tentative-label{
+	margin: 0px 6px 0px 6px;
+}
+.node-conflict{
+	width:100%;
+	display:flex;
+    flex-direction: row !important;
+	padding: 0px 20px 0px 0px;
+	margin-left: 6px;
+	color: var(--nodeConflict);
+}
+.node-conflict-text{
+	flex: 1;
+	padding: 0px 0px 0px 3px;
+	text-wrap: nowrap;
+}
+
+.directory-contents{
+    padding:00px 0px 0px 30px;
+    transition: max-height 0.3s ease;
+    overflow:hidden;
+}
+
+
+[class^="bi-"]::before, [class*=" bi-"]::before {
+    line-height: inherit !important;
+}
+
+
+.in-drag{
+    opacity:50%;
+    cursor:grabbing !important;
+    position:fixed;
+}
+
+.insertion-point-display{
+    position:absolute;
+    height:2px;
+    background-color:var(--activeTabColour);
+    opacity:100%;
+    right:0px;
+    left:0px;
+}
+
+
+
+/* tabs for IDE */
+
+.sk-tabs {
+    background-color: var(--gutterColour);
+    display: flex;
+    list-style: none;
+    padding: 0;
+    justify-content: space-between;
+    color:var(--disabled);
+    min-width: 0;
+}
+.sk-tabs li:hover {
+    background-color: var(--languageSelectBackground);
+}
+.sk-tabs li {
+    display:flex;
+    padding: 0px 20px;
+    border-top: 1px var(--shadowColour) solid;
+    border-right: 1px var(--shadowColour) solid;
+    cursor: pointer;
+    transition: all 0.2s;
+    min-width: 0;
+}
+.sk-tabs li .sk-tab-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space:nowrap;
+}
+
+.sk-tabs-active {
+    background-color: var(--editorBackgroundColour);
+    box-shadow: none;
+    z-index: 5;
+    border-top: var(--activeTabColour) 1px solid !important;
+    color: var(--primary);
+}
+.sk-tab-hidden {
+    display: none;
+}
+
+.sk-tabs li[data-tab]::after {
+    content: "\25BC";
+    margin-left: 5px;
+    visibility: hidden;  
+    display: inline-block;   
+}
+
+.sk-tabs li[data-tab]:hover::after {
+    visibility: visible;
+}
+
+
 
 /* Styling for mobile view */
 @media screen and (max-width: 600px) {
@@ -136,5 +325,9 @@
         display: none;
         height: 90vh;
         max-height: 90vh;
+    }
+
+    #codeViewContainer {
+        display: block;
     }
 }
