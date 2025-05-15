@@ -32,11 +32,6 @@ const codeViewContainer = document.getElementById("codeViewContainer");
 const runtimeContainer = document.getElementById("runtimeContainer");
 const menu = document.getElementById("menu");
 
-// Only run this code if window is smaller than threshold
-if (window.innerWidth < 500) {
-    codeViewContainer.style.display = "block";
-}
-
 
 fsButton.addEventListener("click", () => {
     updateActive(1);

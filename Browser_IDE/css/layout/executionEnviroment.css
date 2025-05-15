@@ -40,11 +40,19 @@
 
 /* Canvas scaling fix */
 
+#canvasContainer {
+  padding-inline: 15%;
+  padding-top: 5%;
+  padding-bottom: 5%;
+}
+
 #canvas {
   max-height: 100% !important;
   max-width: 100% !important;
-  height: auto !important;
+  height: auto;
   width: auto !important;
+  width: 100%;
+  height: 100% !important;
 }
 
 
@@ -83,9 +91,6 @@
     background-color: var(--terminalBackground);
 }
 
-.sk-contents-darker {
-    background-color: var(--terminalBackground);
-}
 
 
 @media screen and (max-width: 600px) {
