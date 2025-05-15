@@ -273,6 +273,9 @@
 }
 
 
+#codeViewContainer, #fileViewContainer, #runtimeContainer {
+    display: block;    
+}
 
 /* Styling for mobile view */
 @media screen and (max-width: 600px) {
@@ -308,26 +311,79 @@
         width: 100% ;
     }
 
+    /* Buttons for tabs */
     #tabBar {
         display: block;
         height: 10vh;
         background-color: var(--editorBackgroundColour);
-        box-shadow: 1px 1px var(--shadowColour);
+        box-shadow: 1px 4px var(--shadowColour);
         position: fixed;
         display: flex;
         justify-content: space-around;
         bottom: 0;
         right: 0;
         left: 0;
+
+        section {
+            margin-top: auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+
+            .menu-icon {
+                font-size: 30px;
+            }
+            p {
+                margin-inline: auto;
+                font-size: 13px;
+            }
+        }
+
+     
     }
 
     #fileViewContainer, #codeViewContainer, #runtimeContainer, #menu {
         display: none;
         height: 90vh;
-        max-height: 90vh;
     }
 
     #codeViewContainer {
         display: block;
     }
+
+    .CodeMirror-scroll {
+        height: 100% !important;
+    }
+
+    .sk-contents {
+        height: 100%;
+    }
+
+    #menu {
+        height: 50%;
+    }
+
+    /* Styling for main menu */
+    #skMainMenu {
+        li {
+            margin-top: auto;
+            margin-bottom: auto;
+            width: 100%;
+            button {
+                font-size: 20px;
+                width: 100%;
+            }
+            img {
+                margin-inline: auto;
+            }
+        }
+
+    }
+
+    #languageSelector {
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
 }

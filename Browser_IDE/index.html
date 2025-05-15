@@ -43,7 +43,7 @@
 </head>
 <body class="sk-body">
 	<div class="sk-header" id="menu">
-		<ul class="sk-menu">
+		<ul class="sk-menu" id="skMainMenu">
 			<li><img src="splashkit_logo.webp" style="width:2em; height:2em;"></li>
 			<li><button id="NewProject">New Project</button></li>
 			<li><button id="DownloadProject">Export Project</button></li>
@@ -52,7 +52,7 @@
 			<li><button id="LoadDemo">Load Demo</button></li>
 		</ul>
         <ul class="sk-menu">
-            <li>
+            <li id="languageSelector">
                 <div>Language:&nbsp;</div>
                 <select id="languageSelection">
                 </select>
@@ -134,10 +134,22 @@
 		</div>
 	</div>
 	<footer id="tabBar">
-		<p id="menuButton">Menu</p>
-		<p id="fsButton">FS</p>
-		<p id="editorButton">Cdde editor</p>
-		<p id="executionEnviromentButton">Execution Environment</p>
+		<section id="menuButton">
+			<p class="menu-icon"><ion-icon name="settings-outline"></ion-icon></p>
+			<p>Menu   </p>
+		</section>
+		<section id="fsButton">
+			<p class="menu-icon"><ion-icon name="folder-outline"></ion-icon></p>
+			<p>Files  </p>
+		</section>
+		<section id="editorButton">
+			<p class="menu-icon"><ion-icon name="code-slash-outline"></ion-icon></p>
+			<p>Code   </p>
+		</section>
+		<section id="executionEnviromentButton">
+			<p class="menu-icon"><ion-icon name="play-outline"></ion-icon></p>
+			<p>Execute</p>
+		</section>
 	</footer>
 </body>
 
@@ -161,4 +173,6 @@
 <script src="actionQueue.js"></script>
 <script src="IDEStartupMain.js"></script>
 <script src="javascript/layout/layout.js" defer></script>
+<script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+<script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
 </html>
