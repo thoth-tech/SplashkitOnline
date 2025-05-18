@@ -10,7 +10,6 @@
 
 //This function is used to toggle the active tab
 function toggleActiveTab(tabIndex) {
-    console.log("called")
     fileViewContainer.style.display = tabIndex == 1 ? "block" : "none";
     codeViewContainer.style.display = tabIndex == 2 ? "block" : "none";
     runtimeContainer.style.display = tabIndex == 3 ? "block" : "none";
