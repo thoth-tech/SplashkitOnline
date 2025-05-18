@@ -24,6 +24,9 @@ from js_binding_gen.cpp_code_gen import generate_cpp_enum, generate_boundary_sig
 def generate_cpp_glue(api, marshalled_functions, output_cpp):
     '''Generates all the C++ glue code'''
 
+    # Header guard
+    output_cpp("#pragma once\n")
+
     # Output the preamble, which includes all of SplashKit
     # and defines various functions for converting types
     output_cpp(CPPPreamble)
