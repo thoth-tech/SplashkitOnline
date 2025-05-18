@@ -89,7 +89,10 @@ class CodeViewer {
             lineNumbers: true,
             autoCloseBrackets: true,
             styleActiveLine: true,
-            extraKeys: {"Ctrl-Space": "autocomplete"},
+            extraKeys: {
+                "Ctrl-Space": () => codeHinter.show(editor),
+                "Esc" : () => codeHinter.close()
+            },
             hintOptions: {
                 alignWithWord: false,
                 completeSingle: false,
@@ -99,10 +102,18 @@ class CodeViewer {
             gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"]
         });
 
+        let codeHinter = createCodeHinter(editor);
+
         editor.on('inputRead', (cm, change) => {
             if (!cm.state.completeActive) {
                 cm.showHint();
             }
+        });
+        editor.on('change', (cm, change) => {
+            codeHinter.show(cm);
+        });
+        editor.on('cursorActivity', (cm, change) => {
+            codeHinter.update(cm);
         });
 
         editor.display.wrapper.classList.add("sk-contents");
