@@ -1,102 +1,144 @@
-# SplashkitOnline
 
----
-title: 'Requirements for building Splashkit Online'
-author: 'Anshuman Bishnoi'
-date: '2023-08-08'
-output: html_document
----
+<img src="SplashKitOnlineIDETitle.png" alt="SplashKit Online IDE"/>
 
-## Requirements for building Splashkit Online (Web code editor)
+[![GitHub contributors](https://img.shields.io/github/contributors/thoth-tech/SplashkitOnline?label=Contributors&color=F5A623)](https://github.com/thoth-tech/SplashkitOnline/graphs/contributors)
+[![GitHub issues](https://img.shields.io/github/issues/thoth-tech/SplashkitOnline?label=Issues&color=F5A623)](https://github.com/thoth-tech/SplashkitOnline/issues)
+[![GitHub pull requests](https://img.shields.io/github/issues-pr/thoth-tech/SplashkitOnline?label=Pull%20Requests&color=F5A623)](https://github.com/thoth-tech/SplashkitOnline/pulls)
+[![Website](https://img.shields.io/website?down_color=red&down_message=Offline&label=Website&up_color=green&up_message=Online&url=https%3A%2F%2Fthoth-tech.github.io%2FSplashkitOnline%2F)](https://thoth-tech.github.io/SplashkitOnline/)
+[![Forks](https://img.shields.io/github/forks/thoth-tech/SplashkitOnline?label=Forks&color=F5A623)](https://github.com/thoth-tech/SplashkitOnline/network/members)
+[![Stars](https://img.shields.io/github/stars/thoth-tech/SplashkitOnline?label=Stars&color=F5A623)](https://github.com/thoth-tech/SplashkitOnline/stargazers)
 
-### **1. Frontend technologies**
+# SplashKit Online
 
-<div align ='justify'>
-As we know, frontend of any website is everything we see and with which we can interact. For creating the frontend, we use combination of HTML, CSS and JavaScript. HTML is used for basic structure of the page, CSS helps in visual editing of the website, however, JavaScript is implemented for making the website interactive.
+SplashKit Online is a browser-based development environment for beginner programmers!
+With it you can immediately get started programming in JavaScript and/or C++ using the [SplashKit](https://splashkit.io) library, which is an easy to use library for handling input, graphics, and sound - everything you need to make a game!
 
-* **HTML :** It is basically a computer language which is designed to create websites which can be explored by anybody using the internet. It is used in structuring a web document. It uses a series of short codes also known as tags, normalized into a text-file. The text is finally saved as an HTML file which can be observed through browser on the internet.
+[![prototype-image](SplashKitOnlineIDEPrototypeImage.png)](https://thoth-tech.github.io/SplashkitOnline/)
 
-* **CSS :** It is a style sheet language. It is implemented for defining how HTML elements should be presented on a webpage in context to design, layout, and variations. It is used to interact with components of a webpage. It communicates with HTML through selectors. A declaration is what the properties and values which are employed by selector. Properties define colour, font size as well as margins.
+# <p align="center">[Try Online!](https://thoth-tech.github.io/SplashkitOnline/)</p>
 
-* **JavaScript :** It is the scripting language. It can be used to provide technologies which enables front-end as well as back-end development. It allows the website to replying to user’s actions and refreshing themselves in a dynamic manner. JavaScript uses frameworks to arrange a website or web application. There are many frameworks available like Angular, React, Vue, Ember, Meteor etc, but Angular is one of the most efficient and powerful. It is open-source framework which can be used for developing a Single Page Application.
+## Table Of Contents
 
-<br>
+- [Table Of Contents](#table-of-contents)
+- [Installation](#installation)
+  - [Setting up the IDE](#setting-up-the-ide)
+- [Project Goals and Structure](#project-goals-and-structure)
+- [Technology/Design Overview](#technologydesign-overview)
+  - [IDE](#ide)
+  - [Code Execution](#code-execution)
+    - [JavaScript "Backend"](#javascript-backend)
+    - [C++ "Backend"](#c-backend)
+- ["Backend" Development](#backend-development)
+  - [SplashKit Wasm Library Manual Compilation (JavaScript backend)](#splashkit-compiler-library-manual-compilation-c-backend)
+  - [SplashKit Compiler Library Manual Compilation (C++ backend)](#splashkit-compiler-library-manual-compilation-c-backend)
+- [License](#license)
 
-#### **Why Angular framework is better to use??**
+## Installation
 
-1. A simplified MVC structure is used for web development which decreases the load time of the page. It is one of the primary reasons for choosing angular it ensures rapid development with the removal of unnecessary code.
-2. Provides a better understanding of the application before execution. It basically eliminates the need for unnecessary code. Code can be easily simplified.
-3. Moreover, TypeScript language is also known as a superscript for JavaScript and compilation of Angular framework with TypeScript is efficient.
+Standard installation (of JavaScript and C++ support) involves two steps:
 
-* **Code Mirror:** It is a library in JavaScript which can be used for syntax highlighting, code autocompletion and adding other code editor features. It includes a rich programming interface which allow further extension.
+ 1. Setting up the IDE
+ 2. Downloading the SplashKit WASM binaries
 
-### **2. User interface of the Editor**
+### Setting up the IDE
 
-In the design of the interface, we need to consider the functionality, convenient to use and aesthetics. Some components of the interface are as below:
+The IDE is just a simple node project with few dependencies, and can be setup with the following lines:
 
-- **Code editor area :** It is a large area which is used for writing and editing the code. It should have the functionality of syntax highlighting, line numbering etc for better understanding and readability.
+```bash
+git clone --recursive https://github.com/thoth-tech/SplashkitOnline.git
+cd SplashkitOnline/Browser_IDE/
+npm install
+```
 
-- **Language selector :** For selecting the programming language in which we want to write the code, there should be dropdown or we can say a set of buttons. It will help the developer in providing syntax highlighting as well as auto-completion suggestions depending on the language.
+However, we also need to import the compiled SplashKit library and compiler, as they are not included in the repository by default due to their size. The Node server will import the necessary files automatically on start-up, but this can also be achieved with the included `setup.py` script.
 
-- **File management :** This feature can be used to create, open, save and manage files. Moreover, a toolbar should be implemented which helps for common actions like saving, copy/cut/paste, search etc.
+```bash
+python3 setup.py # optional
+npm run server
+```
 
-- **Settings :** It could be used for customizing editor preferences like font size, tab size or indentation related settings.
+Now you'll be able to load up `localhost:8000` in a browser and see the IDE!
 
-- **Error detection :** The editor should be able to figure out syntax errors, and display these to the user which can be accomplished by underlining errors or these can be shown on a separate panel.
+**Note:** For those concerned about downloading the binaries; these are _WebAssembly_ binaries, not native binaries like `.exe` - they execute securely inside the browser and have no access to the real computer/filesystem.
 
-### **3. Code execution**
+## Project Goals and Structure
 
-After setting up the front-end setup, we also need to implement the back-end development by developing the server-side environment which enable the execution of user code safely. After clicking the “Execute” button, the front-end of the system sends the code to backend for execution. The code is then run inside the sandbox environment through appropriate language environment. The code from the front-end can be send to the backend using POST method of HTTP requests. The code is processed at the backend which is executed and sent back to front-end for displaying the output and any errors which may have been encountered.
+The goal of the SplashKit Online IDE is to provide a beginner friendly programming environment targeted towards using the SplashKit library. It has REPL like functionality to allow rapid feedback, with emphasis on game related functionality like interactivity, graphics rendering and audio playback. To support this, code execution happens in the browser (hence compiling SplashKit to run in the browser), as does compilation does as well. We currently have support for compiling/running JavaScript _and_ C++ in the browser, with support for C# under development.
 
-<br>
+For clarity, while we refer to various language "backends" in later parts of this readme, this is not referring to a server backend as in web development. SplashKit Online is designed so that everything can be served statically.
 
-**WebAssembly** is a technique which allows developers to run high-performance code which is written in languages like C++, C, Rust etc, directly on the web browser. It helps in handling complex operations and computations in an efficient manner. Using WebAssembly, different programming languages can be used for building the core functionality of web code editor.
+## Technology/Design Overview
 
-### **4.Backend development**
+### IDE
 
-For backend development, we need to start by setting up the server which is able to handle incoming requests from the front-end side. The technologies used for this are Node.js, Python using frameworks like Django or Flask, Ruby with Rails, etc. Moreover, we also need to develop user authentication.
+The IDE is written as simply as possible, using straight HTML, CSS and JavaScript. The code editors use the CodeMirror library (version 5) to provide syntax highlighting and other editing features. It is currently ran by using node for some reason, however as demonstrated by the unofficial demo, any sort of static page server can do the trick (such as `python -m http.server`)
 
-#### **Using JavaScript for backend development.**
+### Code Execution
 
-JavaScript is one of the most preferred technologies used for backend development. It is able to provide full stack technologies using libraries and frameworks for client-side as well as server-side scripting. This is the language which allows the developers to script the code and operating is anywhere. It is the language which can be included in different browsers and platforms without any modification of code. Moreover, it is easy to learn backend language due to easy and convenient syntax. Apart from it, this language can also be integrated with any language for building the backend. Moreover, Node.js and Express.js can also be utilized.
+#### JavaScript "Backend"
 
-<br>
-Node.js can be used to make two-way communication among clients and servers. With the help of Node.js, multiple requests from the clients can be handled and also codes from different libraries can be re-used. It is lightweight and fast-processing. Moreover, when using JavaScript at front-end and back-end, communication is made easy via REST API which is basically an architecture based on web standards and it uses HTTP protocols. It is a good practise to use NodeJS with Express to make an API responsive and efficient.
+When the user's JavaScript is ran, it is executed securely inside an iFrame after some code transformations to make it run asynchronously and within a custom scope.
 
-<br>
+The SplashKit API has been exposed to the global scope of JavaScript, allowing the user to interface with it in much the same way they can in other languages, like C++ and Python. Calls to the SplashKit API are then executed by the SplashKit Wasm module as native code (or as native as it gets in a browser).
 
-#### **Implementing WebSocket technology for providing communication between multiple clients**
+##### SplashKit Library
 
-This technology can be used to provide communication among multiple developers in the web application, i.e, changes made to the code in the application can be reflected to all the users in the network as WebSocket provides full-duplex communication. Once, the WebSocket connection is established, server and the clients are able to send as well as receive data and this kind of bidirectional communication enables the server to provide updates to all the clients in real-time.
+The SplashKit library handles all input, graphics, audio and file handling, and is invoked by the user's JavaScript. The library has been compiled into a WebAssembly (Wasm) module via Emscripten. This module is loaded into the page as soon as the IDE starts, and the functions in it exported as JavaScript functions.
 
-### **5.Security Considerations**
+#### C++ "Backend"
 
-There are some security vulnerabilities which could have harmful consequences and violating integrity for users. So, it is best to implement security practises, some of them are below:
+The user's code is compiled using a custom version of [_Clang_](https://clang.llvm.org/) compiled to WebAssembly - the code is compiled in-browser!
 
-* **Validating user input :** Using proper validating techniques to ensure if the data is handled securely before storing, processing as well as displaying.
+The final binary is of course WebAssembly as well, and is linked to a WebAssembly SplashKit library object file. This library file is a bit different to the one used in the JavaScript backend.
 
-* **XSS Prevention (Cross-Site Scripting):** We also need to implement measures for preventing XSS attacks like escaping content generated by user with the help of security policies.
+Finally this binary is executed securely in an asynchronous WebWorker. The WebWorker passes commands back to the main window, which then handles actually rendering graphics, playing audio, passing user input back, etc.
 
-* **Session management :** Implementing secure session management and ensuring user authentication and authorization.
+## "Backend" Development
 
-* Implement HTTPS for encrypting data transmission between server and client.
+### SplashKit Wasm Library Manual Compilation (JavaScript backend)
+First, install Emscripten version 3.1.48, which is required to successfully build the SplashKit core and compile it to Wasm for browser use. The easiest way to do this is via the `emsdk`. Installation instructions are here - [Getting Started](https://emscripten.org/docs/getting_started/downloads.html)
 
-### **6.Database Management**
+Once you've got Emscripten installed and activated, you can compile the SplashKit Wasm library! We've included SplashKit's source code as a submodule, along with the scripts to compile it as a Wasm library, directly in this repo.
 
-In Relational databases, they are based on relational model and SQL (Structural Query Language) is used for storing and retrieving data. This type of databases is used for storing structured data. In our case, we can store information related to the developer and his code. MySQL is an open-source RDBMS which is commonly used in most web applications and data. It is also compatible with most of the OS which includes Linux, MacOS and Windows. MySQL is known for its performance, reliability and convenient usage.
+Currently only cmake builds are supported, so navigate to the cmake project and build it using Emscripten's `emcmake` and `emmake` wrappers.
 
-We need to create a database for the code editor. Data entities in our project could be users, code files, etc. We should design the columns for storing necessary data. For instance, user table can have attributes like username, email etc.
+```bash
+cd SplashkitOnline\SplashKitWasm\cmake
+emcmake cmake -G "Unix Makefiles" .
+emmake make
+```
 
-In the backend code, via Node.js, we have to establish a connection to the MySQL database with help of appropriate MySQL client library.
+If all goes well, you should find the three files built and copied to inside `Browser_IDE/runtimes/javascript/bin/` and `Browser_IDE/splashkit/` - if so, you're done!
 
-We also need to ensure how we are storing the code files in the database if a user wants to save his code. One way could be storing the code content as text in the database.
+**Note:** Placing the project in a path with spaces can lead to errors during the build process.
 
-### **7.Testing**
+### SplashKit Compiler Library Manual Compilation (C++ backend)
 
-Before deploying the web editor for use, we should make sure that, we perform testing on it. We must focus on the unit tests for the functionality and check whether expected output is printed on the console depending on different languages. Also, we need to conduct functional testing to validate whether the user is able to save, delete or edit the code files. Moreover, we need to check that the user interface is compatible with the browsers, UI elements are properly aligned and displayed to the end user.
+It is also possible to use C++ within SplashKit Online! This is still experimental, and as such is missing some features and can be a bit unstable. However, the majority of graphics, audio, and input functionality works, and you can use it to compile and test regular C++ programs too!
 
-### **8.Deployment**
+There are three main pieces to the compiler:
 
-Lastly, we can deploy our code editor either on the web server or a cloud platform so that users can access it. CodeDeploy, Docker, Jenkins are various a deployment services which automates application deployments.
+1. Clang
+2. System root files (includes, standard library, etc)
+3. SplashKit Library Object
 
-</div>
+If you want to compile some of this yourself, currently the repository supports building both the C++/JavaScript runtimes, and the Compiler System Root Files (partially). We don't support compiling Clang currently, though we'd like to find a way to include this in the repository as well.
+
+To compile these:
+
+1. Place [sysroot.zip](https://github.com/WhyPenguins/SplashkitOnline/tree/cxx_language_backend_binaries/SplashKitWasm/prebuilt/sysroot.zip) at `SplashKitWasm/prebuilt/` (don't unzip it!)
+2. Run:
+
+```bash
+cd SplashkitOnline\SplashKitWasm\cmake
+emcmake cmake -G "Unix Makefiles" -DENABLE_CPP_BACKEND=ON .
+emmake make -j8
+```
+
+For more info, see the [this pull request](https://github.com/thoth-tech/SplashkitOnline/pull/65).
+
+## License
+
+Most of the SplashKit Online IDE is licensed under the GNU General Public License v3.0
+
+Some of it is unlicensed - this code will be either removed shortly (it is no longer used) or the original authors contacted and properly licensed.

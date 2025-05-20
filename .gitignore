@@ -1,0 +1,10 @@
+node_modules/
+temp/
+CMakeCache.txt
+CMakeFiles/
+Makefile
+cmake_install.cmake
+out/
+splashkit/
+generated/
+__pycache__/
