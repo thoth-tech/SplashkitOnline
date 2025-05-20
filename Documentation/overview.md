@@ -33,7 +33,7 @@ Explains how each JavaScript file fits into the IDE startup, loading, and runtim
 | `modal.js`                              | Modal controller                   | Manages modal windows for alerts, file dialogs, etc.                                                                        |
 | `notifications.js`                      | Notification system                | Displays notifications in designated notification area for inline IDE alerts and error messages                             |
 | `treeview.js`                           | File tree UI manager               | Renders the sidebar file explorer and handles file selection                                                                |
-| `fallibleMessage.js`                    | Error messaging wrapper            | Wraps async operations with user-facing error messaging                                                                     |
+| `fallibleMessage.js`                    | Bidiirectional messaging class     | Provides execution enviornment and the editor bidirectional communication                                                   |
 | `editorMain.js`                         | Code editor integrator             | Boots up and configures the CodeMirror editor instance and acts as a high level class                                       |
 | `fileview.js`                           | File panel UI manager              | Uses `TreeView` to create the interactivity of the file panel UI                                                            |
 | `projectLoadUI.js`                      | Project UI feedback handler        | Shows UI for loading demo projects and provides indicators or errors during project load                                    |
@@ -254,6 +254,7 @@ Credits to the developers of splashkit online for documenting this function deep
 - Clears events when instructed via `clearEvents` message.
 
 ### AppStorage.js
+- When using the filesystem make sure to use `unifiedfs.js` instead of `AppStorage` to ensure transient and persistent filesystems stay in sync
 - Handles saving and loading app-level data using IndexedDB. This includes things like project names and which project was last opened.
 - The `AppStorage` class manages attach/detach events and gives other modules access to the storage through its `access()` method.
 - Uses a helper class (`__AppStorageRW`) to do all the actual reads/writes with IndexedDB.
@@ -268,6 +269,7 @@ Credits to the developers of splashkit online for documenting this function deep
 
 
 ### IDBStoredProject.js
+- When using the filesystem make sure to use `unifiedfs.js` instead of `IDBStoredProject` to ensure transient and persistent filesystems stay in sync
 - Manages the local file system and metadata for a single project using IndexedDB.
 - `IDBStoredProject` handles high-level project operations like attaching, detaching, and checking for write conflicts by taking advantage of `AppStorage.js`.
   - Automatically restores the last opened project if no ID is provided.
@@ -311,6 +313,7 @@ Credits to the developers of splashkit online for documenting this function deep
 - Manages messaging between windows/frames using promises and callback IDs.
 - The `PromiseChannel` class wraps `postMessage` with support for temp callbacks and signal based messages.
 - Used heavily by `executionEnvironment.js` to interact with the sandboxed iframe.
+- provides bidirectional communication between the execution environment and the editor
 
 ### editorMain.js
 - Builds the tabbed editor UI using CodeMirror for syntax highlighting and autocomplete.
