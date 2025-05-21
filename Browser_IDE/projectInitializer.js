@@ -171,7 +171,7 @@ namespace WriteLine
 
             // Example 3: Print combination of explicit string and value of string variable
             string hello = "Hello";
-            SplashKit.WriteLine(hello + " World!\nDon't forget spaces between words when printing to the terminal!");
+            SplashKit.WriteLine(hello + " World! Don't forget spaces between words when printing to the terminal!");
             SplashKit.WriteLine("Otherwise you get this: " + hello + "World!");
         }
     }
