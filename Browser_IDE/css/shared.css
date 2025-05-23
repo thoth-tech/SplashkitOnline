@@ -150,6 +150,13 @@ textarea {
 }
 
 
+.sk-column {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    height: 100%;
+}
+
 .sk-contents-focusable:focus-within {
     box-shadow: 0 0 0 1px var(--activeTabColour);
     z-index:10;

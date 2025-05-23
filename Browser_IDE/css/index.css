@@ -20,13 +20,6 @@
 
 
 
-.sk-column {
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1;
-    height: 100%;
-}
-
 .gutter {
     display: flex;
     flex-direction: row;
@@ -161,7 +154,6 @@
 .node-label-text{
     flex: 1;
     padding: 0px 0px 0px 3px;
-    color: var(--fileColour);
 }
 
 .node-persistent::before {
@@ -378,10 +370,12 @@
 
     #fileViewContainer, #codeViewContainer, #runtimeContainer, #menu {
         display: none;
+        height: 90vh;
     }
 
     #codeViewContainer {
         display: block;
+        height: 88vh;
     }
 
     .CodeMirror-scroll {
