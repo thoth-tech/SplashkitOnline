@@ -373,13 +373,27 @@ function createGutterSplitters(){
     // on whatever you return, making it difficult to create a wrapper
     // that lets the events pass through to the real gutter
     let gutterWidth = 6;
-    Split(['#fileViewContainer', "#codeViewContainer", '#runtimeContainer'], {
-        gutterSize: gutterWidth,
-        sizes: [],
-        onDragEnd: function (sizes) {
-            localStorage.setItem('sk-online-split-sizes', JSON.stringify(sizes));
-        },
-    });
+    if(window.innerWidth <= 600) {
+        gutterWidth = 0;
+        Split(['#fileViewContainer', "#codeViewContainer", '#runtimeContainer'], {
+            gutterSize: gutterWidth,
+            sizes: [],
+            onDragEnd: function (sizes) {
+                localStorage.setItem('sk-online-split-sizes', JSON.stringify(sizes));
+            },
+        });
+    }
+    else {
+        let gutterWidth = 6;
+        Split(['#fileViewContainer', "#codeViewContainer", '#runtimeContainer'], {
+            gutterSize: gutterWidth,
+            sizes: [20,44,30],
+            onDragEnd: function (sizes) {
+                localStorage.setItem('sk-online-split-sizes', JSON.stringify(sizes));
+            },
+        });
+    }
+
     // So just wrap them and hide them afterwards instead
     const gutters = document.getElementsByClassName("gutter");
     for (let i = 0; i < gutters.length; i++) {
