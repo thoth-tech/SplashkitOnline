@@ -83,6 +83,11 @@
     They must add up to 12px
 */
 
+#runProgram,
+#collapsedRunProgram {
+    color: var(--fileColour);
+}
+
 #codeViewContainer {
     /* See pixel calculations for where 6px comes from */
     width: calc(50% - 6px);

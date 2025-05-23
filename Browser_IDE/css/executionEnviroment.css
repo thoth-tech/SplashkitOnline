@@ -75,6 +75,11 @@
     margin-top: auto !important;
 }
 
+#terminalHeader {
+  display: flex;
+  justify-content: space-between;
+}
+
 #runProgram,
 #collapsedRunProgram {
     color: var(--fileColour);
