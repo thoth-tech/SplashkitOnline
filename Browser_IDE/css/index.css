@@ -161,7 +161,17 @@
 .node-label-text{
     flex: 1;
     padding: 0px 0px 0px 3px;
+    color: var(--fileColour);
 }
+
+.node-persistent::before {
+    color: var(--fileColour);
+}
+
+.bi-folder2-open {
+    color: var(--fileColour);
+}
+
 .node-button{
     background: none;
     border: none;
