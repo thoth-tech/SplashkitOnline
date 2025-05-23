@@ -49,10 +49,8 @@
 #canvas {
   max-height: 100% !important;
   max-width: 100% !important;
-  height: auto;
-  width: auto !important;
-  width: 100%;
-  height: 100% !important;
+
+
 }
 
 
@@ -101,16 +99,3 @@
   background-color: var(--terminalBackground);
 }
 
-
-@media screen and (max-width: 600px) {
-    
-    #canvasContainer {
-        width: 100% !important;
-    }
-
-    #canvas {
-        width: 100vw !important;
-        height: 100vh !important;
-    }
-
-}
