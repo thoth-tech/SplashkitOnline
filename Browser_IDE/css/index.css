@@ -303,6 +303,15 @@
     display: flex;
 }
 
+#codeViewContainer, .CodeMirror-scroll, #codeEditorContainer {
+    height: 100%;
+    box-sizing: border-box;
+}
+
+#codeEditorContainer {
+    height: 100%;
+}
+
 /* Styling for mobile view */
 @media screen and (max-width: 600px) {
     .sk-main-columns {
@@ -314,6 +323,7 @@
     #codeViewContainer, #fileViewContainer, #runtimeContainer {
         width: 100%;
     }
+
 
     .sk-header {
         flex-direction: column;
@@ -364,13 +374,10 @@
                 font-size: 13px;
             }
         }
-
-     
     }
 
     #fileViewContainer, #codeViewContainer, #runtimeContainer, #menu {
         display: none;
-        height: 90vh;
     }
 
     #codeViewContainer {
