@@ -109,6 +109,9 @@
 
 /* Editor code */
 
+#codeEditorContainer {
+    height: auto;
+}
 
 /* New changes for scrollbar in FILES explorer section */
 
@@ -280,6 +283,14 @@
 
 #fileViewContainer, #codeViewContainer, #runtimeContainer, #menu {
     display: block;    
+}
+
+#menu {
+    display: flex;
+}
+
+#skMainMenu {
+    display: flex;
 }
 
 /* Styling for mobile view */

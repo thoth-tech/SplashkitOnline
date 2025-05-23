@@ -387,7 +387,7 @@ function createGutterSplitters(){
         let gutterWidth = 6;
         Split(['#fileViewContainer', "#codeViewContainer", '#runtimeContainer'], {
             gutterSize: gutterWidth,
-            sizes: [20,44,30],
+            sizes: [20,50,30],
             onDragEnd: function (sizes) {
                 localStorage.setItem('sk-online-split-sizes', JSON.stringify(sizes));
             },
