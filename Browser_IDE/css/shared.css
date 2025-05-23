@@ -1,0 +1,290 @@
+/* Base stylings for all elements  */
+
+/* Element spefic styling */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+* {
+  margin: 0;
+}
+html {
+  height: 100%;
+}
+body {
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  color-scheme: dark;
+}
+img, picture, video, canvas, svg {
+  display: block;
+  max-width: 100%;
+}
+input, button, textarea, select {
+  font: inherit;
+}
+p, h1, h2, h3, h4, h5, h6 {
+  overflow-wrap: break-word;
+}
+
+#root, #__next {
+  isolation: isolate;
+}
+
+
+iframe {
+    border: 0;
+}
+
+h3 {
+    font-weight:400;
+}
+
+
+/* SplashKit Online */
+button {
+    margin: 0px 3px;
+    border-radius: 3px;
+    border: 0;
+    background-color: transparent;
+    color: inherit;
+    cursor: pointer;
+    transition: color 0.4s, background-color 0.1s;
+    line-height: 1em;
+}
+button:disabled {
+    color: var(--disabled) !important;
+    cursor: wait;
+}
+
+button:hover:enabled {
+    background-color: var(--shadowColour);
+}
+
+select {
+    -webkit-appearance: button;
+    -moz-appearance: button;
+
+    margin: 0px 3px;
+    border-radius: 3px;
+    border: none;
+    background-color: transparent;
+    color: inherit;
+    cursor: pointer;
+    outline:none;
+    line-height: 1em;
+}
+
+select:disabled {
+    color: var(--disabled);
+}
+
+select:hover {
+    background-color: var(--languageSelectBackground);
+}
+
+input {
+    margin: 0px 3px;
+    border-radius: 3px;
+    border: 0;
+    background-color: transparent;
+    color: inherit;
+    outline:none;
+    line-height: 1em;
+}
+
+textarea {
+    outline: none;
+}
+
+/* Other shared content */
+
+
+.sk-body {
+    position: relative;
+    box-sizing: border-box;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0px;
+    color: var(--primary);
+    background-color: var(--gutterColour);
+
+    display:flex;
+    flex-direction: column;
+
+    font-family: var(--font);
+}
+
+
+
+.error-line{
+    text-decoration-color: var(--errorColour) !important;
+    text-decoration: underline wavy;
+    background-color: var(--errorLineBackground);
+}
+
+.sk-collapsed-column button {
+  font-size: 1.1em;
+  padding: 0.5em;
+}
+
+.sk-code-view-message {
+    position:absolute;
+    padding: 3em;
+    transition: all 0.5s ease;
+    opacity: 0;
+    width:100%;
+    height:100%;
+    overflow: hidden;
+}
+
+.sk-contents {
+    background-color: var(--gutterColour);
+    box-shadow: 0 0 0 1px var(--shadowColour);
+
+    display:flex;
+    flex-direction: column;
+    flex-grow:1;
+    color: var(--primary);
+    min-height: 0;
+}
+
+
+.sk-column {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    height: 100%;
+}
+
+.sk-contents-focusable:focus-within {
+    box-shadow: 0 0 0 1px var(--activeTabColour);
+    z-index:10;
+}
+
+.sk-collapsed-column {
+  box-shadow: 0 1px 0 0.4px var(--shadowColour) inset;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Leftover stuff from bootstrap */
+
+.btn-close {
+  box-sizing: content-box;
+  width: 1em;
+  height: 1em;
+  padding: 0.25em 0.25em;
+  color: var(--nodeHover);
+  background: transparent url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23000'%3e%3cpath d='M.293.293a1 1 0 0 1 1.414 0L8 6.586 14.293.293a1 1 0 1 1 1.414 1.414L9.414 8l6.293 6.293a1 1 0 0 1-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 0 1-1.414-1.414L6.586 8 .293 1.707a1 1 0 0 1 0-1.414z'/%3e%3c/svg%3e") center/1em auto no-repeat;
+  border: 0;
+  border-radius: 0.375rem;
+  opacity: 0.5;
+}
+.btn-close:hover {
+  color: var(--nodeHover);
+  text-decoration: none;
+  opacity: 0.75;
+}
+.btn-close:focus {
+  outline: 0;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+  opacity: 1;
+}
+.btn-close:disabled, .btn-close.disabled {
+  pointer-events: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+  opacity: 0.25;
+}
+
+.btn-close-white {
+  filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+#output > div:first-child {
+    display: none;
+}
+
+
+.btn {
+  transition: background-color 0.3s, box-shadow 0.3s;
+  box-shadow: 3px 3px 6px var(--demoThumbnailBackground);
+  line-height: 1em;
+  padding: 0.5em;
+}
+
+.btn:last-child {
+  margin-right: 0;
+}
+
+
+.btn-secondary {
+  color: var(--primary); 
+}
+
+.btn-success {
+  color: var(--iconHover);
+}
+
+.btn-success:hover, .btn-success:focus {
+  background-color: var(--nodeHover);
+}
+
+.flex-column {
+    display: flex;
+}
+
+
+/* Notification Styling */
+
+
+.fade-on-create {
+    animation: fadein .2s;
+}
+@keyframes fadein {
+    from {
+        opacity:0;
+    }
+    to {
+        opacity:1;
+    }
+}
+
+
+
+
+
+.sk-notification-area {
+    position: absolute;
+    right: 3em;
+    left: 3em;
+    bottom: 3em;
+    z-index: 10;
+    pointer-events: none;
+}
+
+.sk-notification-body {
+    margin: 0px 5em 0px 1.5em;
+    flex-grow: 1;
+}
+
+.sk-notification {
+    box-shadow: var(--demoThumbnailBackground) 4px 4px 10px 0px;
+    padding: 1em;
+    display: flex;
+    flex-direction: row;
+    width: 30em;
+    max-width: 100%;
+    margin-top: 1em;
+    transition: opacity 0.4s;
+    opacity: 1;
+    margin-left: auto;
+    pointer-events: all;
+}
+
+.sk-notification.sk-contents-focusable:focus-within {
+    box-shadow: 0 0 0 1px var(--activeTabColour), var(--demoThumbnailBackground) 4px 4px 10px 0px;
+    z-index:10;
+}
