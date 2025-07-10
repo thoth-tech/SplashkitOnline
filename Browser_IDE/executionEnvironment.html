@@ -6,9 +6,15 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SplashKit Runtime</title>
-	<link rel="stylesheet" href="./css/theming/colours.css "/>
-    <link rel="stylesheet" href="stylesheet.css">
-    <script src="split.js/split.min.js"></script>
+	
+	<link rel="stylesheet" href="./css/colours.css"/>
+	<link rel="stylesheet" href="./css/shared.css"/>
+	<link rel="stylesheet" href="./css/executionEnviroment.css"/>
+	<link rel="stylesheet" href="./css/theming/general.css"/>
+	<link rel="stylesheet" href="./css/theming/modal.css"/>
+	<link rel="stylesheet" href="./css/components/modal.css"/>
+
+	<script src="split.js/split.min.js"></script>
 </head>
 
 <body class="sk-body">
@@ -23,8 +29,8 @@
 			<canvas id="canvas" style="margin: auto; outline: none;" oncontextmenu="event.preventDefault()" tabindex="-1"></canvas>
 		</div>
 		<div id="terminalOutputContainer" style="flex-grow: 0; display: flex; flex-direction: column;">
-			<div class="sk-header sk-header-indent">
-				TERMINAL OUTPUT
+			<div class="sk-header sk-header-indent" id="terminalHeader">
+				<p>TERMINAL OUTPUT</p>
 				<button id="clearButton" onclick="clearTerminal()">Clear</button>
 			</div>
 			<div class="sk-contents">

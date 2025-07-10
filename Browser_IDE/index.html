@@ -11,9 +11,15 @@
 	<link rel="stylesheet" href="codemirror-5.65.15/addon/hint/show-hint.css">
     <link rel="stylesheet" href="codemirror-5.65.15/addon/fold/foldgutter.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.9.1/font/bootstrap-icons.css">
-	<link rel="stylesheet" href="./css/theming/baseTheme.css"/>
-	<link rel="stylesheet" href="./css/theming/colours.css"/>
-    <link rel="stylesheet" href="stylesheet.css"/>
+
+	<link rel="stylesheet" href="./css/colours.css"/>
+	<link rel="stylesheet" href="./css/shared.css"/>
+	<link rel="stylesheet" href="./css/index.css"/>
+	<link rel="stylesheet" href="./css/components/codeMirror.css"/>
+	<link rel="stylesheet" href="./css/components/modal.css"/>
+	<link rel="stylesheet" href="./css/components/demoMenu.css"/>
+
+	
 
     <script src="codemirror-5.65.15/lib/codemirror.js"></script>
     <script src="jszip/jszip.min.js"></script>
@@ -34,8 +40,8 @@
 	
 </head>
 <body class="sk-body">
-	<div class="sk-header">
-		<ul class="sk-menu">
+	<div class="sk-header" id="menu">
+		<ul class="sk-menu" id="skMainMenu">
 			<li><img src="splashkit_logo.webp" style="width:2em; height:2em;"></li>
 			<li><button id="NewProject">New Project</button></li>
 			<li><button id="DownloadProject">Export Project</button></li>
@@ -44,7 +50,7 @@
 			<li><button id="LoadDemo">Load Demo</button></li>
 		</ul>
         <ul class="sk-menu">
-            <li>
+            <li id="languageSelector">
                 <div>Language:&nbsp;</div>
                 <select id="languageSelection">
                 </select>
@@ -129,6 +135,24 @@
 			</div>
 		</div>
 	</div>
+	<footer id="tabBar">
+		<section id="menuButton">
+			<p class="menu-icon"><ion-icon name="settings-outline"></ion-icon></p>
+			<p>Menu   </p>
+		</section>
+		<section id="fsButton">
+			<p class="menu-icon"><ion-icon name="folder-outline"></ion-icon></p>
+			<p>Files  </p>
+		</section>
+		<section id="editorButton">
+			<p class="menu-icon"><ion-icon name="code-slash-outline"></ion-icon></p>
+			<p>Code   </p>
+		</section>
+		<section id="executionEnviromentButton">
+			<p class="menu-icon"><ion-icon name="play-outline"></ion-icon></p>
+			<p>Execute</p>
+		</section>
+	</footer>
 </body>
 
 <script src="splashKitOnlineEnvParams.js"></script>
@@ -150,5 +174,8 @@
 <script src="projectLoadUI.js"></script>
 <script src="actionQueue.js"></script>
 <script src="IDEStartupMain.js"></script>
-<script src="./Javascript/themes.js"></script>
+<script src="javascript/layout/layout.js" defer></script>
+<script src="./Javascript/themes.js" defer></script>
+<script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+<script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
 </html>
