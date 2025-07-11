@@ -4,9 +4,9 @@
 set -e
 
 # Define source and target directories
-BIN_DIR="./bin/Debug/net8.0"
+BIN_DIR="./CSharpCodeRunner/bin/Debug/net8.0"
 TARGET_DIR="../Browser_IDE/CSharpWasm/bin"
-FRAMEWORK_SRC="./bin/Debug/net8.0/wwwroot/_framework"
+FRAMEWORK_SRC="./CSharpCodeRunner/bin/Debug/net8.0/wwwroot/_framework"
 FRAMEWORK_DEST="../Browser_IDE/CSharpWasm/wwwroot/_framework"
 
 # List of files to copy
@@ -20,7 +20,7 @@ FILES=(
 )
 
 echo "Building the project..."
-dotnet build
+dotnet build CSharpCodeRunner
 
 # Check if the build succeeded
 if [ $? -eq 0 ]; then
