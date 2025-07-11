@@ -19,7 +19,7 @@ public partial class CSharpCodeRunner
     static async Task<MetadataReference> LoadAssemblyFromServer(string assemblyName)
     {
         var baseUrl = GetHRef();
-        var url = $"/CSharpWasm/bin/{assemblyName}";
+        var url = $"/CSharpWasmExpo/bin/{assemblyName}";
 
         try
         {
