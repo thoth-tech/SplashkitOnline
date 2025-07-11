@@ -1,0 +1,87 @@
+.sk-demo-window-container{
+    width:100%;
+    position:fixed;
+    height:100%;
+    z-index:1000;
+    padding: 10% 20%;
+    background-color: var(--demoThumbnailBackground);
+}
+
+.sk-demo-window{
+    position:relative;
+    height: 100%;
+    margin:auto;
+    pointer-events:initial;
+}
+
+.sk-demo-window-loading-text{
+    position: absolute;
+    margin: auto;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2em;
+    text-align:center;
+    z-index:100;
+}
+
+.sk-demo-thumbnail-grid-container{
+    overflow: auto;
+}
+
+.sk-demo-thumbnail-grid{
+    display: grid;
+    gap: 20px;
+    flex-direction: row;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    flex-grow: 0;
+    margin-top:1em;
+    margin-bottom:1em;
+}
+
+.sk-demo-tags{
+    position:absolute;
+    top:0px;
+    left:0px;
+    right:0px;
+    background:none;
+    justify-content: end;
+    box-shadow: none;
+}
+
+.sk-demo-tag{
+    background-color: var(--tagBackground);
+    border-radius: 5px;
+    color: var(--language);
+    line-height: 1.5em;
+    margin-top: 0.25em;
+    padding: 0px 10px;
+}
+
+.sk-demo-title{
+    position:absolute;
+    bottom:0px;
+    left:0px;
+    right:0px;
+    background-color:var(--demoTitleBackground);
+    justify-content: center;
+    color: var(--primary);
+}
+
+.sk-demo-thumbnail{
+    overflow: hidden;
+    box-shadow: var(--demoThumbnailBackground) 4px 4px 10px 0px;
+    position:relative;
+    transition: filter 0.1s;
+    cursor:pointer;
+}
+.sk-demo-thumbnail:hover{
+    filter:brightness(125%);
+}
+
+.sk-demo-thumbnail-img{
+  aspect-ratio: 16/9;
+  object-fit: contain;
+  width: 100%;
+}

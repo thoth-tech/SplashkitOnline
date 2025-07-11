@@ -49,6 +49,7 @@ CPPPreamble = """
 #include "web_client.h"
 #include "web_server.h"
 #include "window_manager.h"
+#include "interface.h"
 
 #include <cstring>
 #include <emscripten.h>

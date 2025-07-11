@@ -132,7 +132,7 @@ function ReportError(block, message, line, stacktrace ,formatted=false){
         
         if (outputMessage && !formatted) {
             // If formatted is true, do not add the color: red styling
-            escapedMessage = '<summary' + (formatted ? '' : ' style="color: red;"') + '>' + escapedMessage + '</summary>';
+            escapedMessage = '<summary' + (formatted ? '' : ' style="color: var(--errorColour);"') + '>' + escapedMessage + '</summary>';
             escapedMessage = '<details>' + escapedMessage + stackTrace + '</details>';
         }
             
@@ -188,7 +188,7 @@ function showDownloadFailure() {
     const progressBar = document.getElementById('loading-progress');
     const loadingText = document.getElementById('loading-text');
     if (progressBar && loadingText) {
-        progressBar.style.backgroundColor = 'red';
+        progressBar.style.backgroundColor = 'var(--errorColour)';
         loadingText.textContent = 'Download Failed';
     }
 }
