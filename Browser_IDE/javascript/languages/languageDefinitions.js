@@ -23,7 +23,7 @@ let SplashKitOnlineLanguageDefinitions = [
             runtimeFiles: [
                 { src: "moduleEventTarget.js", type: "text/javascript" },
                 { src: "loadsplashkit.js", type: "text/javascript" },
-                { src: "fsevents.js", type: "text/javascript" },
+                { src: "javascript/storage/fsevents.js", type: "text/javascript" },
                 { src: "CSharpWasm/main.js", type: "module" },
                 { src: "runtimes/ExecutionEnvironmentInternal.js", type: "text/javascript" },
                 { src: "runtimes/csharp/csharpRuntime.js", type: "text/javascript" },
@@ -59,7 +59,7 @@ let SplashKitOnlineLanguageDefinitions = [
                 { src: "babel/babel.js", type: "text/javascript" }, //intention is to make this a compilerFile instead
                 { src: "moduleEventTarget.js", type: "text/javascript" },
                 { src: "loadsplashkit.js", type: "text/javascript" },
-                { src: "fsevents.js", type: "text/javascript" },
+                { src: "javascript/storage/fsevents.js", type: "text/javascript" },
                 { src: "executionEnvironment_CodeProcessor.js", type: "text/javascript" }, //intention is to make this a compilerFile instead
                 { src: "executionEnvironment_Internal.js", type: "text/javascript" }, // and this should be based on ExecutionEnvironmentInternal.js
             ],
