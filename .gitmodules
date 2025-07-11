@@ -3,5 +3,5 @@
 	url = https://github.com/thoth-tech/splashkit-core.git
 	ignore = dirty
 [submodule external/js-lzma"]
-	path = external/js-lzma
+	path = Browser_IDE/external/js-lzma
 	url = https://github.com/WhyPenguins/js-lzma
