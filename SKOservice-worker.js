@@ -1,7 +1,7 @@
 // Service worker that provides a communication channel between
 // the user's code and the main page.
 // File must be located at or above where the Execution Environment's page is.
-importScripts('./fallibleMessage.js');
+importScripts("javascript/communication/communication.js");
 
 // event queue
 let programEvents = [];

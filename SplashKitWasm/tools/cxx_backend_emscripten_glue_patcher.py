@@ -46,7 +46,7 @@ MakePatch(
     "var Module = {};\n"+
     "var FS/*no space here so it doesn't get replaced*/ = null;\n"+
     "importScripts('./../../../moduleEventTarget.js');\n"+
-    "importScripts('./../../../fsevents.js');\n"+
+    "importScripts('./../../../javascript/storage/fsevents.js');\n"+
     "importScripts('./../workerEventProcessor.js');\n"+
     "function RunProgram() {\n"+
     "Module = typeof Module != 'undefined' ? Module : {};\n"
