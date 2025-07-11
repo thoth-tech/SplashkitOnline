@@ -1,7 +1,7 @@
 let SKO = null;
 
 importScripts('./../../jszip/jszip.min.js');
-importScripts('./../../fallibleMessage.js');
+importScripts('./../../javascript/communication/communication.js');
 importScripts('./../../external/js-lzma/src/wlzma.js');
 importScripts('./../../external/js-lzma/src/lzma.shim.js');
 
