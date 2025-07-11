@@ -7,7 +7,7 @@ importScripts('./../../external/js-lzma/src/lzma.shim.js');
 
 self.wlzmaCustomPath = "./../../external/js-lzma/src/wlzma.wrk.js";
 self.downloadRootPath = "./../../";
-importScripts('./../../downloadHandler.js');
+importScripts('./../../javascript/middleware/downloadHandler.js');
 
 // function to load the system libraries zip file
 async function loadSystemRootFiles(downloadSet){
