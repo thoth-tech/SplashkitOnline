@@ -24,9 +24,11 @@
     "extract-zip": "^2.0.1",
     "jszip": "^3.10.1",
     "mime": "^4.0.3",
-    "nodemon": "^3.0.1",
     "request": "^2.88.2",
     "split.js": "^1.6.5"
   },
-  "description": ""
+  "description": "",
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  }
 }
