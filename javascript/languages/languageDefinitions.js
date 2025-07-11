@@ -24,7 +24,7 @@ let SplashKitOnlineLanguageDefinitions = [
                 { src: "moduleEventTarget.js", type: "text/javascript" },
                 { src: "compilers/javascript/loadsplashkit.js", type: "text/javascript" },
                 { src: "javascript/storage/fsevents.js", type: "text/javascript" },
-                { src: "CSharpWasm/main.js", type: "module" },
+                { src: "CSharpWasmExpo/main.js", type: "module" },
                 { src: "runtimes/ExecutionEnvironmentInternal.js", type: "text/javascript" },
                 { src: "runtimes/csharp/csharpRuntime.js", type: "text/javascript" },
             ],

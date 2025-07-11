@@ -5,9 +5,9 @@ set -e
 
 # Define source and target directories
 BIN_DIR="./bin/Debug/net8.0"
-TARGET_DIR="../Browser_IDE/CSharpWasm/bin"
+TARGET_DIR="../CSharpWasmExpo/bin"
 FRAMEWORK_SRC="./bin/Debug/net8.0/wwwroot/_framework"
-FRAMEWORK_DEST="../Browser_IDE/CSharpWasm/wwwroot/_framework"
+FRAMEWORK_DEST="../CSharpWasmExpo/wwwroot/_framework"
 
 # List of files to copy
 FILES=(
