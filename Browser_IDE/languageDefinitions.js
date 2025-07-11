@@ -12,6 +12,41 @@
 
 let SplashKitOnlineLanguageDefinitions = [
     {
+        name: "CSharp",
+        userVisibleName: "C#",
+        aliases: ['C#', 'CSharp'],
+        sourceExtensions: ['cs'],
+        compilableExtensions: ['cs'],
+        defaultSourceExtension: "cs",
+        setups: [{
+            name: "C#",
+            runtimeFiles: [
+                { src: "moduleEventTarget.js", type: "text/javascript" },
+                { src: "loadsplashkit.js", type: "text/javascript" },
+                { src: "fsevents.js", type: "text/javascript" },
+                { src: "CSharpWasm/main.js", type: "module" },
+                { src: "runtimes/ExecutionEnvironmentInternal.js", type: "text/javascript" },
+                { src: "runtimes/csharp/csharpRuntime.js", type: "text/javascript" },
+            ],
+            runtimeDependencies: [
+                "runtimes/javascript/bin/SplashKitBackendWASM.js",
+                "runtimes/javascript/bin/SplashKitBackendWASM.wasm",
+            ],
+            compilerFiles: [
+                "compilers/csharp/csharpCompiler.js",
+            ],
+            runtimeSizeAprox: 20,
+            compilerSizeAprox: 150,
+            compilerName: "csharpCompiler",
+            supportHotReloading: false,
+            getDefaultProject: ()=>{return makeNewProject_CSharp;},
+            persistentFilesystem: false,
+            compiled: true,
+            needsSandbox: false,
+            needsServiceWorker: false,
+        }]
+    },
+    {
         name: "JavaScript",
         userVisibleName: "JavaScript",
         aliases: ['JS'],
@@ -21,12 +56,12 @@ let SplashKitOnlineLanguageDefinitions = [
         setups: [{
             name: "JavaScript Native",
             runtimeFiles: [
-                "babel/babel.js", //intention is to make this a compilerFile instead
-                "moduleEventTarget.js",
-                "loadsplashkit.js",
-                "fsevents.js",
-                "executionEnvironment_CodeProcessor.js", //intention is to make this a compilerFile instead
-                "executionEnvironment_Internal.js", // and this should be based on ExecutionEnvironmentInternal.js
+                { src: "babel/babel.js", type: "text/javascript" }, //intention is to make this a compilerFile instead
+                { src: "moduleEventTarget.js", type: "text/javascript" },
+                { src: "loadsplashkit.js", type: "text/javascript" },
+                { src: "fsevents.js", type: "text/javascript" },
+                { src: "executionEnvironment_CodeProcessor.js", type: "text/javascript" }, //intention is to make this a compilerFile instead
+                { src: "executionEnvironment_Internal.js", type: "text/javascript" }, // and this should be based on ExecutionEnvironmentInternal.js
             ],
             runtimeDependencies: [
                 "runtimes/javascript/bin/SplashKitBackendWASM.js",
@@ -56,9 +91,9 @@ let SplashKitOnlineLanguageDefinitions = [
         setups: [{
             name: "C++ (Clang)",
             runtimeFiles: [
-                "runtimes/ExecutionEnvironmentInternal.js",
-                "runtimes/cxx/cxxRuntime.js",
-                "runtimes/cxx/bin/SplashKitBackendWASMCPP.js",
+                { src: "runtimes/ExecutionEnvironmentInternal.js", type: "text/javascript" },
+                { src: "runtimes/cxx/cxxRuntime.js", type: "text/javascript" },
+                { src: "runtimes/cxx/bin/SplashKitBackendWASMCPP.js", type: "text/javascript" },
             ],
             runtimeDependencies: [
                 "runtimes/cxx/bin/SplashKitBackendWASMCPP.js",

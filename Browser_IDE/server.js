@@ -13,6 +13,7 @@ async function run(){
     app.use("/split.js", express.static(path.join(__dirname,"node_modules/split.js/dist/")));
     app.use("/mime", express.static(path.join(__dirname,"node_modules/mime/dist/")));
     app.use("/DemoProjects", express.static(path.join(__dirname,"../DemoProjects")));
+    app.use('/CSharpWasm', express.static(path.join(__dirname, 'CSharpWasm')));
 
     app.use(function (req, res, next) {
         res.header("Access-Control-Allow-Origin", "*");
