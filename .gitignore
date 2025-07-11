@@ -9,3 +9,4 @@ splashkit/
 generated/
 __pycache__/
 _framework/
+/js-lzma

@@ -3,3 +3,6 @@
 	url = https://github.com/thoth-tech/splashkit-core.git
 	ignore = dirty
 
+[submodule "js-lzma"]
+	path = js-lzma
+	url = https://github.com/WhyPenguins/js-lzma
