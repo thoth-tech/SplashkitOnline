@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SplashKit Runtime</title>
+	
+	<link rel="stylesheet" href="./css/colours.css"/>
+	<link rel="stylesheet" href="./css/shared.css"/>
+	<link rel="stylesheet" href="./css/executionEnviroment.css"/>
+	<link rel="stylesheet" href="./css/components/modal.css"/>
+
+	<script src="split.js/split.min.js"></script>
+</head>
+
+<body class="sk-body">
+    <div id="loading-container" class="loading-container">
+        <div id="loading-bar" class="loading-bar">
+            <div id="loading-progress" class="loading-progress"></div>
+		<div id="loading-text" class="loading-text">Loading...</div>
+        </div> 
+    </div>
+	<div class="sk-column" style="max-height: 100%;">
+		<div id="canvasContainer" class="sk-contents">
+			<canvas id="canvas" style="margin: auto; outline: none;" oncontextmenu="event.preventDefault()" tabindex="-1"></canvas>
+		</div>
+		<div id="terminalOutputContainer" style="flex-grow: 0; display: flex; flex-direction: column;">
+			<div class="sk-header sk-header-indent" id="terminalHeader">
+				<p>TERMINAL OUTPUT</p>
+				<button id="clearButton" onclick="clearTerminal()">Clear</button>
+			</div>
+			<div class="sk-contents">
+				<div id="output" class="sk-contents sk-contents-darker sk-terminal"></div>
+				<div class="sk-terminal-input-wrapper">
+					<span style="color: #CCC">&gt; </span>
+					<input type="text" id="terminal-input" />
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+
+<script src="javascript/communication/communication.js"></script>
+<script src="javascript/middleware/downloadHandler.js"></script>
+<script src="javascript/executionEnviroment/executionEnvironment_Page.js"></script>
+<script src="runtimes/ExecutionEnvironmentInternalLoader.js"></script>
+</html>
