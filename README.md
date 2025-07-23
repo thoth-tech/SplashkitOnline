@@ -93,7 +93,7 @@ The final binary is of course WebAssembly as well, and is linked to a WebAssembl
 
 Finally this binary is executed securely in an asynchronous WebWorker. The WebWorker passes commands back to the main window, which then handles actually rendering graphics, playing audio, passing user input back, etc.
 
-## "Backend" Development
+## "Backend" Development (DONT FOLLOW THESE STEPS THIS FEATURE IS BEING FIXED)
 
 ### SplashKit Wasm Library Manual Compilation (JavaScript backend)
 First, install Emscripten version 3.1.48, which is required to successfully build the SplashKit core and compile it to Wasm for browser use. The easiest way to do this is via the `emsdk`. Installation instructions are here - [Getting Started](https://emscripten.org/docs/getting_started/downloads.html)
@@ -136,6 +136,18 @@ emmake make -j8
 ```
 
 For more info, see the [this pull request](https://github.com/thoth-tech/SplashkitOnline/pull/65).
+
+### SplashKit Compiler Library Manual Compilation (C# backend)
+1. Firstly, install the [dotnet SDK](https://dotnet.microsoft.com/en-us/download). Please note at current SKO has **only been tested with SDK 9.0**
+2. Once the dotnet SDK has been installed Run: 
+```bash
+cd CSharpWasm
+chmod +x ./buildAndCopy.sh
+./buildAndCopy.sh
+```
+3. Once this step is complete you should be able to use C# in SKO
+
+If you are using **windows**, please execute the command above using git bash or another terminal emulator. 
 
 ## License
 
