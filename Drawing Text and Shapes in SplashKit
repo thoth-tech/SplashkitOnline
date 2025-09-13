@@ -1,0 +1,29 @@
+# Drawing Text and Shapes in SplashKit
+
+**Author:** Stanoja Jovanovic  
+**Capstone Project A**  
+**Last Updated:** Week 8
+
+---
+
+## 🧭 Overview
+
+This tutorial introduces how to use SplashKit to draw basic text and shapes on the screen. These techniques are useful for creating user interfaces, loading screens, buttons, menus, and HUDs in SplashKit-based games or applications.
+
+---
+
+## 🧱 What You'll Learn
+
+- How to draw text using `DrawText`
+- How to draw shapes like rectangles, circles, and lines
+- How to customize colors, fonts, and positions
+
+---
+
+## 🎨 Drawing Text
+
+SplashKit provides an easy function to draw text to the screen:
+
+```cpp
+DrawText("Hello, SplashKit!", COLOR_WHITE, "Arial", 24, 100, 100);
+
