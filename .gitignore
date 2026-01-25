@@ -9,3 +9,8 @@ splashkit/splashkit_autocomplete.json
 generated/
 __pycache__/
 _framework/
+# macOS
+.DS_Store
+
+# IDE/solution files
+*.sln

@@ -85,7 +85,7 @@ _from
 First, an `ExecutionEnvironment` is created.
 
 From the
-[Source Code Documentation](/products/splashkit/splashkit-online/code-documentation/classes/execution-environment)
+[Source Code Documentation](../reference/classes/execution-environment.md)
 
 > ExecutionEnvironment is a class designed to abstract out running the user's code, and also handle
 > the environment itself (such as resetting variables, preloading files, etc). It contains functions
@@ -94,7 +94,7 @@ From the
 
 When created, an important thing it does is create an iFrame (sort of a page inside the page), which
 is where all code execution will take place. This is done for security, see
-[here](/products/splashkit/splashkit-online/code-documentation/classes/execution-environment/#why-create-an-iframe)
+[here](../reference/classes/execution-environment.md#why-create-an-iframe)
 for a more detailed explanation.
 
 Inside the iFrame, the page `executionEnvironment.html` is loaded, which loads in things like the
@@ -146,7 +146,7 @@ runCodeBlocks(blocks){
 ```
 
 _from
-[executionEnvironment.js](https://github.com/thoth-tech/SplashkitOnline/blob/main/Browser_IDE/executionEnvironment.js)_
+[executionEnvironment.js](https://github.com/thoth-tech/SplashkitOnline/blob/main/javascript/executionEnviroment/executionEnvironment.js)_
 
 So let's have a look at `runCodeBlock`
 
@@ -164,7 +164,7 @@ runCodeBlock(block, source){
 ```
 
 _from
-[executionEnvironment.js](https://github.com/thoth-tech/SplashkitOnline/blob/main/Browser_IDE/executionEnvironment.js)_
+[executionEnvironment.js](https://github.com/thoth-tech/SplashkitOnline/blob/main/javascript/executionEnviroment/executionEnvironment.js)_
 
 First thing it does is call the internal function `_syntaxCheckCode(block, source)`, which as the
 name says, will syntax check the code. The way this syntax checking works is somewhat complicated,
@@ -264,7 +264,7 @@ if (m.data.type == "RunCodeBlock") {
 ```
 
 _from
-[executionEnvironment_Internal.js](https://github.com/thoth-tech/SplashkitOnline/blob/ddb06cec6296d6de905ee0a90084a4c1a71c7a58/Browser_IDE/executionEnvironment_Internal.js#L248C10-L248C10)_
+[executionEnvironment_Internal.js](https://github.com/thoth-tech/SplashkitOnline/blob/main/compilers/javascript/executionEnvironmentInternal.js)_
 
 Let's break this down. First, it tries to run `processCodeForExecutionEnvironment`, passing in the
 user's code and some other parameters. We'll see what that does in a moment, but for now, know that
@@ -485,7 +485,7 @@ function processCodeForExecutionEnvironment(
 ```
 
 _from
-[executionEnvironment_CodeProcessor.js](https://github.com/thoth-tech/SplashkitOnline/blob/ddb06cec6296d6de905ee0a90084a4c1a71c7a58/Browser_IDE/executionEnvironment_CodeProcessor.js#L275)_
+[executionEnvironment_CodeProcessor.js](https://github.com/thoth-tech/SplashkitOnline/blob/main/compilers/javascript/executionEnvironmentCodeProcessor.js)_
 
 We can see it takes the user's code, and also some _names_ for the variables that will handle making
 the code stop/pause/continue - these are the _flags_ mentioned earlier. It also takes the name of a
@@ -530,7 +530,7 @@ async function tryEvalSource(block, source) {
 ```
 
 _from
-[executionEnvironment_Internal.js](https://github.com/thoth-tech/SplashkitOnline/blob/ddb06cec6296d6de905ee0a90084a4c1a71c7a58/Browser_IDE/executionEnvironment_Internal.js#L191)_
+[executionEnvironment_Internal.js](https://github.com/thoth-tech/SplashkitOnline/blob/main/compilers/javascript/executionEnvironmentInternal.js)_
 
 As can be seen, the first thing that happens is that we call `createEvalFunctionAndSyntaxCheck`,
 which does exactly what it says. You'll notice we're syntax checking here as well - this isn't
@@ -545,7 +545,7 @@ return Object.getPrototypeOf(async function () {}).constructor(
 ```
 
 _from
-[executionEnvironment_Internal.js](https://github.com/thoth-tech/SplashkitOnline/blob/ddb06cec6296d6de905ee0a90084a4c1a71c7a58/Browser_IDE/executionEnvironment_Internal.js#L179C44-L179C44)_
+[executionEnvironment_Internal.js](https://github.com/thoth-tech/SplashkitOnline/blob/main/compilers/javascript/executionEnvironmentInternal.js)_
 
 Here's where the user's code _finally_ becomes a real function, that will actually be called! Notice
 it looks a little different to the `new Function("...")` example earlier. This is because, it's
@@ -592,7 +592,7 @@ executionEnviroment.runProgram();
 ```
 
 _from
-[editorMain.js - runProgram()](https://github.com/thoth-tech/SplashkitOnline/blob/ddb06cec6296d6de905ee0a90084a4c1a71c7a58/Browser_IDE/editorMain.js#L194C6-L194C6)_
+[editorMain.js - runProgram()](https://github.com/thoth-tech/SplashkitOnline/blob/main/javascript/UI/editorMain.js)_
 
 We now know what `runAllCodeBlocks` does quite well - it syntax checks the code, sends it to the
 iFrame, the code gets transformed, stuffed into a function, and then run! So what does
@@ -621,7 +621,7 @@ async function runProgram() {
 ```
 
 _from
-[executionEnvironment_Internal.js](https://github.com/thoth-tech/SplashkitOnline/blob/ddb06cec6296d6de905ee0a90084a4c1a71c7a58/Browser_IDE/executionEnvironment_Internal.js#L223)_
+[executionEnvironment_Internal.js](https://github.com/thoth-tech/SplashkitOnline/blob/main/compilers/javascript/executionEnvironmentInternal.js)_
 
 Let's break this down.
 
@@ -703,7 +703,7 @@ async function tryRunFunction_Internal(func) {
 ```
 
 _from
-[executionEnvironment_Internal.js](https://github.com/thoth-tech/SplashkitOnline/blob/ddb06cec6296d6de905ee0a90084a4c1a71c7a58/Browser_IDE/executionEnvironment_Internal.js#L138)_
+[executionEnvironment_Internal.js](https://github.com/thoth-tech/SplashkitOnline/blob/main/compilers/javascript/executionEnvironmentInternal.js)_
 
 We can see it takes the user's function (for instance, the user's `main()`, or the `AsyncFunctions`
 we made from their code blocks), and tries to run it. It waits for it to finish with `await`, and if
@@ -753,7 +753,7 @@ if (file.startsWith(userCodeBlockIdentifier)) lineNumber -= userCodeStartLineOff
 ```
 
 _from
-[executionEnvironment_Internal.js - parseErrorStack](https://github.com/thoth-tech/SplashkitOnline/blob/ddb06cec6296d6de905ee0a90084a4c1a71c7a58/Browser_IDE/executionEnvironment_Internal.js#L123)_
+[executionEnvironment_Internal.js - parseErrorStack](https://github.com/thoth-tech/SplashkitOnline/blob/main/compilers/javascript/executionEnvironmentInternal.js)_
 
 Once we have extracted the line number, we check to see if the file name starts with the
 `userCodeBlockIdentifier` (remember this from earlier, when we added the `//# sourceURL=` to the
