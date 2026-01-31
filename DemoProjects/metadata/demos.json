@@ -20,5 +20,13 @@
 			"file": "DemoProjects/CaveEscapeCXX.zip",
 			"thumbnail": "DemoProjects/metadata/CaveEscape.png"
 		}
+	],
+	[
+		{
+			"title": "Arrow Game (C#)",
+			"language": "C#",
+			"file": "DemoProjects/ArrowGamecsharp.zip",
+			"thumbnail": "DemoProjects/metadata/ArrowGame.png"
+		}
 	]
 ]
