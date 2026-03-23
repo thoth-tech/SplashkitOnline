@@ -1,6 +1,6 @@
 "use strict";
 
-let wlzmaPath = self['wlzmaCustomPath'] || "./external/js-lzma/src/wlzma.wrk.js";
+let wlzmaPath = self['wlzmaCustomPath'] || "./js-lzma/src/wlzma.wrk.js";
 let downloadRootPath = self['downloadRootPath'] || "./";
 
 // url patch map
