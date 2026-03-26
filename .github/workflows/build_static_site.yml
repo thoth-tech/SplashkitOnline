@@ -85,7 +85,7 @@ jobs:
         uses: actions/upload-artifact@v4.4.3
         with:
           name: preview-${{ github.sha }}
-          path: ./splashkitonline/Browser_IDE
+          path: ./splashkitonline
           retention-days: 1
           compression-level: 8
           overwrite: true
