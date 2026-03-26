@@ -1,124 +1,170 @@
-set -e
-#build_static_site.sh <sha> <workflow event_name> <username/repo>
+#!/usr/bin/env bash
+set -euo pipefail
 
-# Do we need to build?
-cd ./splashkitonline
-# only build if the SplashKitWasm folder has changed, or if this was a push to a branch (so branches always build)
-if ! git diff --quiet $(git merge-base "origin/main" "$1").."$1" -- SplashKitWasm &>/dev/null || [ "$2" == "push" ]; then
-    cd ../
+# build_static_site.sh <sha> <workflow event_name> <username/repo>
+
+ROOT_DIR="$(pwd)"
+REPO_DIR="$ROOT_DIR/splashkitonline"
+PREBUILT_DIR="$ROOT_DIR/prebuilt"
+
+echo "========================================"
+echo "Build Static Site Script"
+echo "Repo dir: $REPO_DIR"
+echo "========================================"
+
+cd "$REPO_DIR"
+
+# Only build WASM binaries if SplashKitWasm changed, or if this is a push
+if ! git diff --quiet "$(git merge-base "origin/main" "$1")..$1" -- SplashKitWasm &>/dev/null || [ "$2" = "push" ]; then
+    cd "$ROOT_DIR"
 
     echo "========================================"
-    echo "Downloading Compilation Pre-builts (To improve...these should be buildable too)"
+    echo "Downloading Compilation Pre-builts"
     echo "========================================"
-    mkdir -p ./splashkitonline/SplashKitWasm/prebuilt/cxx/compiler/
-    cd ./splashkitonline/SplashKitWasm/prebuilt/cxx/compiler/
+
+    mkdir -p "$REPO_DIR/SplashKitWasm/prebuilt/cxx/compiler"
+    cd "$REPO_DIR/SplashKitWasm/prebuilt/cxx/compiler"
+
     wget -O clang++.js https://raw.githubusercontent.com/WhyPenguins/SplashkitOnline/github-live/Browser_IDE/compilers/cxx/bin/clang++.js
     wget -O clang.wasm.lzma https://raw.githubusercontent.com/WhyPenguins/SplashkitOnline/github-live/Browser_IDE/compilers/cxx/bin/clang.wasm.lzma
     wget -O wasm-ld.js https://raw.githubusercontent.com/WhyPenguins/SplashkitOnline/github-live/Browser_IDE/compilers/cxx/bin/wasm-ld.js
     wget -O lld.wasm.lzma https://raw.githubusercontent.com/WhyPenguins/SplashkitOnline/github-live/Browser_IDE/compilers/cxx/bin/lld.wasm.lzma
     wget -O sysroot.zip https://github.com/WhyPenguins/SplashkitOnline/raw/refs/heads/cxx_language_backend_binaries/SplashKitWasm/prebuilt/sysroot.zip
-    # decompress them - silly since they'll just be re-compressed again, but it is what it is for now...
-    xz -d clang.wasm.lzma
-    xz -d lld.wasm.lzma
 
-    cd ../../../../../
+    # Decompress downloaded wasm archives
+    xz -d -f clang.wasm.lzma
+    xz -d -f lld.wasm.lzma
+
+    cd "$ROOT_DIR"
 
     echo "========================================"
     echo "Set Up Compilation Environment"
     echo "========================================"
 
     sudo apt-get -qq update
-    sudo apt-get install -y build-essential cmake libpng-dev libcurl4-openssl-dev libsdl2-dev libsdl2-mixer-dev libsdl2-gfx-dev libsdl2-image-dev libsdl2-net-dev libsdl2-ttf-dev libmikmod-dev libbz2-dev libflac-dev libvorbis-dev libwebp-dev
+    sudo apt-get install -y \
+        build-essential \
+        cmake \
+        libpng-dev \
+        libcurl4-openssl-dev \
+        libsdl2-dev \
+        libsdl2-mixer-dev \
+        libsdl2-gfx-dev \
+        libsdl2-image-dev \
+        libsdl2-net-dev \
+        libsdl2-ttf-dev \
+        libmikmod-dev \
+        libbz2-dev \
+        libflac-dev \
+        libvorbis-dev \
+        libwebp-dev
+
     git clone https://github.com/emscripten-core/emsdk.git
     ./emsdk/emsdk install 3.1.48
-
 
     echo "========================================"
     echo "Build SplashKit WASM Libraries"
     echo "========================================"
 
-    cd emsdk
+    cd "$ROOT_DIR/emsdk"
     ./emsdk activate 3.1.48
+    # shellcheck disable=SC1091
     source ./emsdk_env.sh
-    cd ../
-    mkdir -p ./splashkitonline/SplashKitWasm/out/cxx/compiler/ # this one is due to a mistake in old CMakeLists, can be removed soon
-    # build this as well...
+    cd "$ROOT_DIR"
 
+    mkdir -p "$REPO_DIR/SplashKitWasm/out/cxx/compiler"
 
-    cd ./splashkitonline/SplashKitWasm/cmake/
-
-    emcmake cmake -G "Unix Makefiles" -DENABLE_JS_BACKEND=ON -DENABLE_CPP_BACKEND=ON -DENABLE_FUNCTION_OVERLOADING=ON -DCOMPRESS_BACKENDS=ON .
+    cd "$REPO_DIR/SplashKitWasm/cmake"
+    emcmake cmake -G "Unix Makefiles" \
+        -DENABLE_JS_BACKEND=ON \
+        -DENABLE_CPP_BACKEND=ON \
+        -DENABLE_FUNCTION_OVERLOADING=ON \
+        -DCOMPRESS_BACKENDS=ON .
     emmake make -j8
 
-    cd ../../../
+    cd "$ROOT_DIR"
 
 else
-
     echo "========================================"
     echo "Using Precompiled Binaries from Main"
     echo "========================================"
 
-    cd ../
+    cd "$REPO_DIR"
 
-    # Rather than building, we'll just grab the compiled binaries from the main release.
-    # To do this, we'll copy over all completely untracked files from it, which will correctly
-    # handle if the PR has deleted files since branching from main.
-    # Perhaps there's a cleaner way :)
-
-    # first let's get a list of files _not_ to copy
-    cd ./splashkitonline
-    TRACKED_FILES=$(git log --pretty=format: --name-only --diff-filter=A -- Browser_IDE| sort - | sed '/^$/d')
+    # Get a list of tracked files so we only overlay prebuilt generated/static output
+    TRACKED_FILES=$(git log --pretty=format: --name-only --diff-filter=A -- . | sort -u | sed '/^$/d')
     EXCLUDE_FILE=$(mktemp)
-    echo "$TRACKED_FILES" | sed "s|^Browser_IDE||" > "$EXCLUDE_FILE"
+    echo "$TRACKED_FILES" > "$EXCLUDE_FILE"
 
-    # add some explicit excludes
-    echo "/codemirror-5.65.15" >> "$EXCLUDE_FILE"
-    echo "/jszip" >> "$EXCLUDE_FILE"
-    echo "/babel" >> "$EXCLUDE_FILE"
-    echo "/split.js" >> "$EXCLUDE_FILE"
-    echo "/mime" >> "$EXCLUDE_FILE"
-    echo "/DemoProjects" >> "$EXCLUDE_FILE"
-    echo "/node_modules" >> "$EXCLUDE_FILE"
+    # Explicit excludes
+    {
+        echo "/codemirror-5.65.15"
+        echo "/jszip"
+        echo "/babel"
+        echo "/split.js"
+        echo "/mime"
+        echo "/node_modules"
+        echo "/prebuilt"
+    } >> "$EXCLUDE_FILE"
 
-    cd ../
+    cd "$ROOT_DIR"
 
-    mkdir prebuilt
-    cd prebuilt
-    # Download main's latest release
+    rm -rf "$PREBUILT_DIR"
+    mkdir -p "$PREBUILT_DIR"
+    cd "$PREBUILT_DIR"
+
     wget "https://github.com/$3/releases/download/branch%2Fmain/splashkitonline-static-site-branch_main.zip"
     unzip splashkitonline-static-site-branch_main.zip
     rm splashkitonline-static-site-branch_main.zip
-    cd ../
 
-    # copy in all the untracked files!
-    rsync -av --progress --exclude-from="$EXCLUDE_FILE" "prebuilt/" "splashkitonline/Browser_IDE/"
+    cd "$ROOT_DIR"
 
+    # Copy in all untracked/generated files from the release into repo root
+    rsync -av --progress --exclude-from="$EXCLUDE_FILE" "$PREBUILT_DIR/" "$REPO_DIR/"
+
+    rm -f "$EXCLUDE_FILE"
 fi
-
 
 echo "========================================"
 echo "Install Node Dependencies"
 echo "========================================"
-cd ./splashkitonline/Browser_IDE
-
+cd "$REPO_DIR"
 npm install
-
-cd ../../
-
-
 
 echo "========================================"
 echo "Re-Structure Static Site"
 echo "========================================"
-cd ./splashkitonline/Browser_IDE
 
-# if changed, remember to update the explicit excludes above
-mv ./splashkitonline/Browser_IDE/node_modules/codemirror ./splashkitonline/Browser_IDE/codemirror-5.65.15
-mv ./splashkitonline/Browser_IDE/node_modules/jszip/dist ./splashkitonline/Browser_IDE/jszip
-mv ./splashkitonline/Browser_IDE/node_modules/@babel/standalone ./splashkitonline/Browser_IDE/babel
-mv ./splashkitonline/Browser_IDE/node_modules/split.js/dist ./splashkitonline/Browser_IDE/split.js
-mv ./splashkitonline/Browser_IDE/node_modules/mime/dist ./splashkitonline/Browser_IDE/mime
-rm -rf ./splashkitonline/Browser_IDE/js-lzma/data
-mv ./splashkitonline/DemoProjects ./splashkitonline/Browser_IDE/DemoProjects
+# If changed, remember to update explicit excludes above
+if [ -d node_modules/codemirror ]; then
+    rm -rf codemirror-5.65.15
+    mv node_modules/codemirror codemirror-5.65.15
+fi
 
-cd ../
+if [ -d node_modules/jszip/dist ]; then
+    rm -rf jszip
+    mv node_modules/jszip/dist jszip
+fi
+
+if [ -d node_modules/@babel/standalone ]; then
+    rm -rf babel
+    mv node_modules/@babel/standalone babel
+fi
+
+if [ -d node_modules/split.js/dist ]; then
+    rm -rf split.js
+    mv node_modules/split.js/dist split.js
+fi
+
+if [ -d node_modules/mime/dist ]; then
+    rm -rf mime
+    mv node_modules/mime/dist mime
+fi
+
+if [ -d js-lzma/data ]; then
+    rm -rf js-lzma/data
+fi
+
+echo "========================================"
+echo "Static site preparation complete"
+echo "========================================"
