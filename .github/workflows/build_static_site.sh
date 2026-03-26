@@ -113,12 +113,12 @@ echo "========================================"
 cd ./splashkitonline/Browser_IDE
 
 # if changed, remember to update the explicit excludes above
-mv node_modules/codemirror codemirror-5.65.15
-mv node_modules/jszip/dist jszip
-mv node_modules/@babel/standalone babel
-mv node_modules/split.js/dist split.js
-mv node_modules/mime/dist mime
-rm -rf js-lzma/data
-mv ../DemoProjects DemoProjects
+mv ./splashkitonline/Browser_IDE/node_modules/codemirror ./splashkitonline/Browser_IDE/codemirror-5.65.15
+mv ./splashkitonline/Browser_IDE/node_modules/jszip/dist ./splashkitonline/Browser_IDE/jszip
+mv ./splashkitonline/Browser_IDE/node_modules/@babel/standalone ./splashkitonline/Browser_IDE/babel
+mv ./splashkitonline/Browser_IDE/node_modules/split.js/dist ./splashkitonline/Browser_IDE/split.js
+mv ./splashkitonline/Browser_IDE/node_modules/mime/dist ./splashkitonline/Browser_IDE/mime
+rm -rf ./splashkitonline/Browser_IDE/js-lzma/data
+mv ./splashkitonline/DemoProjects ./splashkitonline/Browser_IDE/DemoProjects
 
 cd ../
