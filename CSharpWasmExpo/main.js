@@ -2,6 +2,11 @@ import { dotnet } from "./wwwroot/_framework/dotnet.js";
 import methods from "./splashKitMethods.generated.js";
 
 const parseMethods = (methods) => {
+  if (!methods || typeof methods !== "string") {
+    console.error("[SplashKit WASM] Invalid method list received.");
+    return {};
+  }
+
   const methodList = methods
     .split(",")
     .map((method) => method.trim().replace("\n", ""))
@@ -11,9 +16,13 @@ const parseMethods = (methods) => {
 
   for (const name of methodList) {
     try {
-      bindingsFunctions[name] = eval(name);
+      if (typeof window[name] === "function") {
+        bindingsFunctions[name] = window[name];
+      } else {
+        console.warn(`[SplashKit WASM] Missing function: ${name}`);
+      }
     } catch (e) {
-      console.warn(e);
+      console.warn(`[SplashKit WASM] Error loading function: ${name}`, e);
     }
   }
 
@@ -27,6 +36,14 @@ const loadDotNet = async () => {
     .create();
 
   const skFunctions = parseMethods(methods);
+
+  skFunctions.process_events = () => {
+    if (typeof __sko_process_events === "function") {
+      return __sko_process_events();
+    }
+
+    console.warn("[SplashKit WASM] process_events is not wired properly.");
+  };
 
   setModuleImports("main.js", {
     window: {
