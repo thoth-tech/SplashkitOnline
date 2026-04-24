@@ -9,3 +9,4 @@ splashkit/splashkit_autocomplete.json
 generated/
 __pycache__/
 _framework/.DS_Store
+CSharpWasmExpo/wwwroot/
