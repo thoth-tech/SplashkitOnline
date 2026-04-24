@@ -8,4 +8,4 @@ out/
 splashkit/splashkit_autocomplete.json
 generated/
 __pycache__/
-_framework/
+_framework/.DS_Store
