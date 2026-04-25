@@ -35,7 +35,6 @@ Explains how each JavaScript file fits into the IDE startup, loading, and runtim
 | `javascript/middleware/actionQueue.js` | Task scheduler | Manages ordered async initialization tasks |
 | `javascript/middleware/downloadHandler.js` | Asset downloader | Handles downloading and extracting project/assets |
 | `javascript/communication/communication.js` | Messaging layer | Handles inter-module messaging system |
-| `javascript/layout/layout.js` | Layout manager | Controls IDE layout structure and panels |
 | `javascript/languages/languageDefinitions.js` | Language registry | Defines supported languages and configuration |
 | `compilers/compiler.js` | Compiler coordinator | Central registry and dispatch for language compilers |
 
@@ -59,8 +58,8 @@ Explains how each JavaScript file fits into the IDE startup, loading, and runtim
 
 | File | Role | Responsibilities |
 |------|------|------------------|
-| `javascript/executionEnviroment/executionEnvironment.js` | Execution controller | Manages sandbox/iframe execution lifecycle |
-| `javascript/executionEnviroment/executionEnvironment_Page.js` | Output renderer | Displays runtime output, logs, and errors |
+| `javascript/executionEnvironment/executionEnvironment.js` | Execution controller | Manages sandbox/iframe execution lifecycle |
+| `javascript/executionEnvironment/executionEnvironment_Page.js` | Output renderer | Displays runtime output, logs, and errors |
 | `compilers/javascript/executionEnvironmentInternal.js` | Execution bridge engine | Executes transformed JavaScript within controlled runtime context |
 | `moduleEventTarget.js` | Event system | Central pub/sub event dispatcher |
 | `loadsplashkit.js` | WASM bootstrapper | Loads SplashKit WebAssembly runtime |
@@ -180,14 +179,14 @@ index.html
 &emsp;&emsp;&emsp;&emsp;↳ moduleEventTarget.js  
 &emsp;&emsp;&emsp;&emsp;↳ loadsplashkit.js  
 &emsp;&emsp;&emsp;&emsp;↳ fsevents.js  
-&emsp;&emsp;&emsp;&emsp;↳ executionEnvironment_CodeProcessor.js  
-&emsp;&emsp;&emsp;&emsp;↳ executionEnvironment_Internal.js  
+&emsp;&emsp;&emsp;&emsp;↳ executionEnvironmentCodeProcessor.js  
+&emsp;&emsp;&emsp;&emsp;↳ executionEnvironmentInternal.js  
 
 &emsp;&emsp;4. UI + DOM Utilities  
 &emsp;&emsp;&emsp;↳ HTMLBuilderUtil.js  
 
 &emsp;&emsp;5. Execution Environment Setup  
-&emsp;&emsp;&emsp;↳ executionEnvironment.js  
+&emsp;&emsp;&emsp;↳ executionEnvironnment.js  
 &emsp;&emsp;&emsp;&emsp;↳ executionEnvironment.html  
 &emsp;&emsp;&emsp;&emsp;&emsp;↳ executionEnvironment_Page.js  
 &emsp;&emsp;&emsp;&emsp;&emsp;↳ ExecutionEnvironmentInternalLoader.js  
@@ -203,7 +202,6 @@ index.html
 &emsp;&emsp;&emsp;↳ modal.js  
 &emsp;&emsp;&emsp;↳ notifications.js  
 &emsp;&emsp;&emsp;↳ treeview.js  
-&emsp;&emsp;&emsp;↳ fallibleMessage.js  
 
 &emsp;&emsp;8. Editor + IDE Interface  
 &emsp;&emsp;&emsp;↳ editorMain.js  
@@ -323,13 +321,13 @@ Credits to the developers of splashkit online for documenting this function deep
     For example `let a = 10;` becomes `window.a = 10;`. `function func(){}` becomes `window.func = function func(){}`.
     To reset the globals, we just delete all the variables in findGlobalDeclarationsTransform__userScope (`delete window[globalVar];`)
 
-### executionEnvironment_Internal.js
+### ExecutionEnvironmentInternal.js
 - Manages execution control, reset logic, and exception handling for the user's code.
 - Provides `runProgram()`, `stopProgram()`, and `pauseProgram()` for runtime control.
 - Cleans global scope and memory between runs using `ResetExecutionScope()`.
 - Parses stack traces to map error lines back to user code for accurate error reporting with `parseErrorStack`.
 - Attaches to FS events using `FSEvents` to report back file system changes.
-- Dispatches execution state (started, stopped, paused) to the parent page.
+- Dispatches execution state (started, stopped, paused) to the parent page.       
 
 ### HTMLBuilderUtil.js
 - Provides helper functions for dynamically creating and manipulating HTML elements.
@@ -360,7 +358,7 @@ Credits to the developers of splashkit online for documenting this function deep
 - Registers event listeners for output messages and error reporting.
 - Implements basic loading UI: progress bar, failure message, and visibility toggles.
 
-### ExecutionEnvironmentInternalLoader.js
+### executionEnvironmentInternalLoader.js
 - Loads language-specific runtime JS files dynamically using `<script>` tags.
 - Tracks download progress via a manual progress reporting system.
 - Registers a Service Worker (if required) to handle program input events (mouse/keyboard).
@@ -427,12 +425,6 @@ Credits to the developers of splashkit online for documenting this function deep
 - Reacts to file system events to update the tree in real-time.
 - Supports file/folder creation, deletion, renaming, moving, and uploads through UI events.
 
-### fallibleMessage.js
-- Manages messaging between windows/frames using promises and callback IDs.
-- The `PromiseChannel` class wraps `postMessage` with support for temp callbacks and signal based messages.
-- Used heavily by `executionEnvironment.js` to interact with the sandboxed iframe.
-- provides bidirectional communication between the execution environment and the editor
-
 ### editorMain.js
 - Builds the tabbed editor UI using CodeMirror for syntax highlighting and autocomplete.
 - Manages multiple file tabs with support for open, close, rename, and autosave.
@@ -472,6 +464,16 @@ Credits to the developers of splashkit online for documenting this function deep
 - Handles initialization of the UI, compiler, project storage, and sandbox.
 - Defines `StartIDE()` as the main startup entrypoint.
 
+### layout.js
+- Controls IDE panel layout structure
+- Manages resizing and UI panel organization
+- Initialized early during UI setup phase
+
+### communication.js
+- Central messaging layer between IDE modules
+- Used for sending events between compiler, execution environment, and UI
+- Enables decoupled communication instead of direct imports
+
 
 ### themes.js
 - Defines multiple color themes as JSON objects that map to CSS variable values.
@@ -481,6 +483,7 @@ Credits to the developers of splashkit online for documenting this function deep
 - Resets to default theme when no theme is selected.
 - Meant to override visual properties like background, comment color, and keyword color.
 - Intended for flexible customization without changing CSS files directly.
+- Should be applied after DOM/UI initialization (layout.js + editorMain.js) to ensure all theme-targeted elements exist before CSS variables are applied
 
 ---
 
