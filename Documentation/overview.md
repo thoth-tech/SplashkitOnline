@@ -126,57 +126,93 @@ Explains how each JavaScript file fits into the IDE startup, loading, and runtim
 ---
 ## Loading & Initialization Flow
 
+---
+
 ### Server Side
 
 server.js  
 ↳ setup.js  
+↳ node_modules (dependency ecosystem injected at runtime via npm install)  
+↳ Node.js module resolution system  
+   ↳ injects dependencies using require() at runtime  
+   ↳ resolves Express, middleware, build tools, and setup utilities  
+
+↳ Static folder injection  
+   ↳ assets/ (images, icons, UI resources)  
+   ↳ DemoProjects/ (prebuilt project templates)  
+   ↳ SplashKitWasm/ (WASM runtime and build artifacts served to client)  
 
 ---
+
 ### Client Side
 
 index.html  
+↳ Client entry point (triggers full IDE initialization sequence)
+
 &emsp;↳ Header  
 &emsp;&emsp;↳ Loads client-side external packages  
-&emsp;&emsp;&emsp;↳ Codemirror assets (browser code editor)  
+&emsp;&emsp;&emsp;↳ CodeMirror assets (browser code editor)  
 &emsp;&emsp;&emsp;↳ Bootstrap  
 &emsp;&emsp;&emsp;↳ JSZip  
+
 &emsp;&emsp;↳ Loads stylesheets  
 &emsp;&emsp;&emsp;↳ baseTheme.css  
 &emsp;&emsp;&emsp;↳ colours.css  
 &emsp;&emsp;&emsp;↳ stylesheet.css  
-&emsp;&emsp;&emsp;↳ (Includes bootstrap & codemirror styles)  
+&emsp;&emsp;&emsp;↳ (Includes Bootstrap & CodeMirror styles)  
+
 &emsp;&emsp;↳ splashkit-javascript-hint.js  
 
-&emsp;↳ Footer  
-&emsp;&emsp;↳ splashKitOnlineEnvParams.js  
-&emsp;&emsp;↳ downloadHandler.js  
-&emsp;&emsp;↳ compiler.js  
-&emsp;&emsp;↳ languageDefinitions.js  
-&emsp;&emsp;&emsp;↳ moduleEventTarget.js  
-&emsp;&emsp;&emsp;↳ loadsplashkit.js  
-&emsp;&emsp;&emsp;↳ fsevents.js  
-&emsp;&emsp;&emsp;↳ executionEnvironment_CodeProcessor.js  
-&emsp;&emsp;&emsp;↳ executionEnvironment_Internal.js  
-&emsp;&emsp;↳ HTMLBuilderUtil.js  
-&emsp;&emsp;↳ executionEnvironment.js  
-&emsp;&emsp;&emsp;↳ executionEnvironment.html  
-&emsp;&emsp;&emsp;&emsp;↳ executionEnvironment_Page.js  
-&emsp;&emsp;&emsp;&emsp;↳ ExecutionEnvironmentInternalLoader.js  
-&emsp;&emsp;&emsp;&emsp;&emsp;↳ SKOservice-worker.js  
-&emsp;&emsp;↳ AppStorage.js  
-&emsp;&emsp;↳ IDBStoredProject.js  
-&emsp;&emsp;↳ unifiedfs.js  
-&emsp;&emsp;↳ projectInitializer.js  
-&emsp;&emsp;↳ modal.js  
-&emsp;&emsp;↳ notifications.js  
-&emsp;&emsp;↳ treeview.js  
-&emsp;&emsp;↳ fallibleMessage.js  
-&emsp;&emsp;↳ editorMain.js  
-&emsp;&emsp;↳ fileview.js  
-&emsp;&emsp;↳ projectLoadUI.js  
-&emsp;&emsp;↳ actionQueue.js  
-&emsp;&emsp;↳ IDEStartupMain.js  
-&emsp;&emsp;↳ themes.js  
+---
+
+&emsp;↳ Footer (Initialization Pipeline Order)
+
+&emsp;&emsp;1. Environment Configuration  
+&emsp;&emsp;&emsp;↳ splashKitOnlineEnvParams.js  
+
+&emsp;&emsp;2. Asset + Runtime Download System  
+&emsp;&emsp;&emsp;↳ downloadHandler.js  
+
+&emsp;&emsp;3. Compiler System Initialization  
+&emsp;&emsp;&emsp;↳ compiler.js  
+&emsp;&emsp;&emsp;↳ languageDefinitions.js  
+
+&emsp;&emsp;&emsp;&emsp;↳ moduleEventTarget.js  
+&emsp;&emsp;&emsp;&emsp;↳ loadsplashkit.js  
+&emsp;&emsp;&emsp;&emsp;↳ fsevents.js  
+&emsp;&emsp;&emsp;&emsp;↳ executionEnvironment_CodeProcessor.js  
+&emsp;&emsp;&emsp;&emsp;↳ executionEnvironment_Internal.js  
+
+&emsp;&emsp;4. UI + DOM Utilities  
+&emsp;&emsp;&emsp;↳ HTMLBuilderUtil.js  
+
+&emsp;&emsp;5. Execution Environment Setup  
+&emsp;&emsp;&emsp;↳ executionEnvironment.js  
+&emsp;&emsp;&emsp;&emsp;↳ executionEnvironment.html  
+&emsp;&emsp;&emsp;&emsp;&emsp;↳ executionEnvironment_Page.js  
+&emsp;&emsp;&emsp;&emsp;&emsp;↳ ExecutionEnvironmentInternalLoader.js  
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;↳ SKOservice-worker.js  
+
+&emsp;&emsp;6. Storage & Filesystem Layer  
+&emsp;&emsp;&emsp;↳ AppStorage.js  
+&emsp;&emsp;&emsp;↳ IDBStoredProject.js  
+&emsp;&emsp;&emsp;↳ unifiedfs.js  
+&emsp;&emsp;&emsp;↳ projectInitializer.js  
+
+&emsp;&emsp;7. UI Layer Initialization  
+&emsp;&emsp;&emsp;↳ modal.js  
+&emsp;&emsp;&emsp;↳ notifications.js  
+&emsp;&emsp;&emsp;↳ treeview.js  
+&emsp;&emsp;&emsp;↳ fallibleMessage.js  
+
+&emsp;&emsp;8. Editor + IDE Interface  
+&emsp;&emsp;&emsp;↳ editorMain.js  
+&emsp;&emsp;&emsp;↳ fileview.js  
+&emsp;&emsp;&emsp;↳ projectLoadUI.js  
+&emsp;&emsp;&emsp;↳ actionQueue.js  
+&emsp;&emsp;&emsp;↳ IDEStartupMain.js  
+&emsp;&emsp;&emsp;↳ themes.js  
+
 
 ---
 ## Server Side Component Interactions
