@@ -5,40 +5,123 @@
 
 Explains how each JavaScript file fits into the IDE startup, loading, and runtime process. Shows how the pieces interact to build the editor and initialize the environment. This documentation explains the software architecture of the IDE, helping developers better understand how the system works. This makes it easier to navigate, extend, and debug.
 
+---
 
 ## Files Overview
 
-| File                                    | Role                               | Responsibilities                                                                                                            |
-|-----------------------------------------|------------------------------------|-----------------------------------------------------------------------------------------------------------------------------|
-| `server.js`                             | Server entry point                 | Serves `index.html` and assets on port 8000; starts the web server                                                          |
-| `setup.js`                              | Dependency manager                 | Checks for and downloads missing backend WASM and JSON dependencies                                                         |
-| `splashKitOnlineEnvParams.js`           | Runtime config initializer         | Sets global runtime environment variables and IDE parameters                                                                |
-| `downloadHandler.js`                    | File download utility              | Handles user-initiated project/file downloads                                                                               |
-| `compiler.js`                           | Compiler controller class          | Registers available compilers and provides a unified interface to invoke language-specific compilation                                                          |
-| `languageDefinitions.js`                | Language metadata                  | Defines supported languages, file extensions, and compiler/runtime mappings                                                                       |
-| `moduleEventTarget.js`                  | EventTarget wrapper                | Provides a centralized event dispatch/listen mechanism used across modules                                                                                                |
-| `loadsplashkit.js`                      | WASM runtime bootstrapper          | Loads SplashKit WASM modules, initializes runtime environment, and connects output/input event handling                                    |
-| `fsevents.js`                           | FS event dispatcher                | Emits filesystem-related events (read/write/update) from the virtual FS to sync UI and storage                          |
-| `executionEnvironmentCodeProcessor.js` | Code transformer & runtime patcher | Transforms user code (via Babel) to support async execution, pausing, and safe runtime integration                                                             |
-| `executionEnvironmentInternal.js`      | Sandbox execution controller       | Core engine for executing user programs; manages lifecycle (run, pause, stop, reset) inside sandbox                                                  |
-| `HTMLBuilderUtil.js`                    | HTML utility functions             | Generates or modifies HTML snippets dynamically                                                                             |
-| `executionEnvironment.js`               | Sandbox runtime controller         | Bridges IDE and iframe sandbox; sends commands and receives execution state/output                                                            |
-| `executionEnvironment_Page.js`          | Terminal & UI Output Handler       | Handles rendering program output, terminal text, errors, and canvas display inside execution environment               |
-| `ExecutionEnvironmentInternalLoader.js` | Runtime bootstrap loader           | Loads runtime scripts inside sandbox, initializes environment, and signals readiness to parent IDE      |
-| `SKOservice-worker.js`                  | Program event relay worker         | Captures and forwards user input events (keyboard/mouse) to the running program via service worker                                                |
-| `AppStorage.js`                         | Local storage interface            | Provides direct access to browser storage APIs                                                                              |
-| `IDBStoredProject.js`                   | IndexedDB file storage             | Handles saving/loading of project files using IndexedDB                                                                     |
-| `unifiedfs.js`                          | Virtual filesystem bridge          | Integrates in-memory FS with persistent storage, providing a unified file system interface                                                        |
-| `projectInitializer.js`                 | Project loader/initializer         | Loads files into editor, sets up project state                                                                              |
-| `modal.js`                              | Modal controller                   | Manages modal windows for alerts, file dialogs, etc.                                                                        |
-| `notifications.js`                      | Notification system                | Displays notifications in designated notification area for inline IDE alerts and error messages                             |
-| `treeview.js`                           | File tree UI manager               | Renders the sidebar file explorer and handles file selection                                                                |
-| `editorMain.js`                         | Code editor integrator             | Boots up and configures the CodeMirror editor instance and acts as a high level class                                       |
-| `fileview.js`                           | File panel UI manager              | Coordinates file selection, opening, and syncing between tree view and editor                                                            |
-| `projectLoadUI.js`                      | Project UI feedback handler        | Shows UI for loading demo projects and provides indicators or errors during project load                                    |
-| `actionQueue.js`                        | Action sequencing engine           | Manages async task execution, ordering, cancellation, and dependency in the form of a queue                                 |
-| `IDEStartupMain.js`                     | IDE bootstrap coordinator          | Orchestrates full IDE startup sequence, initializing UI, storage, compilers, and execution environment                                               |
-| `themes.js`                             | Theme manager                      | Defines and applies color themes by modifying CSS variables; updates UI via dropdown                                        |
+---
+
+## Server Layer
+
+| File | Role | Responsibilities |
+|------|------|------------------|
+| `server.js` | Server entry point | Starts Express server, serves `index.html` and static assets |
+| `setup.js` | Dependency bootstrapper | Ensures backend dependencies and WASM assets are available |
+| `setup.py` | Python setup helper | Supports build/setup automation for tooling |
+| `package.json` | Node project definition | Defines dependencies and scripts |
+| `package-lock.json` | Dependency lockfile | Ensures consistent installs |
+| `node_modules/` | Dependency ecosystem | Contains installed Node.js packages used by the server |
+
+---
+
+## Startup & Orchestration Layer
+
+| File | Role | Responsibilities |
+|------|------|------------------|
+| `javascript/startup/IDEStartupMain.js` | IDE bootstrapper | Coordinates full IDE initialization flow |
+| `javascript/startup/projectInitializer.js` | Project loader | Loads or creates initial workspace/project |
+| `javascript/startup/projectLoadUI.js` | Project selection UI | Handles demo/project selection interface |
+| `javascript/startup/splashKitOnlineEnvParams.js` | Runtime config | Sets environment parameters for IDE runtime |
+| `javascript/middleware/actionQueue.js` | Task scheduler | Manages ordered async initialization tasks |
+| `javascript/middleware/downloadHandler.js` | Asset downloader | Handles downloading and extracting project/assets |
+| `javascript/communication/communication.js` | Messaging layer | Handles inter-module messaging system |
+| `javascript/layout/layout.js` | Layout manager | Controls IDE layout structure and panels |
+| `javascript/languages/languageDefinitions.js` | Language registry | Defines supported languages and configuration |
+| `compilers/compiler.js` | Compiler coordinator | Central registry and dispatch for language compilers |
+
+---
+
+## Compiler System
+
+| File | Role | Responsibilities |
+|------|------|------------------|
+| `compilers/compiler.js` | Compiler controller | Registers and manages all language compilers |
+| `compilers/javascript/javascriptCompiler.js` | JavaScript compiler | Executes JavaScript code in browser runtime |
+| `compilers/cxx/cxxCompiler.js` | C++ compiler frontend | Interfaces with WASM/Clang backend |
+| `compilers/cxx/cxxCompilerClangBackend.js` | WASM backend bridge | Connects compiler to Clang WebAssembly toolchain |
+| `compilers/cxx/cxxCompilerClangWebWorker.js` | Background compiler worker | Runs C++ compilation in separate thread |
+| `compilers/javascript/executionEnvironmentCodeProcessor.js` | Code transformer | Transforms JavaScript code for execution environment |
+| `compilers/csharp/csharpCompiler.js` | C# compiler | Handles C# compilation via WASM runtime |
+
+---
+
+## Execution Environment System
+
+| File | Role | Responsibilities |
+|------|------|------------------|
+| `javascript/executionEnviroment/executionEnvironment.js` | Execution controller | Manages sandbox/iframe execution lifecycle |
+| `javascript/executionEnviroment/executionEnvironment_Page.js` | Output renderer | Displays runtime output, logs, and errors |
+| `compilers/javascript/executionEnvironmentInternal.js` | Execution bridge engine | Executes transformed JavaScript within controlled runtime context |
+| `moduleEventTarget.js` | Event system | Central pub/sub event dispatcher |
+| `loadsplashkit.js` | WASM bootstrapper | Loads SplashKit WebAssembly runtime |
+| `fsevents.js` | FS event dispatcher | Syncs file system events with UI and runtime systems |
+
+---
+
+## Runtime Systems
+
+| File | Role | Responsibilities |
+|------|------|------------------|
+| `runtimes/ExecutionEnvironmentInternal.js` | Core runtime engine | Manages execution lifecycle (run, stop, reset) |
+| `runtimes/ExecutionEnvironmentInternalLoader.js` | Runtime loader | Loads and initializes execution runtime |
+| `runtimes/cxx/cxxRuntime.js` | C++ runtime | Executes compiled WebAssembly C++ output |
+| `runtimes/csharp/csharpRuntime.js` | C# runtime | Executes compiled C# programs via WASM |
+| `runtimes/javascript/` | JavaScript runtime | Executes JavaScript programs in browser environment |
+
+---
+
+## Storage & Filesystem Layer
+
+| File | Role | Responsibilities |
+|------|------|------------------|
+| `javascript/storage/appStorage/` | App storage | IndexedDB-based persistent storage system |
+| `javascript/storage/unifiedfs.js` | Virtual filesystem | Unifies persistent storage and runtime filesystem |
+| `javascript/storage/fileview.js` | File UI sync | Synchronizes filesystem with file explorer UI |
+| `javascript/storage/fsevents.js` | FS event system | Emits file system change events for UI/runtime sync |
+
+---
+
+## UI Layer
+
+| File | Role | Responsibilities |
+|------|------|------------------|
+| `javascript/UI/editorMain.js` | Editor controller | Manages CodeMirror editor instance and editing lifecycle |
+| `javascript/UI/treeview.js` | File explorer | Displays and manages project file hierarchy |
+| `javascript/UI/modal.js` | Modal system | Handles dialogs, popups, and confirmations |
+| `javascript/UI/notifications.js` | Notification system | Displays IDE alerts and messages |
+| `javascript/UI/themes.js` | Theme manager | Applies and switches UI themes |
+| `javascript/UI/HTMLBuilderUtil.js` | DOM utilities | Helper functions for UI construction |
+| `javascript/layout/layout.js` | Layout engine | Controls panel layout, resizing, and IDE structure |
+
+---
+
+## Service Worker Layer
+
+| File | Role | Responsibilities |
+|------|------|------------------|
+| `SKOservice-worker.js` | Service worker | Handles caching, offline support, and request interception |
+
+---
+
+## External Runtime / WASM Systems
+
+| Folder/File | Role | Responsibilities |
+|-------------|------|------------------|
+| `SplashKitWasm/` | WASM engine | Builds and compiles SplashKit C++ WebAssembly runtime |
+| `CSharpWasm/` | C# WASM bridge | Compiles and binds C# code to WebAssembly runtime |
+| `CSharpWasmExpo/` | WASM output runtime | Hosts compiled C# runtime artifacts |
+| `assets/` | Static assets | Images, icons, logos, and static resources |
+| `DemoProjects/` | Sample projects | Prebuilt example projects and metadata for demos |
 
 ---
 ## Loading & Initialization Flow
@@ -364,66 +447,4 @@ Credits to the developers of splashkit online for documenting this function deep
 - Intended for flexible customization without changing CSS files directly.
 
 ---
-
----
-
-## File Changes
-
-### Summary
-No files or folders were added or removed as part of this task. The purpose of this documentation is to analyse and describe the existing project structure.
-
----
-
-## Structure
-
-### Root Directory
-
-This directory contains all the core files required to run the SplashKit Online IDE. This includes server-side scripts, client-side JavaScript files, and the main HTML entry point.
-
-#### Key Files
-- `server.js` – Entry point for the backend server
-- `setup.js` – Handles dependency setup and downloads
-- `index.html` – Main frontend entry point of the IDE
-
----
-
-### Browser IDE Components
-
-These files are responsible for the functionality of the in-browser IDE, including the editor, execution environment, UI, and file system.
-
-#### Core Areas
-- **Execution Environment**  
-  Handles sandboxed code execution using an iframe and WebAssembly.
-
-- **Editor System**  
-  Manages CodeMirror integration, tabs, syntax highlighting, and user interaction.
-
-- **File System**  
-  Uses IndexedDB and a unified virtual file system to manage project files.
-
-- **UI Components**  
-  Includes modals, notifications, file tree view, and project loading UI.
-
----
-
-### SplashKit Runtime & Dependencies
-
-These components handle loading and running SplashKit in the browser.
-
-- WebAssembly (`.wasm`) binaries
-- JavaScript runtime loaders
-- Compiler files and language setups
-
-These are dynamically loaded depending on the selected programming language.
-
----
-
-### Demo Projects
-
-Contains predefined example projects that users can load into the IDE. These are used for testing and demonstration purposes.
-
----
-
-
-
 
