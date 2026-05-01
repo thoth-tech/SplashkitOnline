@@ -156,28 +156,37 @@ int main(){
 const defaultMainCodeCSharp = `
 using SplashKitSDK;
 
-namespace WriteLine
+namespace SplashKitGraphicsExample
 {
     public class Program
     {
         public static void Main()
         {
-            // Example 1: Print explicit string
-            SplashKit.WriteLine("Hello World");
+            SplashKit.OpenWindow("My First Graphics Project", 800, 600);
 
-            // Example 2: Print value of string variable
-            string message = "Hello World from 'message' variable";
-            SplashKit.WriteLine(message);
+            while (!SplashKit.WindowCloseRequested("My First Graphics Project"))
+            {
+                SplashKit.ProcessEvents();
 
-            // Example 3: Print combination of explicit string and value of string variable
-            string hello = "Hello";
-            SplashKit.WriteLine(hello + " World! Don't forget spaces between words when printing to the terminal!");
-            SplashKit.WriteLine("Otherwise you get this: " + hello + "World!");
+                SplashKit.ClearScreen(Color.SkyBlue);
+
+                SplashKit.FillRectangle(Color.LimeGreen, 0, 400, 800, 200);
+
+                SplashKit.FillRectangle(Color.SandyBrown, 300, 250, 200, 150);
+
+                SplashKit.FillTriangle(Color.Red, 280, 250, 400, 150, 520, 250);
+
+                SplashKit.FillRectangle(Color.Brown, 380, 320, 40, 80);
+
+                SplashKit.FillRectangle(Color.LightYellow, 330, 290, 40, 40);
+                SplashKit.FillRectangle(Color.LightYellow, 430, 290, 40, 40);
+
+                SplashKit.RefreshScreen(60);
+            }
         }
     }
 }
 `;
-
 let codePath = "/code";
 
 async function initializeSplashKitResourceFolders(storedProject) {
