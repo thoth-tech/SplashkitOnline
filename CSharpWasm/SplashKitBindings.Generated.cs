@@ -110,9 +110,6 @@ namespace SplashKitSDK
       [JSImport("SplashKitBackendWASM.clear_screen", "main.js")] 
       public static partial void ClearScreen();
 
-      [JSImport("SplashKitBackendWASM.draw_circle", "main.js")]
-      public static partial void DrawCircle(int color, double x, double y, double radius);
-
       [JSImport("SplashKitBackendWASM.refresh_screen", "main.js")] 
       public static partial void RefreshScreen();
 
