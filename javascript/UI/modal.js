@@ -1,46 +1,100 @@
 "use strict";
 
-// Thin wrapper around Bootstrap, in case we stop using it later
-function createModal(name, title, content, primaryButton, secondaryButton = null){
+// helper: create element, set attrs/styles, append children
+function elem(tag, attrs = {}, childElems = []){
+    let elem = document.createElement(tag);
 
-    let modal = document.createElement("div");
+    for (const [attrName, attrVal] of Object.entries(attrs)){
+        if (attrName == 'style'){
+            for (const [styleName, styleVal] of Object.entries(attrVal)){
+                elem.style[styleName] = styleVal;
+            }
+        } else {
+            elem.setAttribute(attrName, attrVal);
+        }
+    }
 
-    // Create via string template...
-    let modalString = [
-    '<div id="'+name+'" tabindex="-1" class="modal fade" aria-hidden="true" aria-labelledby="exampleModalLabel">',
-    '  <div class="modal-dialog">',
-    '    <div class="sk-contents">',
-    '      <div class="sk-header sk-header-indent">',
-    '        <h2>'+title+'</h2>',
-    '        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>',
-    '      </div>',
-    '      <div class="sk-contents modal-body">',
-    '        '+content+'',
-    '      </div>',
-    '      <div class="sk-header sk-modal-footer">',
-    '      </div>',
-    '    </div>',
-    '  </div>',
-    '</div>'].join("\n");
+    // append strings (-> TextNode) or Node objects
+    elem.append(...childElems);
 
-    modal.innerHTML = modalString;
+    return elem;
+}
 
-    if (secondaryButton != null){
-        var sButton = document.createElement("button");
-        sButton.classList.add("btn","btn-secondary");
-        sButton.innerText = secondaryButton.label;
+// parse HTML string into a document body (use with care)
+function elemFromText(text) {
+    return new DOMParser().parseFromString(text, "text/html").body;
+}
+
+// fade out and remove element
+function removeFadeOut(el, speed) {
+    var seconds = speed/1000;
+    el.style.transition = "opacity " + seconds + "s ease";
+    el.style.opacity = 0;
+    setTimeout(function() {
+        if (el.parentNode) el.parentNode.removeChild(el);
+    }, speed);
+}
+
+// createModal: builds a Bootstrap modal safely (no innerHTML)
+function createModal(name, title, content, primaryButton, secondaryButton = null) {
+    const modal = elem("div", {
+        id: name,
+        class: "modal fade",
+        tabindex: "-1",
+        "aria-hidden": "true",
+        "aria-labelledby": "exampleModalLabel"
+    });
+
+    const dialog = elem("div", { class: "modal-dialog" });
+    modal.append(dialog);
+
+    const contents = elem("div", { class: "sk-contents" });
+    dialog.append(contents);
+
+    // header (title as text)
+    const header = elem("div", { class: "sk-header sk-header-indent" }, [
+        elem("h2", {}, [document.createTextNode(title)]),
+        elem("button", {
+            type: "button",
+            class: "btn-close btn-close-white",
+            "data-bs-dismiss": "modal",
+            "aria-label": "Close"
+        })
+    ]);
+    contents.append(header);
+
+    // body: string -> TextNode; Node -> append
+    const bodyNode = elem("div", { class: "sk-contents modal-body" });
+    if (typeof content === "string") {
+        bodyNode.appendChild(document.createTextNode(content));
+    } else if (content instanceof Node) {
+        bodyNode.appendChild(content);
+    } else {
+        bodyNode.appendChild(document.createTextNode(String(content)));
+    }
+    contents.append(bodyNode);
+
+    // footer and buttons
+    const footer = elem("div", { class: "sk-header sk-modal-footer" });
+    contents.append(footer);
+
+    if (secondaryButton) {
+        const sButton = elem("button", { class: "btn btn-secondary" }, [
+            document.createTextNode(secondaryButton.label)
+        ]);
         sButton.onclick = secondaryButton.callback;
-        modal.getElementsByClassName("sk-modal-footer")[0].appendChild(sButton);
+        footer.appendChild(sButton);
     }
-    if (primaryButton != null){
-        var pButton = document.createElement("button");
-        pButton.classList.add("btn","btn-success");
-        pButton.innerText = primaryButton.label;
+
+    if (primaryButton) {
+        const pButton = elem("button", { class: "btn btn-success" }, [
+            document.createTextNode(primaryButton.label)
+        ]);
         pButton.onclick = primaryButton.callback;
-        modal.getElementsByClassName("sk-modal-footer")[0].appendChild(pButton);
+        footer.appendChild(pButton);
     }
 
+    // attach and return Bootstrap modal instance
     document.body.appendChild(modal);
-
-    return new bootstrap.Modal(modal.childNodes[0], {});
+    return new bootstrap.Modal(modal, {});
 }
