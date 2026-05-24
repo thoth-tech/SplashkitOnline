@@ -12,9 +12,9 @@ this will help!
 
 ## Structure
 
-### Browser_IDE
+### Root Directory
 
-This folder contains all the files relevant to the in-browser IDE. This includes front-end and
+All files relevant to the in-browser IDE are located in the root directory. This includes front-end and
 back-end Javascript, html, css, libraries, etc.
 
 #### Folders
@@ -100,7 +100,8 @@ virtual filesystem (that the SplashKit Wasm library can access).
 ### SplashKitWasm
 
 This folder contains the files related to _building_ SplashKit so that it can run inside the
-browser - the output from this build is then copied into Browser_IDE, where the library is used!
+browser - the output from this build is then copied into the locations used by the IDE's runtimes
+(e.g. the 'splashkit' and relevant 'runtimes' folders).
 
 `cmake` - The cmake project - used to build the SplashKit Wasm library!
 
@@ -114,8 +115,7 @@ bindings.
 
 `generated` - Files generated during the build process.
 
-`out` - Contains the built library! This is also copied straight into `Browser_IDE/splashkit` during
-the build.
+`out` - Contains the built library! This output is what gets copied into the IDE's runtime locations.
 
 ### DemoProjects
 
