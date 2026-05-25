@@ -32,10 +32,12 @@ const themes = {
     //"gutterColour": "#1e1e1e",
     "shadowColour": "#1e1e1e",
     "editorKeyword": "#FAF9F6",
-    "editorComment": "#228B22",
+    "editorComment": "#25C325",
     "editorLineNumber": "#FFFFF0",
     "editorGutterBackground": "#dcdcdc",
-    "editorString": "#fdfdfd"
+    "editorString": "#fdfdfd",
+    "editorSelected": "rgba(255, 255, 255, 0.335)",
+    "editorNumber": "#BF95F9"
   },
   "professional-grey": {
     "editorBackgroundColour": "#2b2b2b",
@@ -70,7 +72,6 @@ document.addEventListener("DOMContentLoaded", () => {
   //Change the theme when the user picks something
   sel.onchange = () => applyTheme(themes[sel.value]);
 
-
   // when user picks a new theme
   sel.onchange = () => {
     const selected = sel.value;
@@ -82,6 +83,5 @@ document.addEventListener("DOMContentLoaded", () => {
       localStorage.setItem("skoTheme", selected);
     }
   };
-
 });
 
