@@ -2,10 +2,10 @@ let SKO = null;
 
 importScripts('./../../jszip/jszip.min.js');
 importScripts('./../../javascript/communication/communication.js');
-importScripts('./../../external/js-lzma/src/wlzma.js');
-importScripts('./../../external/js-lzma/src/lzma.shim.js');
+importScripts('./../../js-lzma/src/wlzma.js');
+importScripts('./../../js-lzma/src/lzma.shim.js');
 
-self.wlzmaCustomPath = "./../../external/js-lzma/src/wlzma.wrk.js";
+self.wlzmaCustomPath = "./../../js-lzma/src/wlzma.wrk.js";
 self.downloadRootPath = "./../../";
 importScripts('./../../javascript/middleware/downloadHandler.js');
 

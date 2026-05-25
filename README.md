@@ -46,7 +46,6 @@ The IDE is just a simple node project with few dependencies, and can be setup wi
 
 ```bash
 git clone --recursive https://github.com/thoth-tech/SplashkitOnline.git
-cd SplashkitOnline/Browser_IDE/
 npm install
 ```
 
@@ -108,7 +107,7 @@ emcmake cmake -G "Unix Makefiles" .
 emmake make
 ```
 
-If all goes well, you should find the three files built and copied to inside `Browser_IDE/runtimes/javascript/bin/` and `Browser_IDE/splashkit/` - if so, you're done!
+If all goes well, you should find the three files built and copied to inside `runtimes/javascript/bin/` and `splashkit/` - if so, you're done!
 
 **Note:** Placing the project in a path with spaces can lead to errors during the build process.
 
