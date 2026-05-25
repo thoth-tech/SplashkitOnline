@@ -43,10 +43,10 @@ Standard installation (of JavaScript and C++ support) involves two steps:
 ### Setting up the IDE
 
 The IDE is just a simple node project with few dependencies, and can be setup with the following lines:
-
+**Note:** If you plan on making changes or submitting pull requests, you should first fork the repository on GitHub, then clone your fork’s URL instead of the main repository.
 ```bash
 git clone --recursive https://github.com/thoth-tech/SplashkitOnline.git
-cd SplashkitOnline/Browser_IDE/
+cd SplashkitOnline
 npm install
 ```
 
@@ -108,7 +108,7 @@ emcmake cmake -G "Unix Makefiles" .
 emmake make
 ```
 
-If all goes well, you should find the three files built and copied to inside `Browser_IDE/runtimes/javascript/bin/` and `Browser_IDE/splashkit/` - if so, you're done!
+If all goes well, you should find the three files built and copied to inside `runtimes/javascript/bin/` and `splashkit/` - if so, you're done!
 
 **Note:** Placing the project in a path with spaces can lead to errors during the build process.
 
