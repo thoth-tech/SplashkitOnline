@@ -139,7 +139,9 @@ Explains how each JavaScript file fits into the IDE startup, loading, and runtim
 ├── setup.py
 └── SKOservice-worker.js
 ```
-
+> [!NOTE]
+> The following documentation files provide additional context:
+>- [Folder Structure Overview](./Code%20Documentation/Other/folder-structure-overview.md)
 
 ---
 ## Files Overview
@@ -364,6 +366,7 @@ Explains how each JavaScript file fits into the IDE startup, loading, and runtim
 
 ## Client Side Component Interactions
 
+
 ### splashKitOnlineEnvParams.js
 - Loads environment parameters at runtime, either from defaults or URL query parameters.
 - Used throughout the IDE to alter behavior.
@@ -500,6 +503,9 @@ Credits to the developers of splashkit online for documenting this function deep
 - Maintains internal status tracking using `ExecutionStatus`.
 - Creates control functions to wrap post messages in order to have a cleaner object oriented method of executing common functions with events set up.
 - Loads `executionEnvironment.html` into the iframe
+> [!NOTE]
+> The following documentation files provide additional context:
+>- [execution environment](./Code%20Documentation/Classes/execution-environment.md)
 
 ### executionEnvironment_Page.js
 - Handles terminal output rendering and formatting using DOM manipulation.
@@ -547,6 +553,9 @@ Credits to the developers of splashkit online for documenting this function deep
   - Supports project-wide file system methods like `mkdir`, `writeFile`, `readFile`, `rename`, `unlink`, and `rmdir`.
   - Provides helpers for listing files (`getFileTree`, `getFlatFileList`, `getAllFilesRaw`).
 - Triggered during IDE startup via `InitializeProjectQueue` in [`IDEStartupMain.js`](#idestartupmainjs) to restore or create the user’s project.
+> [!NOTE]
+> The following documentation files provide additional context:
+>- [idb stored project](./Code%20Documentation/Classes/idb-stored-project.md)
 
 ### unifiedfs.js
 - Manages file operations across both the persistent ([`IDBStoredProject`](#idbstoredprojectjs)) and transient ([`ExecutionEnvironment`](#executionenvironmentjs)) file systems so both file systems remain synced.
@@ -580,6 +589,9 @@ Credits to the developers of splashkit online for documenting this function deep
 - Handles the visual file explorer panel in the IDE.
 - Reacts to file system events to update the tree in real-time.
 - Supports file/folder creation, deletion, renaming, moving, and uploads through UI events.
+> [!NOTE]
+> The following documentation files provide additional context:
+>- [tree view](./Code%20Documentation/Classes/tree-view.md)
 
 ### fileview.js
 - Manages the interactive file panel UI using [`TreeView.js`](#treeviewjs).
