@@ -41,6 +41,8 @@ jobs:
       - name: Download Built Sites
         working-directory: ./
         run: |
+          echo | ls >> $GITHUB_OUTPUT
+          pwd
           sudo apt-get install tree
           python3 ./script/.github/workflows/download_github_site_previews.py "${{ github.repository }}" static-site
           tree

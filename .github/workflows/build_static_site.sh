@@ -67,9 +67,9 @@ else
 
     # first let's get a list of files _not_ to copy
     cd ./splashkitonline
-    TRACKED_FILES=$(git log --pretty=format: --name-only --diff-filter=A -- Browser_IDE| sort - | sed '/^$/d')
-    EXCLUDE_FILE=$(mktemp)
-    echo "$TRACKED_FILES" | sed "s|^Browser_IDE||" > "$EXCLUDE_FILE"
+    #TRACKED_FILES=$(git log --pretty=format: --name-only --diff-filter=A -- Browser_IDE| sort - | sed '/^$/d')
+    #EXCLUDE_FILE=$(mktemp)
+    #echo "$TRACKED_FILES" | sed "s|^Browser_IDE||" > "$EXCLUDE_FILE"
 
     # add some explicit excludes
     echo "/codemirror-5.65.15" >> "$EXCLUDE_FILE"
@@ -91,7 +91,7 @@ else
     cd ../
 
     # copy in all the untracked files!
-    rsync -av --progress --exclude-from="$EXCLUDE_FILE" "prebuilt/" "splashkitonline/Browser_IDE/"
+    rsync -av --progress --exclude-from="$EXCLUDE_FILE" "prebuilt/" "splashkitonline/"
 
 fi
 
@@ -99,18 +99,14 @@ fi
 echo "========================================"
 echo "Install Node Dependencies"
 echo "========================================"
-cd ./splashkitonline/Browser_IDE
+cd ./splashkitonline
 
 npm install
-
-cd ../../
-
 
 
 echo "========================================"
 echo "Re-Structure Static Site"
 echo "========================================"
-cd ./splashkitonline/Browser_IDE
 
 # if changed, remember to update the explicit excludes above
 mv node_modules/codemirror codemirror-5.65.15
@@ -118,7 +114,6 @@ mv node_modules/jszip/dist jszip
 mv node_modules/@babel/standalone babel
 mv node_modules/split.js/dist split.js
 mv node_modules/mime/dist mime
-rm -rf external/js-lzma/data
-mv ../DemoProjects DemoProjects
+rm -rf js-lzma/data
 
 cd ../
