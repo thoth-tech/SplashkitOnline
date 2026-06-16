@@ -134,6 +134,10 @@ class ExecutionEnvironment extends EventTarget{
 
         await getPromiseFromEvent(this, "initialized");
         this.readyForExecution = true;
+
+        if (typeof window.applySavedTheme === "function") {
+            window.applySavedTheme();
+        }
     }
 
     // Public Facing Methods
@@ -203,6 +207,11 @@ class ExecutionEnvironment extends EventTarget{
             let f = function(ev){
                 this.removeEventListener("initialized", f);
                 this.readyForExecution = true;
+
+                if (typeof window.applySavedTheme === "function") {
+                    window.applySavedTheme();
+                }
+
                 resolve();
             }
             this.addEventListener("initialized", f);

@@ -7,7 +7,7 @@
     --editorFunctionsAndObject: #50fa7b;
     --editorProperty: #66d9ef;
     --editorNumber: #bd93f9;
-    --editorSelected: rgba(255, 255, 255, 0.10);
+    --editorSelected: rgba(0, 120, 215, 0.20);
     --editorString: #f1fa8c;
     /* This meta colour is used for a numerious single characters, These include () in function calls, ; for termination operator ect  */
     --editorMeta: #f8f8f2;
