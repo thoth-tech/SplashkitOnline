@@ -1,0 +1,112 @@
+# Drawing Text and Shapes in SplashKit
+
+**Author:** Stanoja Jovanovic  
+**Capstone Project A**  
+**Last Updated:** Week 8
+
+---
+
+## 🧭 Overview
+
+This tutorial introduces how to use SplashKit to draw basic text and shapes on the screen. These techniques are useful for creating user interfaces, loading screens, buttons, menus, and HUDs in SplashKit-based games or applications.
+
+---
+
+## 🧱 What You'll Learn
+
+- How to draw text using `DrawText`
+- How to draw shapes like rectangles, circles, and lines
+- How to customize colors, fonts, and positions
+
+---
+
+## 🎨 Drawing Text
+
+SplashKit provides an easy function to draw text to the screen:
+
+```cpp
+DrawText("Hello, SplashKit!", COLOR_WHITE, "Arial", 24, 100, 100);
+Parameters:
+
+"Hello, SplashKit!" – the text
+
+COLOR_WHITE – the text color
+
+"Arial" – the font (must be loaded first)
+
+24 – font size
+
+100, 100 – X and Y position on screen
+
+📌 Don’t forget to load the font first:
+cpp
+Copy code
+LoadFont("Arial", "arial.ttf");
+⚠️ Make sure "arial.ttf" is placed in your project directory or in your resource path.
+
+⏹️ Drawing Shapes
+1. Rectangle
+cpp
+Copy code
+FillRectangle(COLOR_RED, 50, 150, 200, 100);
+This draws a filled red rectangle at (50,150) with width 200 and height 100.
+
+To draw just the outline:
+
+cpp
+Copy code
+DrawRectangle(COLOR_BLACK, 50, 150, 200, 100);
+2. Circle
+cpp
+Copy code
+FillCircle(COLOR_BLUE, 300, 300, 50);
+This draws a filled blue circle at (300,300) with a radius of 50.
+
+3. Line
+cpp
+Copy code
+DrawLine(COLOR_GREEN, 100, 400, 300, 400);
+This draws a green horizontal line from (100,400) to (300,400).
+
+🧪 Full Example
+cpp
+Copy code
+#include "splashkit.h"
+
+int main()
+{
+    OpenWindow("Drawing Demo", 640, 480);
+
+    LoadFont("Arial", "arial.ttf");
+
+    while (!WindowCloseRequested("Drawing Demo"))
+    {
+        ClearScreen(COLOR_WHITE);
+
+        // Draw Text
+        DrawText("Main Menu", COLOR_BLACK, "Arial", 32, 220, 30);
+
+        // Draw Shapes
+        FillRectangle(COLOR_RED, 100, 100, 150, 80); // Play Button
+        DrawText("Play", COLOR_WHITE, "Arial", 24, 140, 130);
+
+        FillRectangle(COLOR_GRAY, 100, 200, 150, 80); // Exit Button
+        DrawText("Exit", COLOR_BLACK, "Arial", 24, 140, 230);
+
+        // Draw Line
+        DrawLine(COLOR_BLACK, 0, 300, 640, 300);
+
+        RefreshScreen(60);
+    }
+
+    return 0;
+}
+💡 Tips
+Use ClearScreen() before drawing each frame
+
+Use RefreshScreen(FPS) to control rendering speed
+
+Organize drawing functions into reusable parts (e.g., DrawMainMenu())
+
+✅ Summary
+With just a few simple functions, you can create functional and visually clear interfaces using SplashKit. Mastering text and shape drawing is an essential first step toward building full UI screens in your games or apps.
