@@ -1,3 +1,0 @@
-[submodule Browser_IDE/external/js-lzma"]
-	path = external/js-lzma
-	url = https://github.com/WhyPenguins/js-lzma

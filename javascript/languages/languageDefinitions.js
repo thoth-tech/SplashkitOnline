@@ -100,8 +100,8 @@ let SplashKitOnlineLanguageDefinitions = [
                 "runtimes/cxx/bin/SplashKitBackendWASMCPP.worker.js",
             ],
             compilerFiles: [
-                "external/js-lzma/src/wlzma.js",
-                "external/js-lzma/src/lzma.shim.js",
+                "js-lzma/src/wlzma.js",
+                "js-lzma/src/lzma.shim.js",
                 "compilers/cxx/cxxCompiler.js",
             ],
             runtimeSizeAprox: 0, // user's compiled code becomes the 'runtime'
