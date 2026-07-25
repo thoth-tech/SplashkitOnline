@@ -131,6 +131,28 @@ namespace SplashKitSDK
       [JSImport("SplashKitBackendWASM.process_events", "main.js")] 
       public static partial void ProcessEvents();
 
+      // --- Partial binding: DrawCircle -------------------------------------------------
+      // SplashKit's draw_circle(color clr, double x, double y, double radius) takes a
+      // `color` struct, which the automatic generator above cannot marshal across the
+      // JS interop boundary (System.Runtime.InteropServices.JavaScript.JSImport only
+      // supports a fixed set of primitive/array types, not arbitrary C++ structs).
+      //
+      // As a partial/interim binding, colour is represented here as a packed RGBA
+      // uint, built via RgbaColor(r, g, b, a) - this mirrors how rgba_color() is used
+      // on the SplashKit side and lets DrawCircle be called from C# today.
+      //
+      // NOTE for whoever picks this up next: once the runtime is built locally
+      // (buildAndCopy.sh), confirm the exact exported signature of draw_circle by
+      // inspecting `draw_circle.toString()` in the browser devtools console, and
+      // adjust the parameter types below if they don't line up. A proper fix would
+      // add a real Color struct with a custom JSMarshalAs marshaler so callers can
+      // use SplashKitSDK.Color the same way the C++ and Python backends do.
+      [JSImport("SplashKitBackendWASM.rgba_color", "main.js")]
+      public static partial int RgbaColor(double r, double g, double b, double a);
+
+      [JSImport("SplashKitBackendWASM.draw_circle", "main.js")]
+      public static partial void DrawCircle(int clr, double x, double y, double radius);
+
       [JSImport("SplashKitBackendWASM.quit_requested", "main.js")] 
       public static partial bool QuitRequested();
 
@@ -1211,4 +1233,4 @@ PudOff = 0,
 PudDown = 1,
 PudUp = 2,
 }
-} 
+}
