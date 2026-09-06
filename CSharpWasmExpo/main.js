@@ -84,6 +84,10 @@ const CompileAndRun = async (code, reportError) => {
     }
   } catch (error) {
     console.error("Error during code execution:", error);
+  } finally {
+    // Signal that the run has finished so csharpRuntime.js can report the
+    // stopped state back to the IDE, re-enabling Run/Restart correctly.
+    document.dispatchEvent(new CustomEvent("compileAndRunComplete"));
   }
 };
 
