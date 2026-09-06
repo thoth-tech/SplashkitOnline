@@ -9,9 +9,31 @@ const parseMethods = (methods) => {
 
   const bindingsFunctions = {};
 
+  const frame = document.querySelector("iframe");
+  const wasmScope = frame?.contentWindow;
+
   for (const name of methodList) {
     try {
-      bindingsFunctions[name] = eval(name);
+      let fn =
+        globalThis[name] ??
+        wasmScope?.[name] ??
+        wasmScope?.[`_CPP_${name}`];
+
+      if (typeof fn !== "function") {
+        const sklibMatch = Object.keys(wasmScope || {}).find(
+          (key) => key === `__sklib__${name}` || key.startsWith(`__sklib__${name}__`)
+        );
+
+        if (sklibMatch && typeof wasmScope[sklibMatch] === "function") {
+          fn = wasmScope[sklibMatch];
+        }
+      }
+
+      if (typeof fn === "function") {
+        bindingsFunctions[name] = fn;
+      } else {
+        console.warn(`Missing binding: ${name}`);
+      }
     } catch (e) {
       console.warn(e);
     }
@@ -62,6 +84,10 @@ const CompileAndRun = async (code, reportError) => {
     }
   } catch (error) {
     console.error("Error during code execution:", error);
+  } finally {
+    // Signal that the run has finished so csharpRuntime.js can report the
+    // stopped state back to the IDE, re-enabling Run/Restart correctly.
+    document.dispatchEvent(new CustomEvent("compileAndRunComplete"));
   }
 };
 
