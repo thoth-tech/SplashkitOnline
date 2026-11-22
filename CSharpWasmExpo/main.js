@@ -1,30 +1,9 @@
 import { dotnet } from "./wwwroot/_framework/dotnet.js";
 import methods from "./splashKitMethods.generated.js";
+import { resolveBinding } from "./bindingResolver.mjs";
 
-// Resolve a single SplashKit binding by name. The generated method list uses
-// the plain SplashKit names, but the build can expose them under a few
-// different shapes depending on which backend produced them, so each known
-// shape is tried in turn.
-const resolveBinding = (name, wasmScope) => {
-  let fn =
-    globalThis[name] ??
-    wasmScope?.[name] ??
-    wasmScope?.[`_CPP_${name}`] ??
-    globalThis[`__sko_${name}`] ??
-    wasmScope?.[`__sko_${name}`];
 
-  if (typeof fn !== "function") {
-    const sklibMatch = Object.keys(wasmScope || {}).find(
-      (key) => key === `__sklib__${name}` || key.startsWith(`__sklib__${name}__`)
-    );
 
-    if (sklibMatch && typeof wasmScope[sklibMatch] === "function") {
-      fn = wasmScope[sklibMatch];
-    }
-  }
-
-  return typeof fn === "function" ? fn : null;
-};
 
 const parseMethods = (methods) => {
   if (!methods || typeof methods !== "string") {
